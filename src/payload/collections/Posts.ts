@@ -1,9 +1,13 @@
-import type { CollectionConfig } from 'payload'
+import type { Access, CollectionConfig, Where } from 'payload'
 
-import { isAdmin, isAdminOrWriter } from '../access/roles.ts'
+import { isAdmin, isAdminOrWriter, isOwnerOrAdmin } from '../access/roles.ts'
 import { seoFields } from '../fields/seo-fields.ts'
 import { slugField } from '../fields/slug-field.ts'
 import { createArticleEditor } from '../fields/article-editor.ts'
+import { enforceAuthor } from '../hooks/posts/enforce-author.ts'
+import { assignPublishedAt, publishValidation } from '../hooks/posts/publish-validation.ts'
+import { computeReadingTime } from '../hooks/posts/reading-time.ts'
+import { generateSlugFromTitle } from '../hooks/posts/slug-lifecycle.ts'
 
 export const Posts: CollectionConfig = {
   slug: 'posts',
@@ -18,19 +22,28 @@ export const Posts: CollectionConfig = {
     drafts: true,
   },
   access: {
-    read: ({ req }) => {
-      if (req.user) {
+    read: (({ req }) => {
+      if (req.user?.role === 'admin') {
         return true
+      }
+      if (req.user) {
+        const publishedFilter: Where = { _status: { equals: 'published' } }
+        const ownPostsFilter: Where = { author: { equals: req.user.id } }
+        return { or: [publishedFilter, ownPostsFilter] }
       }
       return {
         _status: {
           equals: 'published',
         },
       }
-    },
+    }) as Access,
     create: isAdminOrWriter,
-    update: isAdminOrWriter,
+    update: isOwnerOrAdmin('author'),
     delete: isAdmin,
+  },
+  hooks: {
+    beforeValidate: [generateSlugFromTitle],
+    beforeChange: [enforceAuthor, publishValidation, assignPublishedAt, computeReadingTime],
   },
   fields: [
     {

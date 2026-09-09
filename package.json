@@ -15,7 +15,9 @@
     "payload": "payload",
     "generate:types": "payload generate:types",
     "migrate:create": "payload migrate:create",
-    "migrate": "payload migrate"
+    "migrate": "payload migrate",
+    "seed:initial": "payload run src/payload/seed/initial.ts",
+    "seed:dev": "payload run src/payload/seed/dev.ts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.87.1",

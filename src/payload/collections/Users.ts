@@ -3,6 +3,7 @@ import { Forbidden } from 'payload'
 
 import { isAdmin, isAdminFieldAccess, isLoggedInFieldAccess } from '../access/roles.ts'
 import { socialLinksField } from '../fields/social-links-field.ts'
+import { preventDeleteWithPosts } from '../hooks/users/prevent-delete-with-posts.ts'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -27,6 +28,7 @@ export const Users: CollectionConfig = {
         }
       },
     ],
+    beforeDelete: [preventDeleteWithPosts],
   },
   fields: [
     {

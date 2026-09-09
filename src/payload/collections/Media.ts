@@ -1,14 +1,20 @@
 import type { CollectionConfig } from 'payload'
 
-import { isAdmin, isLoggedIn } from '../access/roles.ts'
+import { isAdmin, isLoggedIn, isOwnerOrAdmin } from '../access/roles.ts'
+import { enforceUploader } from '../hooks/media/enforce-uploader.ts'
+import { preventDeleteReferenced } from '../hooks/media/prevent-delete-referenced.ts'
 
 export const Media: CollectionConfig = {
   slug: 'media',
   access: {
     read: () => true,
     create: isLoggedIn,
-    update: isLoggedIn,
+    update: isOwnerOrAdmin('uploadedBy'),
     delete: isAdmin,
+  },
+  hooks: {
+    beforeChange: [enforceUploader],
+    beforeDelete: [preventDeleteReferenced],
   },
   upload: {
     mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'],
@@ -36,6 +42,14 @@ export const Media: CollectionConfig = {
     {
       name: 'description',
       type: 'textarea',
+    },
+    {
+      name: 'uploadedBy',
+      type: 'relationship',
+      relationTo: 'users',
+      admin: {
+        readOnly: true,
+      },
     },
   ],
 }

@@ -4,7 +4,7 @@ Portal editorial y multimedia construido con Next.js + Payload CMS + PostgreSQL.
 
 ## Estado del proyecto
 
-El repositorio completó **Phase 0 (Bootstrap)**, **Phase 1 (Technical Foundation)** y **Phase 2 (Payload CMS Core)**: existe una aplicación Next.js + Payload funcional, conectada a PostgreSQL, con validación de entorno, endpoint de salud, entorno de desarrollo reproducible vía Docker Compose, y las 7 Collections de V1 (`Users`, `Media`, `Categories`, `Tags`, `Posts`, `Pages`, `Redirects`) con su schema, relaciones, control de acceso base y la primera migración de base de datos. La automatización del ciclo de vida editorial (generación de slugs, ownership de Writer, publish/unpublish, reading time, seeds) todavía no existe — corresponde a Phase 3 de `docs/60-segundos-spec.md`.
+El repositorio completó **Phase 0 (Bootstrap)**, **Phase 1 (Technical Foundation)**, **Phase 2 (Payload CMS Core)** y **Phase 3 (Editorial Workflow)**: existe una aplicación Next.js + Payload funcional, conectada a PostgreSQL, con validación de entorno, endpoint de salud, entorno de desarrollo reproducible vía Docker Compose, las 7 Collections de V1 (`Users`, `Media`, `Categories`, `Tags`, `Posts`, `Pages`, `Redirects`) con su schema, relaciones y control de acceso base, y el ciclo de vida editorial completo sobre Posts: generación de slug desde el título (sin regeneración automática), ownership de Writer aplicado server-side (un Writer solo lee/edita/publica sus propios Posts, más los publicados de otros autores), validación de campos obligatorios al publicar, `publishedAt` estable a través de ediciones/unpublish-republish/restauración de versiones, cálculo automático de `readingTimeMinutes`, protecciones de eliminación (Categories/Users/Media referenciados) y los scripts `seed:initial`/`seed:dev`. El frontend público, los Globals (Home/Navigation/Footer/SiteSettings), redirects automáticos, SEO/cache y búsqueda todavía no existen — corresponden a fases posteriores de `docs/60-segundos-spec.md`.
 
 ## Stack técnico
 
@@ -100,6 +100,8 @@ pnpm payload <cmd>    # acceso directo al CLI de Payload
 pnpm generate:types   # payload generate:types — regenera src/payload-types.ts
 pnpm migrate:create   # payload migrate:create — genera una nueva migración
 pnpm migrate          # payload migrate — aplica migraciones pendientes
+pnpm seed:initial     # payload run src/payload/seed/initial.ts — baseline idempotente (Categories)
+pnpm seed:dev         # payload run src/payload/seed/dev.ts — contenido de desarrollo/demo
 ```
 
 ## Payload CMS y base de datos
@@ -124,6 +126,20 @@ pnpm generate:types
 ```
 
 `src/payload-types.ts` se commitea al repositorio.
+
+Phase 3 agregó una migración adicional (`src/payload/migrations/20260909_220506_add_media_uploaded_by.ts`) que añade el campo `uploadedBy` a `Media`; se aplica con el mismo flujo `pnpm migrate` descrito arriba.
+
+## Seeds
+
+`pnpm seed:initial` y `pnpm seed:dev` usan `payload run`, el mismo mecanismo de carga de `payload.config.ts` que `generate:types`/`migrate` — ejecútalos dentro del contenedor `app` por la misma razón (`DATABASE_URI` alcanzable), igual que el resto de los comandos de Payload:
+
+```bash
+docker compose exec app pnpm seed:initial
+docker compose exec app pnpm seed:dev
+```
+
+- `seed:initial` crea únicamente las Categories base del proyecto (el único schema de seed ya implementado en esta fase); es idempotente — se puede ejecutar varias veces sin crear duplicados. No crea Navigation, Home ni SiteSettings porque esos Globals todavía no existen.
+- `seed:dev` crea contenido de ejemplo (Writers, Media, Posts en Draft y publicado, una Page) para desarrollo local. **No se ejecuta nunca automáticamente** (ni en el arranque de la app ni en producción) — solo cuando se invoca explícitamente. No contiene credenciales reales.
 
 ## Build y arranque en producción
 

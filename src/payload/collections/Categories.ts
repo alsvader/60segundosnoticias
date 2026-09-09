@@ -6,6 +6,7 @@ import { isAdmin } from '../access/roles.ts'
 import { seoFields } from '../fields/seo-fields.ts'
 import { slugField } from '../fields/slug-field.ts'
 import { createNamespaceSlugValidate } from '../fields/validate-namespace-slug.ts'
+import { preventDeleteWithPosts } from '../hooks/categories/prevent-delete-with-posts.ts'
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
@@ -17,6 +18,9 @@ export const Categories: CollectionConfig = {
     create: isAdmin,
     update: isAdmin,
     delete: isAdmin,
+  },
+  hooks: {
+    beforeDelete: [preventDeleteWithPosts],
   },
   fields: [
     {
