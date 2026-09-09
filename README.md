@@ -4,7 +4,7 @@ Portal editorial y multimedia construido con Next.js + Payload CMS + PostgreSQL.
 
 ## Estado del proyecto
 
-El repositorio completó **Phase 0 (Bootstrap)** y **Phase 1 (Technical Foundation)**: existe una aplicación Next.js + Payload funcional, conectada a PostgreSQL, con validación de entorno, endpoint de salud y un entorno de desarrollo reproducible vía Docker Compose. Payload todavía no define Collections ni Globals editoriales (`Users`, `Posts`, `Categories`, etc.) — eso corresponde a fases posteriores del `docs/60-segundos-spec.md`.
+El repositorio completó **Phase 0 (Bootstrap)**, **Phase 1 (Technical Foundation)** y **Phase 2 (Payload CMS Core)**: existe una aplicación Next.js + Payload funcional, conectada a PostgreSQL, con validación de entorno, endpoint de salud, entorno de desarrollo reproducible vía Docker Compose, y las 7 Collections de V1 (`Users`, `Media`, `Categories`, `Tags`, `Posts`, `Pages`, `Redirects`) con su schema, relaciones, control de acceso base y la primera migración de base de datos. La automatización del ciclo de vida editorial (generación de slugs, ownership de Writer, publish/unpublish, reading time, seeds) todavía no existe — corresponde a Phase 3 de `docs/60-segundos-spec.md`.
 
 ## Stack técnico
 
@@ -91,12 +91,39 @@ Esto requiere una instancia de PostgreSQL alcanzable desde tu máquina en la `DA
 Definidos en `package.json`:
 
 ```bash
-pnpm dev         # next dev — servidor de desarrollo
-pnpm build       # next build — build de producción
-pnpm start       # next start — sirve el build de producción
-pnpm lint        # eslint .
-pnpm typecheck   # tsc --noEmit
+pnpm dev              # next dev — servidor de desarrollo
+pnpm build            # next build — build de producción
+pnpm start            # next start — sirve el build de producción
+pnpm lint             # eslint .
+pnpm typecheck        # tsc --noEmit
+pnpm payload <cmd>    # acceso directo al CLI de Payload
+pnpm generate:types   # payload generate:types — regenera src/payload-types.ts
+pnpm migrate:create   # payload migrate:create — genera una nueva migración
+pnpm migrate          # payload migrate — aplica migraciones pendientes
 ```
+
+## Payload CMS y base de datos
+
+Las 7 Collections de V1 (`Users`, `Media`, `Categories`, `Tags`, `Posts`, `Pages`, `Redirects`) están registradas en `payload.config.ts`. En desarrollo, Payload sincroniza el schema automáticamente contra PostgreSQL (push mode); no es necesario ejecutar migraciones para iterar localmente.
+
+`pnpm migrate:create`/`pnpm migrate` necesitan una `DATABASE_URI` alcanzable, igual que `pnpm dev` (ver "Desarrollo local sin Docker" más arriba). Ejecútalos dentro del contenedor `app`, no en el host, salvo que tengas PostgreSQL accesible localmente:
+
+```bash
+docker compose run --rm app pnpm migrate:create nombre_descriptivo
+docker compose run --rm app pnpm migrate
+```
+
+Esto genera un archivo en `src/payload/migrations/`. Revísalo, y commitéalo junto con tu cambio — las migraciones de este proyecto son explícitas y versionadas, no se ejecutan automáticamente al iniciar la aplicación en producción (eso se define en una fase posterior).
+
+**Cuidado al mezclar push mode con `migrate`**: si la base de datos ya fue sincronizada por push mode (por ejemplo, tras usar `docker compose up` normalmente), `payload migrate` puede pedir una confirmación interactiva ("It looks like you've run Payload in dev mode... proceed?") antes de aplicar. Sin una terminal interactiva adjunta (scripts, `docker compose run --rm` sin `-it`, CI) ese prompt se queda esperando input indefinidamente sin mostrar ningún error — si un comando de migración parece colgado sin salida, es casi seguro esta confirmación sin responder. Ejecuta `migrate` contra una base de datos que push mode todavía no haya tocado, o hazlo desde una terminal interactiva donde puedas responder el prompt.
+
+Para regenerar los tipos de TypeScript después de cambiar cualquier Collection:
+
+```bash
+pnpm generate:types
+```
+
+`src/payload-types.ts` se commitea al repositorio.
 
 ## Build y arranque en producción
 
