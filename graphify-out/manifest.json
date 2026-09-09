@@ -1,0 +1,116 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1788935546.0211794,
+    "seen": 1788936658.8977,
+    "ast_hash": "dbe039a15c5c2eb60e34dccc1af0cbb5",
+    "semantic_hash": "dbe039a15c5c2eb60e34dccc1af0cbb5"
+  },
+  ".codex/hooks.json": {
+    "mtime": 1788935702.9262223,
+    "seen": 1788936658.897701,
+    "ast_hash": "005ac71c84af2cae38e255e2b9de2411",
+    "semantic_hash": "005ac71c84af2cae38e255e2b9de2411"
+  },
+  "scripts/ai/check-environment.sh": {
+    "mtime": 1788934938.0,
+    "seen": 1788936658.897702,
+    "ast_hash": "e2f9448bd0ac1ca0d53de7e2a47fdee4",
+    "semantic_hash": "e2f9448bd0ac1ca0d53de7e2a47fdee4"
+  },
+  "skills-lock.json": {
+    "mtime": 1788933034.3616254,
+    "seen": 1788936658.897703,
+    "ast_hash": "727f1b2c6a3650c8d266656930a44810",
+    "semantic_hash": "727f1b2c6a3650c8d266656930a44810"
+  },
+  ".claude/CLAUDE.md": {
+    "mtime": 1788935546.020424,
+    "seen": 1788936658.897703,
+    "ast_hash": "9b31786b637be3c13978bec4c2330752",
+    "semantic_hash": "9b31786b637be3c13978bec4c2330752"
+  },
+  ".claude/commands/opsx/apply.md": {
+    "mtime": 1788929254.083616,
+    "seen": 1788936658.897704,
+    "ast_hash": "02ef0a1fd105228ca82d57a97a62e418",
+    "semantic_hash": "02ef0a1fd105228ca82d57a97a62e418"
+  },
+  ".claude/commands/opsx/archive.md": {
+    "mtime": 1788929254.0848627,
+    "seen": 1788936658.897705,
+    "ast_hash": "f453ee64528afc02e430240cc27e7cde",
+    "semantic_hash": "f453ee64528afc02e430240cc27e7cde"
+  },
+  ".claude/commands/opsx/explore.md": {
+    "mtime": 1788929254.0832975,
+    "seen": 1788936658.897705,
+    "ast_hash": "e2abb9ccd59fb81c540c4f57d84a1fe9",
+    "semantic_hash": "e2abb9ccd59fb81c540c4f57d84a1fe9"
+  },
+  ".claude/commands/opsx/propose.md": {
+    "mtime": 1788929254.085386,
+    "seen": 1788936658.897706,
+    "ast_hash": "fac90495cd16319e2ee51999d8b8676b",
+    "semantic_hash": "fac90495cd16319e2ee51999d8b8676b"
+  },
+  ".claude/commands/opsx/sync.md": {
+    "mtime": 1788929254.0843368,
+    "seen": 1788936658.897707,
+    "ast_hash": "429c9fbedcc6fe83c36fb1bbc34c96e0",
+    "semantic_hash": "429c9fbedcc6fe83c36fb1bbc34c96e0"
+  },
+  ".claude/commands/opsx/update.md": {
+    "mtime": 1788929254.0839548,
+    "seen": 1788936658.897708,
+    "ast_hash": "0e4881513eaa9f753165b34020247e4b",
+    "semantic_hash": "0e4881513eaa9f753165b34020247e4b"
+  },
+  "AGENTS.md": {
+    "mtime": 1788935702.9259148,
+    "seen": 1788936658.897708,
+    "ast_hash": "3aefd1399c460f1cb5104a162b782180",
+    "semantic_hash": "3aefd1399c460f1cb5104a162b782180"
+  },
+  "CLAUDE.md": {
+    "mtime": 1788935546.0210037,
+    "seen": 1788936658.8977091,
+    "ast_hash": "516735ecdfb3b244555b004d4ba6deff",
+    "semantic_hash": "516735ecdfb3b244555b004d4ba6deff"
+  },
+  "README.md": {
+    "mtime": 1788934938.0,
+    "seen": 1788936658.8977091,
+    "ast_hash": "8f6ece55a116cc6d6f3de3ef9957966f",
+    "semantic_hash": "8f6ece55a116cc6d6f3de3ef9957966f"
+  },
+  "docs/60-segundos-spec.md": {
+    "mtime": 1788933726.0,
+    "seen": 1788936658.89771,
+    "ast_hash": "5df4adb314fe3fc20297ff9811c20b0d",
+    "semantic_hash": "5df4adb314fe3fc20297ff9811c20b0d"
+  },
+  "docs/AI-SKILLS.md": {
+    "mtime": 1788934938.0,
+    "seen": 1788936658.897711,
+    "ast_hash": "8fc79aa17298fb6c7f88552dd1d46eb4",
+    "semantic_hash": "8fc79aa17298fb6c7f88552dd1d46eb4"
+  },
+  "docs/AI-WORKFLOW.md": {
+    "mtime": 1788934938.0,
+    "seen": 1788936658.897711,
+    "ast_hash": "6dad40b78eccff67f4d4dc37e0c990bd",
+    "semantic_hash": "6dad40b78eccff67f4d4dc37e0c990bd"
+  },
+  "docs/ASSETS.md": {
+    "mtime": 1788892806.0,
+    "seen": 1788936658.8977122,
+    "ast_hash": "aa1a00b8e918f5b46bb6fac512af4afe",
+    "semantic_hash": "aa1a00b8e918f5b46bb6fac512af4afe"
+  },
+  "openspec/config.yaml": {
+    "mtime": 1788934938.0,
+    "seen": 1788936658.897713,
+    "ast_hash": "e3bc3fc1cf4506a10d4e75b9086adad9",
+    "semantic_hash": "e3bc3fc1cf4506a10d4e75b9086adad9"
+  }
+}

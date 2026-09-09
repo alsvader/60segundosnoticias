@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Next.js / builds
+.next/
+dist/
+out/
+coverage/
+
+# Git
+.git/
+
+# IDE
+.vscode/
+.idea/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Test output
+playwright-report/
+test-results/
+
+# Graphify output itself
+graphify-out/
+
+# AI skill implementations
+.agents/skills/
+.claude/skills/
+.codex/skills/
+
+# Binary / visual assets
+public/branding/
+public/textures/
+docs/references/
+
+# Package-manager generated files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# OS files
+.DS_Store
+Thumbs.db

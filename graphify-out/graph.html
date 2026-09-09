@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>graphify - graphify-out/graph.html</title>
+<script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"
+        integrity="sha384-Ux6phic9PEHJ38YtrijhkzyJ8yQlH8i/+buBR8s3mAZOJrP1gwyvAcIYl3GWtpX1"
+        crossorigin="anonymous"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f0f1a; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; height: 100vh; overflow: hidden; }
+  #graph { flex: 1; }
+  #sidebar { width: 280px; background: #1a1a2e; border-left: 1px solid #2a2a4e; display: flex; flex-direction: column; overflow: hidden; }
+  #search-wrap { padding: 12px; border-bottom: 1px solid #2a2a4e; }
+  #search { width: 100%; background: #0f0f1a; border: 1px solid #3a3a5e; color: #e0e0e0; padding: 7px 10px; border-radius: 6px; font-size: 13px; outline: none; }
+  #search:focus { border-color: #4E79A7; }
+  #search-results { max-height: 140px; overflow-y: auto; padding: 4px 12px; border-bottom: 1px solid #2a2a4e; display: none; }
+  .search-item { padding: 4px 6px; cursor: pointer; border-radius: 4px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .search-item:hover { background: #2a2a4e; }
+  #info-panel { padding: 14px; border-bottom: 1px solid #2a2a4e; min-height: 140px; }
+  #info-panel h3 { font-size: 13px; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  #info-content { font-size: 13px; color: #ccc; line-height: 1.6; }
+  #info-content .field { margin-bottom: 5px; }
+  #info-content .field b { color: #e0e0e0; }
+  #info-content .empty { color: #555; font-style: italic; }
+  .neighbor-link { display: block; padding: 2px 6px; margin: 2px 0; border-radius: 3px; cursor: pointer; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-left: 3px solid #333; }
+  .neighbor-link:hover { background: #2a2a4e; }
+  #neighbors-list { max-height: 160px; overflow-y: auto; margin-top: 4px; }
+  #legend-wrap { flex: 1; overflow-y: auto; padding: 12px; }
+  #legend-wrap h3 { font-size: 13px; color: #aaa; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .legend-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; border-radius: 4px; font-size: 12px; }
+  .legend-item:hover { background: #2a2a4e; padding-left: 4px; }
+  .legend-item.dimmed { opacity: 0.35; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .legend-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .legend-count { color: #666; font-size: 11px; }
+  #stats { padding: 10px 14px; border-top: 1px solid #2a2a4e; font-size: 11px; color: #555; }
+  #legend-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 4px 0; }
+  #legend-controls label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: #aaa; user-select: none; }
+  #legend-controls label:hover { color: #e0e0e0; }
+  .legend-cb, #select-all-cb { appearance: none; -webkit-appearance: none; width: 14px; height: 14px; border: 1.5px solid #3a3a5e; border-radius: 3px; background: #0f0f1a; cursor: pointer; position: relative; flex-shrink: 0; }
+  .legend-cb:checked, #select-all-cb:checked { background: #4E79A7; border-color: #4E79A7; }
+  .legend-cb:checked::after, #select-all-cb:checked::after { content: ''; position: absolute; left: 3.5px; top: 1px; width: 4px; height: 7px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  #select-all-cb:indeterminate { background: #4E79A7; border-color: #4E79A7; }
+  #select-all-cb:indeterminate::after { content: ''; position: absolute; left: 2px; top: 5px; width: 8px; height: 2px; background: #fff; border: none; transform: none; }
+</style>
+</head>
+<body>
+<div id="graph"></div>
+<div id="sidebar">
+  <div id="search-wrap">
+    <input id="search" type="text" placeholder="Search nodes..." autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+  <div id="info-panel">
+    <h3>Node Info</h3>
+    <div id="info-content"><span class="empty">Click a node to inspect it</span></div>
+  </div>
+  <div id="legend-wrap">
+    <h3>Communities</h3>
+    <div id="legend-controls">
+      <label><input type="checkbox" id="select-all-cb" checked onchange="toggleAllCommunities(!this.checked)">Select All</label>
+    </div>
+    <div id="legend"></div>
+  </div>
+  <div id="stats">41 nodes &middot; 83 edges &middot; 6 communities</div>
+</div>
+<script>
+const RAW_NODES = [{"id": "scripts_ai_check_environment", "label": "check-environment.sh", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 16.2, "font": {"size": 12, "color": "#ffffff"}, "title": "check-environment.sh", "community": 3, "community_name": "Environment Check Script", "source_file": "scripts/ai/check-environment.sh", "file_type": "code", "degree": 5}, {"id": "scripts_ai_check_environment_fail", "label": "fail()", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 12.5, "font": {"size": 0, "color": "#ffffff"}, "title": "fail()", "community": 3, "community_name": "Environment Check Script", "source_file": "scripts/ai/check-environment.sh", "file_type": "code", "degree": 2}, {"id": "scripts_ai_check_environment_has", "label": "has()", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 12.5, "font": {"size": 0, "color": "#ffffff"}, "title": "has()", "community": 3, "community_name": "Environment Check Script", "source_file": "scripts/ai/check-environment.sh", "file_type": "code", "degree": 2}, {"id": "scripts_ai_check_environment_ok", "label": "ok()", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 12.5, "font": {"size": 0, "color": "#ffffff"}, "title": "ok()", "community": 3, "community_name": "Environment Check Script", "source_file": "scripts/ai/check-environment.sh", "file_type": "code", "degree": 2}, {"id": "scripts_ai_check_environment_sh__entry", "label": "check-environment.sh script", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 16.2, "font": {"size": 12, "color": "#ffffff"}, "title": "check-environment.sh script", "community": 3, "community_name": "Environment Check Script", "source_file": "scripts/ai/check-environment.sh", "file_type": "code", "degree": 5}, {"id": "scripts_ai_check_environment_warn", "label": "warn()", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 12.5, "font": {"size": 0, "color": "#ffffff"}, "title": "warn()", "community": 3, "community_name": "Environment Check Script", "source_file": "scripts/ai/check-environment.sh", "file_type": "code", "degree": 2}, {"id": "concept_acceptance_criteria", "label": "Acceptance Criteria (AC-* normative checklist)", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "Acceptance Criteria (AC-* normative checklist)", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "concept", "degree": 1}, {"id": "concept_category_theme", "label": "Category color themes and icon keys", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "Category color themes and icon keys", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "concept", "degree": 1}, {"id": "concept_design_system", "label": "60 Segundos editorial Design System", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "60 Segundos editorial Design System", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "concept", "degree": 1}, {"id": "concept_docker_architecture", "label": "Docker Compose app+db architecture", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "Docker Compose app+db architecture", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "concept", "degree": 1}, {"id": "concept_editorial_roles", "label": "Admin/Writer roles and permissions", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "Admin/Writer roles and permissions", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "concept", "degree": 1}, {"id": "concept_nextjs", "label": "Next.js (App Router)", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "Next.js (App Router)", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "concept", "degree": 1}, {"id": "concept_payload_cms", "label": "Payload CMS", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "Payload CMS", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "concept", "degree": 1}, {"id": "concept_phase_minus_1", "label": "Phase -1 \u2014 AI Development Environment & Repository Bootstrap", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 12.5, "font": {"size": 0, "color": "#ffffff"}, "title": "Phase -1 \u2014 AI Development Environment &amp; Repository Bootstrap", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "concept", "degree": 2}, {"id": "concept_postgresql", "label": "PostgreSQL persistence", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "PostgreSQL persistence", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "concept", "degree": 1}, {"id": "docs_60_segundos_spec_doc", "label": "60 Segundos Noticias \u2014 Master Specification", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 40.0, "font": {"size": 12, "color": "#ffffff"}, "title": "60 Segundos Noticias \u2014 Master Specification", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "document", "degree": 24}, {"id": "concept_block_rendering_pipeline", "label": "Block rendering pipeline (Payload Block \u2192 Resolver \u2192 View Model \u2192 Renderer \u2192 Section)", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "Block rendering pipeline (Payload Block \u2192 Resolver \u2192 View Model \u2192 Renderer \u2192 Section)", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "rationale", "degree": 1}, {"id": "concept_cache_revalidation", "label": "Tag-based cache and targeted revalidation", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "Tag-based cache and targeted revalidation", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "rationale", "degree": 1}, {"id": "concept_data_access_layer", "label": "Data Access Layer (src/lib/data)", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "Data Access Layer (src/lib/data)", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "rationale", "degree": 1}, {"id": "concept_separation_of_responsibilities", "label": "Payload/Next.js separation of responsibilities", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "Payload/Next.js separation of responsibilities", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "rationale", "degree": 1}, {"id": "concept_server_components_default", "label": "React Server Components by default", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "React Server Components by default", "community": 0, "community_name": "Product Architecture Spec", "source_file": "docs/60-segundos-spec.md", "file_type": "rationale", "degree": 1}, {"id": "concept_openspec", "label": "OpenSpec (Spec-Driven Development framework)", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 25.0, "font": {"size": 12, "color": "#ffffff"}, "title": "OpenSpec (Spec-Driven Development framework)", "community": 1, "community_name": "OpenSpec Workflow Commands", "source_file": "docs/AI-WORKFLOW.md", "file_type": "concept", "degree": 12}, {"id": "claude_commands_opsx_apply_command", "label": "OPSX: Apply command", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 15.0, "font": {"size": 12, "color": "#ffffff"}, "title": "OPSX: Apply command", "community": 1, "community_name": "OpenSpec Workflow Commands", "source_file": ".claude/commands/opsx/apply.md", "file_type": "document", "degree": 4}, {"id": "claude_commands_opsx_archive_command", "label": "OPSX: Archive command", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 15.0, "font": {"size": 12, "color": "#ffffff"}, "title": "OPSX: Archive command", "community": 1, "community_name": "OpenSpec Workflow Commands", "source_file": ".claude/commands/opsx/archive.md", "file_type": "document", "degree": 4}, {"id": "claude_commands_opsx_explore_command", "label": "OPSX: Explore command", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 12.5, "font": {"size": 0, "color": "#ffffff"}, "title": "OPSX: Explore command", "community": 1, "community_name": "OpenSpec Workflow Commands", "source_file": ".claude/commands/opsx/explore.md", "file_type": "document", "degree": 2}, {"id": "claude_commands_opsx_propose_command", "label": "OPSX: Propose command", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 13.8, "font": {"size": 0, "color": "#ffffff"}, "title": "OPSX: Propose command", "community": 1, "community_name": "OpenSpec Workflow Commands", "source_file": ".claude/commands/opsx/propose.md", "file_type": "document", "degree": 3}, {"id": "claude_commands_opsx_sync_command", "label": "OPSX: Sync command", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 12.5, "font": {"size": 0, "color": "#ffffff"}, "title": "OPSX: Sync command", "community": 1, "community_name": "OpenSpec Workflow Commands", "source_file": ".claude/commands/opsx/sync.md", "file_type": "document", "degree": 2}, {"id": "claude_commands_opsx_update_command", "label": "OPSX: Update command", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 13.8, "font": {"size": 0, "color": "#ffffff"}, "title": "OPSX: Update command", "community": 1, "community_name": "OpenSpec Workflow Commands", "source_file": ".claude/commands/opsx/update.md", "file_type": "document", "degree": 3}, {"id": "concept_skills_lock", "label": "skills-lock.json roster", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 16.2, "font": {"size": 12, "color": "#ffffff"}, "title": "skills-lock.json roster", "community": 2, "community_name": "Source-of-Truth Docs", "source_file": "docs/AI-SKILLS.md", "file_type": "concept", "degree": 5}, {"id": "agents_doc", "label": "AGENTS.md \u2014 Agent Instructions", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 22.5, "font": {"size": 12, "color": "#ffffff"}, "title": "AGENTS.md \u2014 Agent Instructions", "community": 2, "community_name": "Source-of-Truth Docs", "source_file": "AGENTS.md", "file_type": "document", "degree": 10}, {"id": "docs_assets_doc", "label": "60 Segundos \u2014 Visual Asset Pack", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 13.8, "font": {"size": 0, "color": "#ffffff"}, "title": "60 Segundos \u2014 Visual Asset Pack", "community": 2, "community_name": "Source-of-Truth Docs", "source_file": "docs/ASSETS.md", "file_type": "document", "degree": 3}, {"id": "openspec_config_doc", "label": "OpenSpec config.yaml", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 21.2, "font": {"size": 12, "color": "#ffffff"}, "title": "OpenSpec config.yaml", "community": 2, "community_name": "Source-of-Truth Docs", "source_file": "openspec/config.yaml", "file_type": "document", "degree": 9}, {"id": "readme_doc", "label": "README.md", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 21.2, "font": {"size": 12, "color": "#ffffff"}, "title": "README.md", "community": 2, "community_name": "Source-of-Truth Docs", "source_file": "README.md", "file_type": "document", "degree": 9}, {"id": "concept_source_of_truth_priority", "label": "Source-of-truth conflict priority order", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 13.8, "font": {"size": 0, "color": "#ffffff"}, "title": "Source-of-truth conflict priority order", "community": 2, "community_name": "Source-of-Truth Docs", "source_file": "docs/60-segundos-spec.md", "file_type": "rationale", "degree": 3}, {"id": "concept_graphify", "label": "Graphify (repository knowledge graph tool)", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 20.0, "font": {"size": 12, "color": "#ffffff"}, "title": "Graphify (repository knowledge graph tool)", "community": 4, "community_name": "Graphify & Skills Routing", "source_file": "docs/AI-WORKFLOW.md", "file_type": "concept", "degree": 8}, {"id": "claude_claude_doc", "label": ".claude/CLAUDE.md (graphify trigger)", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 12.5, "font": {"size": 0, "color": "#ffffff"}, "title": ".claude/CLAUDE.md (graphify trigger)", "community": 4, "community_name": "Graphify & Skills Routing", "source_file": ".claude/CLAUDE.md", "file_type": "document", "degree": 2}, {"id": "claude_doc", "label": "CLAUDE.md (root)", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 18.8, "font": {"size": 12, "color": "#ffffff"}, "title": "CLAUDE.md (root)", "community": 4, "community_name": "Graphify & Skills Routing", "source_file": "CLAUDE.md", "file_type": "document", "degree": 7}, {"id": "docs_ai_skills_doc", "label": "Project AI Skills Registry", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 22.5, "font": {"size": 12, "color": "#ffffff"}, "title": "Project AI Skills Registry", "community": 4, "community_name": "Graphify & Skills Routing", "source_file": "docs/AI-SKILLS.md", "file_type": "document", "degree": 10}, {"id": "concept_skills_routing_policy", "label": "Project skills routing/precedence policy", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "Project skills routing/precedence policy", "community": 4, "community_name": "Graphify & Skills Routing", "source_file": "docs/AI-SKILLS.md", "file_type": "rationale", "degree": 1}, {"id": "docs_ai_workflow_doc", "label": "AI / SDD Workflow", "color": {"background": "#EDC948", "border": "#EDC948", "highlight": {"background": "#ffffff", "border": "#EDC948"}}, "size": 23.8, "font": {"size": 12, "color": "#ffffff"}, "title": "AI / SDD Workflow", "community": 5, "community_name": "AI Workflow Layers", "source_file": "docs/AI-WORKFLOW.md", "file_type": "document", "degree": 11}, {"id": "concept_ai_workflow_layers", "label": "Layered AI/SDD workflow (Master Spec \u2192 Graphify \u2192 OpenSpec \u2192 Implementation \u2192 verify \u2192 archive)", "color": {"background": "#EDC948", "border": "#EDC948", "highlight": {"background": "#ffffff", "border": "#EDC948"}}, "size": 11.2, "font": {"size": 0, "color": "#ffffff"}, "title": "Layered AI/SDD workflow (Master Spec \u2192 Graphify \u2192 OpenSpec \u2192 Implementation \u2192 verify \u2192 archive)", "community": 5, "community_name": "AI Workflow Layers", "source_file": "docs/AI-WORKFLOW.md", "file_type": "rationale", "degree": 1}];
+const RAW_EDGES = [{"from": "scripts_ai_check_environment", "to": "scripts_ai_check_environment_sh__entry", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "scripts_ai_check_environment", "to": "scripts_ai_check_environment_fail", "label": "defines", "title": "defines [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "scripts_ai_check_environment", "to": "scripts_ai_check_environment_has", "label": "defines", "title": "defines [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "scripts_ai_check_environment", "to": "scripts_ai_check_environment_ok", "label": "defines", "title": "defines [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "scripts_ai_check_environment", "to": "scripts_ai_check_environment_warn", "label": "defines", "title": "defines [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "scripts_ai_check_environment_fail", "to": "scripts_ai_check_environment_sh__entry", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "scripts_ai_check_environment_has", "to": "scripts_ai_check_environment_sh__entry", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "scripts_ai_check_environment_ok", "to": "scripts_ai_check_environment_sh__entry", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "scripts_ai_check_environment_sh__entry", "to": "scripts_ai_check_environment_warn", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_acceptance_criteria", "to": "docs_60_segundos_spec_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_category_theme", "to": "docs_60_segundos_spec_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_design_system", "to": "docs_60_segundos_spec_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_docker_architecture", "to": "docs_60_segundos_spec_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_editorial_roles", "to": "docs_60_segundos_spec_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_nextjs", "to": "docs_60_segundos_spec_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_payload_cms", "to": "docs_60_segundos_spec_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_phase_minus_1", "to": "docs_60_segundos_spec_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_phase_minus_1", "to": "docs_ai_workflow_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_postgresql", "to": "docs_60_segundos_spec_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_60_segundos_spec_doc", "to": "claude_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_60_segundos_spec_doc", "to": "concept_block_rendering_pipeline", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_60_segundos_spec_doc", "to": "concept_cache_revalidation", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_60_segundos_spec_doc", "to": "concept_data_access_layer", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_60_segundos_spec_doc", "to": "concept_graphify", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_60_segundos_spec_doc", "to": "concept_openspec", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_60_segundos_spec_doc", "to": "concept_separation_of_responsibilities", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_60_segundos_spec_doc", "to": "concept_server_components_default", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_60_segundos_spec_doc", "to": "concept_source_of_truth_priority", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_60_segundos_spec_doc", "to": "docs_ai_skills_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_60_segundos_spec_doc", "to": "docs_ai_workflow_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_60_segundos_spec_doc", "to": "openspec_config_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_60_segundos_spec_doc", "to": "readme_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_60_segundos_spec_doc", "to": "agents_doc", "label": "semantically_similar_to", "title": "semantically_similar_to [INFERRED]", "dashes": true, "width": 1, "color": {"opacity": 0.35}, "confidence": "INFERRED"}, {"from": "docs_60_segundos_spec_doc", "to": "docs_assets_doc", "label": "semantically_similar_to", "title": "semantically_similar_to [INFERRED]", "dashes": true, "width": 1, "color": {"opacity": 0.35}, "confidence": "INFERRED"}, {"from": "concept_openspec", "to": "agents_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_openspec", "to": "claude_commands_opsx_apply_command", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_openspec", "to": "claude_commands_opsx_archive_command", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_openspec", "to": "claude_commands_opsx_explore_command", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_openspec", "to": "claude_commands_opsx_propose_command", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_openspec", "to": "claude_commands_opsx_sync_command", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_openspec", "to": "claude_commands_opsx_update_command", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_openspec", "to": "claude_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_openspec", "to": "docs_ai_skills_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_openspec", "to": "docs_ai_workflow_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_openspec", "to": "readme_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "claude_commands_opsx_apply_command", "to": "claude_commands_opsx_archive_command", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "claude_commands_opsx_apply_command", "to": "claude_commands_opsx_propose_command", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "claude_commands_opsx_apply_command", "to": "claude_commands_opsx_update_command", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "claude_commands_opsx_archive_command", "to": "claude_commands_opsx_sync_command", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "claude_commands_opsx_archive_command", "to": "claude_commands_opsx_update_command", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "claude_commands_opsx_explore_command", "to": "claude_commands_opsx_propose_command", "label": "semantically_similar_to", "title": "semantically_similar_to [INFERRED]", "dashes": true, "width": 1, "color": {"opacity": 0.35}, "confidence": "INFERRED"}, {"from": "concept_skills_lock", "to": "agents_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_skills_lock", "to": "docs_ai_skills_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_skills_lock", "to": "docs_ai_workflow_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_skills_lock", "to": "openspec_config_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_skills_lock", "to": "readme_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "agents_doc", "to": "concept_graphify", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "agents_doc", "to": "concept_source_of_truth_priority", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "agents_doc", "to": "docs_ai_skills_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "agents_doc", "to": "docs_ai_workflow_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "agents_doc", "to": "claude_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "agents_doc", "to": "readme_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "agents_doc", "to": "openspec_config_doc", "label": "semantically_similar_to", "title": "semantically_similar_to [INFERRED]", "dashes": true, "width": 1, "color": {"opacity": 0.35}, "confidence": "INFERRED"}, {"from": "docs_assets_doc", "to": "openspec_config_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_assets_doc", "to": "readme_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "openspec_config_doc", "to": "concept_graphify", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "openspec_config_doc", "to": "concept_source_of_truth_priority", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "openspec_config_doc", "to": "docs_ai_skills_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "openspec_config_doc", "to": "docs_ai_workflow_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "openspec_config_doc", "to": "readme_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "readme_doc", "to": "concept_graphify", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "readme_doc", "to": "docs_ai_skills_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "readme_doc", "to": "docs_ai_workflow_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_graphify", "to": "claude_claude_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_graphify", "to": "claude_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_graphify", "to": "docs_ai_skills_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "concept_graphify", "to": "docs_ai_workflow_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "claude_claude_doc", "to": "claude_doc", "label": "semantically_similar_to", "title": "semantically_similar_to [INFERRED]", "dashes": true, "width": 1, "color": {"opacity": 0.35}, "confidence": "INFERRED"}, {"from": "claude_doc", "to": "docs_ai_skills_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "claude_doc", "to": "docs_ai_workflow_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_ai_skills_doc", "to": "concept_skills_routing_policy", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_ai_skills_doc", "to": "docs_ai_workflow_doc", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "docs_ai_workflow_doc", "to": "concept_ai_workflow_layers", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}];
+const LEGEND = [{"cid": 0, "color": "#4E79A7", "label": "Product Architecture Spec", "count": 15}, {"cid": 1, "color": "#F28E2B", "label": "OpenSpec Workflow Commands", "count": 7}, {"cid": 2, "color": "#E15759", "label": "Source-of-Truth Docs", "count": 6}, {"cid": 3, "color": "#76B7B2", "label": "Environment Check Script", "count": 6}, {"cid": 4, "color": "#59A14F", "label": "Graphify &amp; Skills Routing", "count": 5}, {"cid": 5, "color": "#EDC948", "label": "AI Workflow Layers", "count": 2}];
+
+// HTML-escape helper — prevents XSS when injecting graph data into innerHTML
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Build vis datasets
+const nodesDS = new vis.DataSet(RAW_NODES.map(n => ({
+  id: n.id, label: n.label, color: n.color, size: n.size,
+  font: n.font, title: n.title,
+  _community: n.community, _community_name: n.community_name,
+  _source_file: n.source_file, _file_type: n.file_type, _degree: n.degree,
+})));
+
+const edgesDS = new vis.DataSet(RAW_EDGES.map((e, i) => ({
+  id: i, from: e.from, to: e.to,
+  label: '',
+  title: e.title,
+  dashes: e.dashes,
+  width: e.width,
+  color: e.color,
+  arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+})));
+
+const container = document.getElementById('graph');
+const network = new vis.Network(container, { nodes: nodesDS, edges: edgesDS }, {
+  physics: {
+    enabled: true,
+    solver: 'forceAtlas2Based',
+    forceAtlas2Based: {
+      gravitationalConstant: -60,
+      centralGravity: 0.005,
+      springLength: 120,
+      springConstant: 0.08,
+      damping: 0.4,
+      avoidOverlap: 0.8,
+    },
+    stabilization: { iterations: 200, fit: true },
+  },
+  interaction: {
+    hover: true,
+    tooltipDelay: 100,
+    hideEdgesOnDrag: true,
+    navigationButtons: false,
+    keyboard: false,
+  },
+  nodes: { shape: 'dot', borderWidth: 1.5 },
+  edges: { smooth: { type: 'continuous', roundness: 0.2 }, selectionWidth: 3 },
+});
+
+network.once('stabilizationIterationsDone', () => {
+  network.setOptions({ physics: { enabled: false } });
+});
+
+function showInfo(nodeId) {
+  const n = nodesDS.get(nodeId);
+  if (!n) return;
+  const neighborIds = network.getConnectedNodes(nodeId);
+  const neighborItems = neighborIds.map(nid => {
+    const nb = nodesDS.get(nid);
+    const color = nb ? nb.color.background : '#555';
+    return `<span class="neighbor-link" style="border-left-color:${esc(color)}" data-nid="${esc(nid)}">${esc(nb ? nb.label : nid)}</span>`;
+  }).join('');
+  document.getElementById('info-content').innerHTML = `
+    <div class="field"><b>${esc(n.label)}</b></div>
+    <div class="field">Type: ${esc(n._file_type || 'unknown')}</div>
+    <div class="field">Community: ${esc(n._community_name)}</div>
+    <div class="field">Source: ${esc(n._source_file || '-')}</div>
+    <div class="field">Degree: ${n._degree}</div>
+    ${neighborIds.length ? `<div class="field" style="margin-top:8px;color:#aaa;font-size:11px">Neighbors (${neighborIds.length})</div><div id="neighbors-list">${neighborItems}</div>` : ''}
+  `;
+}
+
+function focusNode(nodeId) {
+  network.focus(nodeId, { scale: 1.4, animation: true });
+  network.selectNodes([nodeId]);
+  showInfo(nodeId);
+}
+
+// Neighbor links use a data attribute + one delegated listener rather than an
+// inline onclick. A node id/label sourced from a document or a scraped URL
+// (graphify add) can contain a double-quote; dropping the stringified id
+// unescaped into a quoted onclick both broke every link and allowed a hostile
+// source to inject an event handler into the local report (stored XSS, #1838).
+// esc() on data-nid keeps the value inside the attribute; the listener reads it
+// back verbatim. Bound to document so it survives the innerHTML rebuild that
+// recreates #neighbors-list on each showInfo().
+document.addEventListener('click', e => {
+  const el = e.target.closest('.neighbor-link');
+  if (el && el.dataset.nid !== undefined) focusNode(el.dataset.nid);
+});
+
+// Track hovered node — hover detection is more reliable than click params
+let hoveredNodeId = null;
+network.on('hoverNode', params => {
+  hoveredNodeId = params.node;
+  container.style.cursor = 'pointer';
+});
+network.on('blurNode', () => {
+  hoveredNodeId = null;
+  container.style.cursor = 'default';
+});
+container.addEventListener('click', () => {
+  if (hoveredNodeId !== null) {
+    showInfo(hoveredNodeId);
+    network.selectNodes([hoveredNodeId]);
+  }
+});
+network.on('click', params => {
+  if (params.nodes.length > 0) {
+    showInfo(params.nodes[0]);
+  } else if (hoveredNodeId === null) {
+    document.getElementById('info-content').innerHTML = '<span class="empty">Click a node to inspect it</span>';
+  }
+});
+
+const searchInput = document.getElementById('search');
+const searchResults = document.getElementById('search-results');
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase().trim();
+  searchResults.innerHTML = '';
+  if (!q) { searchResults.style.display = 'none'; return; }
+  const matches = RAW_NODES.filter(n => n.label.toLowerCase().includes(q)).slice(0, 20);
+  if (!matches.length) { searchResults.style.display = 'none'; return; }
+  searchResults.style.display = 'block';
+  matches.forEach(n => {
+    const el = document.createElement('div');
+    el.className = 'search-item';
+    el.textContent = n.label;
+    el.style.borderLeft = `3px solid ${n.color.background}`;
+    el.style.paddingLeft = '8px';
+    el.onclick = () => {
+      network.focus(n.id, { scale: 1.5, animation: true });
+      network.selectNodes([n.id]);
+      showInfo(n.id);
+      searchResults.style.display = 'none';
+      searchInput.value = '';
+    };
+    searchResults.appendChild(el);
+  });
+});
+document.addEventListener('click', e => {
+  if (!searchResults.contains(e.target) && e.target !== searchInput)
+    searchResults.style.display = 'none';
+});
+
+const hiddenCommunities = new Set();
+
+const selectAllCb = document.getElementById('select-all-cb');
+
+function updateSelectAllState() {
+  const total = LEGEND.length;
+  const hidden = hiddenCommunities.size;
+  selectAllCb.checked = hidden === 0;
+  selectAllCb.indeterminate = hidden > 0 && hidden < total;
+}
+
+function toggleAllCommunities(hide) {
+  document.querySelectorAll('.legend-item').forEach(item => {
+    hide ? item.classList.add('dimmed') : item.classList.remove('dimmed');
+  });
+  document.querySelectorAll('.legend-cb').forEach(cb => {
+    cb.checked = !hide;
+  });
+  LEGEND.forEach(c => {
+    if (hide) hiddenCommunities.add(c.cid); else hiddenCommunities.delete(c.cid);
+  });
+  const updates = RAW_NODES.map(n => ({ id: n.id, hidden: hide }));
+  nodesDS.update(updates);
+  updateSelectAllState();
+}
+
+const legendEl = document.getElementById('legend');
+LEGEND.forEach(c => {
+  const item = document.createElement('div');
+  item.className = 'legend-item';
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.className = 'legend-cb';
+  cb.checked = true;
+  cb.addEventListener('change', (e) => {
+    e.stopPropagation();
+    if (cb.checked) {
+      hiddenCommunities.delete(c.cid);
+      item.classList.remove('dimmed');
+    } else {
+      hiddenCommunities.add(c.cid);
+      item.classList.add('dimmed');
+    }
+    const updates = RAW_NODES
+      .filter(n => n.community === c.cid)
+      .map(n => ({ id: n.id, hidden: !cb.checked }));
+    nodesDS.update(updates);
+    updateSelectAllState();
+  });
+  item.innerHTML = `<div class="legend-dot" style="background:${c.color}"></div>
+    <span class="legend-label">${c.label}</span>
+    <span class="legend-count">${c.count}</span>`;
+  item.prepend(cb);
+  item.onclick = (e) => {
+    if (e.target === cb) return;
+    cb.checked = !cb.checked;
+    cb.dispatchEvent(new Event('change'));
+  };
+  legendEl.appendChild(item);
+});
+</script>
+<script>
+// Render hyperedges as shaded regions
+const hyperedges = [{"id": "ai_sdd_layered_workflow", "label": "Master Spec \u2192 Graphify \u2192 OpenSpec \u2192 Implementation layered workflow", "nodes": ["docs_60_segundos_spec_doc", "concept_openspec", "concept_graphify", "agents_doc", "docs_ai_workflow_doc"], "relation": "participate_in", "confidence": "EXTRACTED", "confidence_score": 0.9, "source_file": "docs/AI-WORKFLOW.md"}, {"id": "opsx_workflow_commands", "label": "OPSX experimental 'actions on a change' command set", "nodes": ["claude_commands_opsx_apply_command", "claude_commands_opsx_archive_command", "claude_commands_opsx_explore_command", "claude_commands_opsx_propose_command", "claude_commands_opsx_sync_command", "claude_commands_opsx_update_command", "concept_openspec"], "relation": "implement", "confidence": "EXTRACTED", "confidence_score": 0.95, "source_file": ".claude/commands/opsx/apply.md"}, {"id": "source_of_truth_priority_group", "label": "Documents independently restating the Master Spec > OpenSpec > implementation > tooling priority order", "nodes": ["docs_60_segundos_spec_doc", "agents_doc", "openspec_config_doc", "concept_source_of_truth_priority"], "relation": "form", "confidence": "INFERRED", "confidence_score": 0.85, "source_file": "docs/60-segundos-spec.md"}];
+// afterDrawing passes ctx already transformed to network coordinate space.
+// Draw node positions raw — no manual pan/zoom/DPR math needed.
+
+// Andrew's monotone chain. Returns the hull in counter-clockwise order, which
+// is what the perimeter must be traced in. Collinear and duplicate points
+// collapse to the extremes, so degenerate member sets render as a segment
+// rather than a zero-area crossed path.
+function convexHull(pts) {
+    const p = pts.slice().sort((a, b) => (a.x - b.x) || (a.y - b.y));
+    if (p.length < 3) return p;
+    const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const build = seq => {
+        const out = [];
+        for (const q of seq) {
+            while (out.length >= 2 && cross(out[out.length - 2], out[out.length - 1], q) <= 0) out.pop();
+            out.push(q);
+        }
+        out.pop();
+        return out;
+    };
+    const hull = build(p).concat(build(p.slice().reverse()));
+    return hull.length >= 3 ? hull : p;
+}
+network.on('afterDrawing', function(ctx) {
+    hyperedges.forEach(h => {
+        const positions = h.nodes
+            .map(nid => network.getPositions([nid])[nid])
+            .filter(p => p !== undefined);
+        if (positions.length < 2) return;
+        ctx.save();
+        ctx.globalAlpha = 0.12;
+        ctx.fillStyle = '#6366f1';
+        ctx.strokeStyle = '#6366f1';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        // Centroid and expanded hull in network coordinates.
+        // The perimeter must follow hull order, not h.nodes order: tracing the
+        // raw member order self-intersects whenever the layout does not happen
+        // to place members in angular order, filling as crossed wedges.
+        const cx = positions.reduce((s, p) => s + p.x, 0) / positions.length;
+        const cy = positions.reduce((s, p) => s + p.y, 0) / positions.length;
+        const hull = convexHull(positions);
+        const expanded = hull.map(p => ({
+            x: cx + (p.x - cx) * 1.15,
+            y: cy + (p.y - cy) * 1.15
+        }));
+        ctx.moveTo(expanded[0].x, expanded[0].y);
+        expanded.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha = 0.4;
+        ctx.stroke();
+        // Label
+        ctx.globalAlpha = 0.8;
+        ctx.fillStyle = '#4f46e5';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(h.label, cx, cy - 5);
+        ctx.restore();
+    });
+});
+</script>
+</body>
+</html>

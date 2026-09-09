@@ -1,0 +1,123 @@
+schema: spec-driven
+
+context: |
+  Project: 60 Segundos Noticias.
+  Product locale: es-MX.
+
+  Canonical target specification:
+  docs/60-segundos-spec.md
+
+  AI workflow:
+  docs/AI-WORKFLOW.md
+
+  Project skill registry:
+  docs/AI-SKILLS.md and skills-lock.json
+
+  Asset documentation:
+  docs/ASSETS.md
+
+  Visual North Star:
+  docs/references/home-reference.jpeg
+
+  Repository knowledge graph:
+  graphify-out/graph.json (when present and current)
+
+  The Master Specification is the authoritative target definition for
+  product behavior, CMS architecture, frontend architecture, design
+  system, infrastructure, implementation phases and acceptance criteria.
+
+  The active OpenSpec change defines the scope being implemented now.
+  Archived OpenSpec specs describe behavior already implemented.
+  Graphify describes the current repository structure and dependencies.
+
+  If an OpenSpec artifact conflicts with docs/60-segundos-spec.md, the
+  Master Specification wins unless the user explicitly approves a change
+  to the Master Specification.
+
+  Before broad codebase exploration, query Graphify to identify relevant
+  modules, dependencies and blast radius. Then inspect the actual relevant
+  source files before modifying them. If the graph is stale, refresh it.
+
+  Do not duplicate the entire Master Specification inside each OpenSpec
+  artifact. Extract only requirements relevant to the current change.
+  Preserve relevant AC-* identifiers for traceability when practical.
+
+  Implement incrementally by implementation phase/change. Do not implement
+  later phases opportunistically. Select only the task-relevant project skills;
+  do not load the complete skill roster for every change.
+
+  Core stack target:
+  - Next.js App Router
+  - TypeScript
+  - Payload CMS in the same Next.js application
+  - PostgreSQL
+  - Tailwind CSS
+  - shadcn/ui as primitive layer
+  - Lucide
+  - pnpm
+  - Docker / Docker Compose
+  - S3-compatible object storage in production
+
+  Architecture constraints:
+  - React Server Components by default.
+  - Payload Local API for server-side application data when appropriate.
+  - Presentational components do not query Payload directly.
+  - Payload controls content and approved structure; Next.js controls presentation.
+  - No arbitrary CSS, Tailwind classes, HTML or scripts from Payload.
+  - Do not introduce another CMS or another UI framework.
+  - Do not hardcode CMS-managed categories, navigation, footer or social links.
+  - Do not create one collection or one route implementation per category.
+  - Do not add Redis, queues, external search infrastructure, global client
+    state or React Query without explicit approval.
+  - Production application containers are stateless.
+  - AI tooling is development-only and is not a production runtime dependency.
+
+  Write OpenSpec planning artifacts in Spanish unless the user requests
+  otherwise. Keep code identifiers, filenames, APIs and technical identifiers
+  in English.
+
+rules:
+  proposal:
+    - Identify the exact implementation phase and Master Specification sections affected.
+    - State explicitly what is out of scope for the change.
+    - Do not silently expand scope into later phases.
+    - Use Graphify findings to summarize the current affected architecture when code already exists.
+
+  specs:
+    - Derive requirements from the relevant Master Specification requirements and Acceptance Criteria.
+    - Use concrete Given/When/Then scenarios.
+    - Preserve relevant AC-* identifiers as traceability references when practical.
+    - Describe observable behavior and contracts here; keep implementation mechanisms in design.md.
+    - Do not invent requirements that contradict the Master Specification.
+
+  design:
+    - Query Graphify before proposing architectural changes when a current graph exists.
+    - Follow the technical architecture and project structure defined in docs/60-segundos-spec.md.
+    - Identify affected layers, data flow, integration boundaries and blast radius.
+    - Confirm important Graphify conclusions against the actual source files.
+    - Explain Payload, Next.js, PostgreSQL and Docker implications when relevant.
+    - Do not introduce major dependencies without explicit justification and approval.
+    - Prefer the simplest implementation consistent with the Master Specification.
+
+  tasks:
+    - Order tasks according to technical dependencies.
+    - Keep tasks scoped to the current change.
+    - Map important tasks to relevant AC-* criteria when practical.
+    - Include typecheck, lint, tests and build validation where applicable.
+    - Include Docker validation when the change affects runtime or infrastructure.
+    - Include a Graphify refresh/impact review when the change materially alters repository structure.
+
+operations:
+  apply:
+    guidance:
+      - Read AGENTS.md, docs/AI-WORKFLOW.md, the relevant Master Spec sections and the complete active change before modifying code.
+      - Query Graphify before broad repository exploration, then inspect the source files that will actually be changed.
+      - Implement only the active change.
+      - Do not implement future phases unless required as direct foundational support and explicitly documented in the change.
+      - Run the validations defined in tasks.md before marking work complete.
+      - Refresh Graphify when the existing graph no longer reflects the working tree.
+
+  archive:
+    guidance:
+      - Archive only after implementation and verification are complete.
+      - Keep the completion summary concise and include unresolved limitations if any.
