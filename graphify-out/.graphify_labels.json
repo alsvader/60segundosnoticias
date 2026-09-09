@@ -1,1 +1,25 @@
-{"0": "Product Architecture Spec", "1": "OpenSpec Workflow Commands", "2": "Source-of-Truth Docs", "3": "Environment Check Script", "4": "Graphify & Skills Routing", "5": "AI Workflow Layers"}
+{
+  "0": "60 Segundos Noticias — Master Specification",
+  "1": "package.json",
+  "2": "payload.config.ts",
+  "3": "check-environment.sh",
+  "4": "components.json",
+  "5": "compilerOptions",
+  "6": "dependencies",
+  "7": "ADDED Requirements",
+  "8": "Decisions",
+  "9": "ADDED Requirements",
+  "10": "index.ts",
+  "11": "devDependencies",
+  "12": "ADDED Requirements",
+  "13": "ADDED Requirements",
+  "14": "tasks.md",
+  "15": "proposal.md",
+  "16": "[...slug]/route.ts",
+  "17": "postcss.config.mjs",
+  "18": "next-env.d.ts",
+  "19": "continue.md",
+  "20": "ff.md",
+  "21": "new.md",
+  "22": "verify.md"
+}

@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+coverage
+playwright-report
+test-results
+*.log
+uploads
+tmp
+.DS_Store
+.vscode
+.idea
