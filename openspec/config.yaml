@@ -103,21 +103,32 @@ rules:
     - Order tasks according to technical dependencies.
     - Keep tasks scoped to the current change.
     - Map important tasks to relevant AC-* criteria when practical.
-    - Include typecheck, lint, tests and build validation where applicable.
+    - Include validation tasks for typecheck, lint, tests and build where applicable.
     - Include Docker validation when the change affects runtime or infrastructure.
     - Include a Graphify refresh/impact review when the change materially alters repository structure.
+    - Include documentation updates when a change modifies developer setup, commands, environment variables, Docker workflows, runtime configuration, public APIs, operational procedures or onboarding.
+    - README documentation must be derived from the implemented repository and must not invent commands, scripts, ports, environment variables or behavior.
+    - Treat required documentation updates as part of the change Definition of Done, not as optional follow-up work.
 
 operations:
   apply:
     guidance:
       - Read AGENTS.md, docs/AI-WORKFLOW.md, the relevant Master Spec sections and the complete active change before modifying code.
       - Query Graphify before broad repository exploration, then inspect the source files that will actually be changed.
+      - Use only skills relevant to the current task.
+      - Inspect the actual files to be modified.
       - Implement only the active change.
+      - Update affected developer or operational documentation when required by tasks.md.
+      - Ensure README commands and setup instructions match the actual implementation.
       - Do not implement future phases unless required as direct foundational support and explicitly documented in the change.
       - Run the validations defined in tasks.md before marking work complete.
       - Refresh Graphify when the existing graph no longer reflects the working tree.
 
   archive:
     guidance:
+      - Do not archive a change with failed required acceptance criteria.
+      - Do not archive when required developer or operational documentation is stale.
+      - Confirm documented setup commands match the implemented repository.
+      - Confirm Graphify reflects the implemented repository state.
       - Archive only after implementation and verification are complete.
       - Keep the completion summary concise and include unresolved limitations if any.

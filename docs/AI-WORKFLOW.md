@@ -22,6 +22,12 @@ OpenSpec change
 Implementation
         │
         ▼
+Validation
+        │
+        ▼
+Documentation synchronization
+        │
+        ▼
 Graphify update
         │
         ▼
@@ -189,15 +195,29 @@ Before apply, review proposal, specs, design and tasks. Reject scope creep, dupl
 
 Implement only the active change. Use Graphify to narrow source inspection and confirm actual files before editing.
 
+If the change modifies developer-facing or operational behavior, ensure the corresponding documentation tasks are completed before the change is considered ready for verification.
+
 ### E. Validate
 
 Run the checks defined in `tasks.md`, such as typecheck, lint, focused tests, integration/E2E tests and production build when applicable.
 
-### F. Refresh Graphify
+### F. Synchronize documentation
+
+When a change affects developer setup, commands, environment variables, Docker workflows, runtime configuration, public APIs, operational procedures or onboarding, update the relevant documentation as part of the same change.
+
+Documentation must be derived from the actual implemented repository. Before documenting commands, configuration or runtime behavior, inspect the relevant source files such as `package.json`, `.env.example`, `compose.yaml`, `Dockerfile`, application configuration and implemented endpoints.
+
+Do not invent commands, scripts, ports, environment variables, URLs or behavior that are not present in the repository.
+
+At minimum, update `README.md` when the change modifies how a developer installs, configures, runs, builds, validates or operates the application.
+
+Required documentation updates are part of the change Definition of Done and must be completed before verification and archive.
+
+### G. Refresh Graphify
 
 Refresh the graph after meaningful code/documentation changes when the current graph no longer represents the working tree.
 
-### G. Verify
+### H. Verify
 
 Run OpenSpec verify. In addition, report all Master Spec acceptance criteria referenced by the change as:
 
@@ -208,9 +228,15 @@ Run OpenSpec verify. In addition, report all Master Spec acceptance criteria ref
 
 Do not consider a required change ready to archive while required criteria are `FAIL` or `NOT TESTED`.
 
-### H. Archive
+Verification must also confirm that required developer and operational documentation matches the implemented repository.
 
-Archive only after implementation and verification are complete. Archived delta specs should update the OpenSpec current-state specs according to the OpenSpec workflow.
+### I. Archive
+
+Archive only after implementation, validation, required documentation synchronization and verification are complete.
+
+Do not archive a change when required developer or operational documentation is stale.
+
+Archived delta specs should update the OpenSpec current-state specs according to the OpenSpec workflow.
 
 ## Initial roadmap mapping
 
