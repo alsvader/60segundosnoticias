@@ -11,8 +11,32 @@
       "input_tokens": 0,
       "output_tokens": 0,
       "files": 19
+    },
+    {
+      "date": "2026-09-09T20:08:18.547250+00:00",
+      "input_tokens": 261594,
+      "output_tokens": 0,
+      "files": 105
+    },
+    {
+      "date": "2026-09-09T23:01:29.546819+00:00",
+      "input_tokens": 108643,
+      "output_tokens": 0,
+      "files": 35
+    },
+    {
+      "date": "2026-09-09T23:38:23.220035+00:00",
+      "input_tokens": 124874,
+      "output_tokens": 0,
+      "files": 22
+    },
+    {
+      "date": "2026-09-10T03:40:45.173291+00:00",
+      "input_tokens": 128539,
+      "output_tokens": 0,
+      "files": 31
     }
   ],
-  "total_input_tokens": 158940,
+  "total_input_tokens": 782590,
   "total_output_tokens": 0
 }

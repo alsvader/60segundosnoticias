@@ -5,6 +5,7 @@ Read `AGENTS.md` first and follow it as the repository-wide instruction set.
 Primary references:
 
 - Target product specification: `docs/60-segundos-spec.md`
+- Design System implementation reference: `docs/DESIGN-SYSTEM.md`
 - AI/SDD workflow: `docs/AI-WORKFLOW.md`
 - Project skill registry: `docs/AI-SKILLS.md`
 - Current planned work: `openspec/changes/`

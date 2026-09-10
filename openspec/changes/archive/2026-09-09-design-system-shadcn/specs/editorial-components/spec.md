@@ -1,0 +1,58 @@
+## Purpose
+
+Define el conjunto de componentes editoriales presentacionales de la Fase 4 (`CategoryBadge`, `CategoryCard`, `ArticleCard`, `ArticleMetadata`, `SectionHeader`, `Breadcrumbs`, `Pagination`, `ResponsiveMedia`) como fundación reutilizable para las páginas de fases posteriores, sin acceso a datos.
+
+## ADDED Requirements
+
+### Requirement: Componentes editoriales son presentacionales
+Ningún componente de esta capability SHALL consultar Payload directamente (ni Local API, ni API REST/GraphQL, ni acceso a base de datos). Cada componente SHALL recibir sus datos exclusivamente vía props.
+
+#### Scenario: Se revisa el código de CategoryCard
+- **WHEN** se inspecciona la implementación de `CategoryCard`
+- **THEN** no contiene ninguna llamada a Payload ni a la base de datos; toda su información llega por props
+
+### Requirement: ArticleCard como fundación reutilizable
+El sistema SHALL proveer un componente `ArticleCard` único y reutilizable, sin duplicar una variante de componente por cada variante visual. `ArticleCard` SHALL definirse contra un contrato de datos propio del frontend (por ejemplo `ArticleCardData`), no contra el tipo `Post` generado por Payload. (Ref. AC-COMP-001, AC-COMP-002, AC-COMP-003, AC-COMP-004)
+
+#### Scenario: Se necesita otra variante visual de ArticleCard
+- **WHEN** una fase futura necesita una variante visual adicional de `ArticleCard`
+- **THEN** se implementa como variante del mismo componente (por ejemplo vía prop `variant`), no como un componente `ArticleCard` distinto
+
+#### Scenario: Se provee data de Payload a ArticleCard
+- **WHEN** una página de fase futura renderiza `ArticleCard`
+- **THEN** le pasa un objeto que cumple `ArticleCardData`, transformado previamente por la capa de datos, no el tipo `Post` de Payload directamente
+
+### Requirement: CategoryCard muestra icon/name/description/theme autorizado
+`CategoryCard` SHALL mostrar el icono de categoría (resuelto desde una category icon key controlada), el nombre en mayúsculas, la descripción y el theme visual autorizado de la categoría. (Ref. AC-COMP-005, AC-COMP-006)
+
+#### Scenario: Se renderiza CategoryCard con una categoría válida
+- **WHEN** `CategoryCard` recibe una categoría con `icon: 'plane'` y `colorTheme: 'orange'`
+- **THEN** renderiza el icono Lucide mapeado a `plane` y aplica el theme visual `orange` mediante `data-cat-theme`
+
+### Requirement: CategoryBadge con variantes controladas
+`CategoryBadge` SHALL soportar como mínimo las variantes `default`, `compact` y `overlay`, todas consumiendo el mismo sistema de category theme.
+
+#### Scenario: Se usa CategoryBadge sobre una imagen
+- **WHEN** se necesita un badge de categoría superpuesto sobre una fotografía
+- **THEN** se usa la variante `overlay` del mismo componente `CategoryBadge`
+
+### Requirement: SectionHeader sin acceso a datos
+`SectionHeader` SHALL aceptar props como `title`, `eyebrow`, `action` y `theme`, sin realizar ninguna consulta de datos, y SHALL renderizar un encabezado semánticamente correcto para la jerarquía de la página que lo use.
+
+#### Scenario: Se usa SectionHeader en un futuro listado de categoría
+- **WHEN** una fase futura renderiza `SectionHeader` con `title` y `eyebrow`
+- **THEN** el componente solo consume esas props, sin acceder a Payload
+
+### Requirement: ResponsiveMedia con contrato de accesibilidad
+`ResponsiveMedia` SHALL requerir un texto alternativo (`alt`) explícito, gestionar el sizing responsivo y el aspect-ratio, soportar `priority` opcional, y no SHALL realizar ninguna consulta a Payload Media internamente.
+
+#### Scenario: Se usa ResponsiveMedia sin alt
+- **WHEN** un desarrollador intenta usar `ResponsiveMedia` sin proveer `alt`
+- **THEN** el contrato de tipos del componente lo rechaza en tiempo de compilación
+
+### Requirement: Breadcrumbs y Pagination presentacionales
+`Breadcrumbs` SHALL renderizar una lista de items provista por props (label + href), y `Pagination` SHALL renderizar el estado de página actual/total provisto por props. Ninguno de los dos SHALL resolver rutas ni datos por sí mismo.
+
+#### Scenario: Se usa Pagination en un futuro listado
+- **WHEN** una fase futura necesita paginación
+- **THEN** le pasa `currentPage`/`totalPages`/navegación por props a `Pagination`, sin que el componente calcule esos valores internamente
