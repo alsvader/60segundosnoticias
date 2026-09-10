@@ -18,7 +18,7 @@ Isotipo/marca reducida “60”. Uso recomendado: mobile header, favicon derivad
 Textura base de papel, 2048×2048. Debe utilizarse de manera muy sutil sobre `#F7F3EC`. No debe reducir la legibilidad.
 
 ### `public/textures/newspaper-pattern.webp`
-Patrón editorial de periódico, 2048×2048. Uso recomendado en Hero y zonas decorativas, normalmente con una opacidad visual aproximada de 3–7%.
+Patrón editorial de periódico, 2048×2048. Integrado en `HeroNewsSection` (Phase 6) vía la utilidad `.texture-newspaper-pattern` de `src/app/globals.css`. La guía original de 3–7% de opacidad se descartó tras revisión visual manual directa: el valor final aprobado es `opacity: 0.8` (ver el historial de iteración documentado en el comentario junto a esa regla en `globals.css`) — preservando siempre el canvas de papel `#F7F3EC` y sin interferir con foco/pointer events.
 
 ## Referencias — no usar como contenido público
 

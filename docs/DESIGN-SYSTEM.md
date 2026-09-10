@@ -127,7 +127,7 @@ El mapeo de `CategoryIconKey` → componente Lucide vive en `src/components/edit
 ## Texturas
 
 - `.texture-paper-grain` y `.texture-newspaper-pattern` (`globals.css`, `@layer utilities`): aplican la textura vía un pseudo-elemento `::before` con `z-index: -1` e `isolation: isolate`, no vía `opacity` en el propio elemento — así la opacidad reducida afecta solo la capa decorativa, nunca el texto del contenido.
-- `paper-grain` está pensado para el canvas general; `newspaper-pattern` para Hero/secciones decorativas (opacidad 3-7%), nunca por defecto en cuerpo de artículo. Ninguna sección de página (Hero incluido) se construyó en este change.
+- `paper-grain` está pensado para el canvas general; `newspaper-pattern` para Hero/secciones decorativas, nunca por defecto en cuerpo de artículo. Ninguna sección de página (Hero incluido) se construyó en este change (Phase 4) — `HeroNewsSection` se implementó en Phase 6 y adoptó `.texture-newspaper-pattern` con `opacity: 0.8` tras revisión visual manual directa (valor final aprobado, distinto de la guía inicial de 3-7% de `docs/ASSETS.md` — ver el historial de iteración en el comentario junto a esa regla en `globals.css`).
 
 ## Motion
 

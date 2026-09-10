@@ -4,7 +4,7 @@ Portal editorial y multimedia construido con Next.js + Payload CMS + PostgreSQL.
 
 ## Estado del proyecto
 
-El repositorio completó **Phase 0 (Bootstrap)**, **Phase 1 (Technical Foundation)**, **Phase 2 (Payload CMS Core)** y **Phase 3 (Editorial Workflow)**: existe una aplicación Next.js + Payload funcional, conectada a PostgreSQL, con validación de entorno, endpoint de salud, entorno de desarrollo reproducible vía Docker Compose, las 7 Collections de V1 (`Users`, `Media`, `Categories`, `Tags`, `Posts`, `Pages`, `Redirects`) con su schema, relaciones y control de acceso base, y el ciclo de vida editorial completo sobre Posts: generación de slug desde el título (sin regeneración automática), ownership de Writer aplicado server-side (un Writer solo lee/edita/publica sus propios Posts, más los publicados de otros autores), validación de campos obligatorios al publicar, `publishedAt` estable a través de ediciones/unpublish-republish/restauración de versiones, cálculo automático de `readingTimeMinutes`, protecciones de eliminación (Categories/Users/Media referenciados) y los scripts `seed:initial`/`seed:dev`. El frontend público, los Globals (Home/Navigation/Footer/SiteSettings), redirects automáticos, SEO/cache y búsqueda todavía no existen — corresponden a fases posteriores de `docs/60-segundos-spec.md`.
+El repositorio completó **Phase 0 (Bootstrap)** a **Phase 6 (Dynamic Home Builder)** de `docs/60-segundos-spec.md`: existe una aplicación Next.js + Payload funcional, conectada a PostgreSQL, con validación de entorno, endpoint de salud, entorno de desarrollo reproducible vía Docker Compose, las 7 Collections de V1 (`Users`, `Media`, `Categories`, `Tags`, `Posts`, `Pages`, `Redirects`) con su schema, relaciones y control de acceso base, y el ciclo de vida editorial completo sobre Posts (Phase 3): generación de slug desde el título (sin regeneración automática), ownership de Writer aplicado server-side (un Writer solo lee/edita/publica sus propios Posts, más los publicados de otros autores), validación de campos obligatorios al publicar, `publishedAt` estable a través de ediciones/unpublish-republish/restauración de versiones, cálculo automático de `readingTimeMinutes`, protecciones de eliminación (Categories/Users/Media referenciados) y los scripts `seed:initial`/`seed:dev`. El Design System (Phase 4: `docs/DESIGN-SYSTEM.md`), el frontend público con los Globals `Navigation`/`Footer`/`SiteSettings` (Phase 5) y el Home Global dinámico con sus 8 Home Blocks V1 (Phase 6: `docs/FRONTEND-ARCHITECTURE.md`) también están implementados. Las rutas de Categoría/Artículo/Page genéricas, Draft Mode/preview, SEO/cache, redirects automáticos y búsqueda todavía no existen — corresponden a fases posteriores de `docs/60-segundos-spec.md`.
 
 ## Stack técnico
 
@@ -119,6 +119,15 @@ Esto genera un archivo en `src/payload/migrations/`. Revísalo, y commitéalo ju
 
 **Cuidado al mezclar push mode con `migrate`**: si la base de datos ya fue sincronizada por push mode (por ejemplo, tras usar `docker compose up` normalmente), `payload migrate` puede pedir una confirmación interactiva ("It looks like you've run Payload in dev mode... proceed?") antes de aplicar. Sin una terminal interactiva adjunta (scripts, `docker compose run --rm` sin `-it`, CI) ese prompt se queda esperando input indefinidamente sin mostrar ningún error — si un comando de migración parece colgado sin salida, es casi seguro esta confirmación sin responder. Ejecuta `migrate` contra una base de datos que push mode todavía no haya tocado, o hazlo desde una terminal interactiva donde puedas responder el prompt.
 
+### Los cuatro roles de la base de datos en este proyecto
+
+Payload PostgreSQL soporta push mode y `migrate` como flujos deliberadamente distintos, y este proyecto los mantiene separados en cuatro roles que nunca se mezclan:
+
+1. **Base de datos de desarrollo local** (`docker compose up`, el volumen `postgres_data`): sandbox gestionado por push mode. Payload sincroniza el schema automáticamente contra ella; nunca se le corre `pnpm migrate` directamente, porque ya no coincide con el ledger de migraciones (`payload_migrations` solo tiene la fila marcadora `dev`). Iterar aquí no requiere migraciones.
+2. **Migraciones en `src/payload/migrations/`**: artefactos generados por `pnpm migrate:create`, revisados a mano y versionados en git junto con el cambio de código que los origina. Describen el schema que debe existir en cualquier base gestionada por `migrate` — no se ejecutan contra la base de desarrollo local.
+3. **Verificación de la cadena de migraciones**: antes de confiar en una migración nueva, se aplica contra una base PostgreSQL limpia y desechable (por ejemplo, `CREATE DATABASE` temporal en el mismo servidor, o un contenedor Postgres aparte), corriendo la cadena completa desde cero (`pnpm migrate` contra esa base con su propio `DATABASE_URI`) y confirmando con `payload migrate:status` que todas las migraciones quedan `Ran: Yes`. La base desechable se destruye después; la de desarrollo nunca se toca en este proceso.
+4. **Orquestación de migraciones en producción/CI**: automatizar `migrate` como parte de un pipeline de despliegue es una decisión de infraestructura de Fase 10 (Docker + Production Hardening), no de fases anteriores.
+
 Para regenerar los tipos de TypeScript después de cambiar cualquier Collection:
 
 ```bash
@@ -138,8 +147,8 @@ docker compose exec app pnpm seed:initial
 docker compose exec app pnpm seed:dev
 ```
 
-- `seed:initial` crea únicamente las Categories base del proyecto (el único schema de seed ya implementado en esta fase); es idempotente — se puede ejecutar varias veces sin crear duplicados. No crea Navigation, Home ni SiteSettings porque esos Globals todavía no existen.
-- `seed:dev` crea contenido de ejemplo (Writers, Media, Posts en Draft y publicado, una Page) para desarrollo local. **No se ejecuta nunca automáticamente** (ni en el arranque de la app ni en producción) — solo cuando se invoca explícitamente. No contiene credenciales reales.
+- `seed:initial` crea las Categories base del proyecto y, si `Home.layout` está vacío, un baseline de un único bloque `CategoryExplorer` referenciándolas (Phase 6 — nunca sobrescribe una configuración de Home ya guardada); es idempotente — se puede ejecutar varias veces sin crear duplicados. No crea `Navigation`/`Footer`/`SiteSettings` — esos Globals se administran directamente en Payload Admin, sin seed.
+- `seed:dev` crea contenido de ejemplo (Writers, Media, una Page, un Post en Draft, y 25 Posts publicados repartidos entre las 5 Categories — 5 por categoría) para desarrollo local, y anexa a `Home.layout` (sin reemplazarlo) bloques de ejemplo para los 8 tipos de bloque de Home V1 (`EditorialIntro`, `HeroNews`, `LatestPosts`, `PostsByCategory` por categoría, `FeaturedPosts`, `VideoFeature`, `Banner`). **No se ejecuta nunca automáticamente** (ni en el arranque de la app ni en producción) — solo cuando se invoca explícitamente. No contiene credenciales reales.
 
 ## Build y arranque en producción
 
@@ -201,6 +210,8 @@ Para comprobar/preparar ese entorno opcional:
 ## Referencias de documentación
 
 - `docs/60-segundos-spec.md` — Master Specification (estado objetivo de V1).
+- `docs/DESIGN-SYSTEM.md` — referencia de implementación del Design System (Phase 4).
+- `docs/FRONTEND-ARCHITECTURE.md` — referencia de arquitectura del frontend (DAL, View Models, resolvers, Home Block Pipeline — Phases 5-6).
 - `docs/AI-WORKFLOW.md` — workflow de desarrollo asistido por IA / SDD.
 - `docs/AI-SKILLS.md` — registro humano de project skills.
 - `docs/ASSETS.md` — inventario y reglas de assets visuales.

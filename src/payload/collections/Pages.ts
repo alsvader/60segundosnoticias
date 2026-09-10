@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { Banner } from '../blocks/page/Banner.ts'
+import { Banner } from '../blocks/shared/Banner.ts'
 import { CTA } from '../blocks/page/CTA.ts'
 import { FAQ } from '../blocks/page/FAQ.ts'
 import { Gallery } from '../blocks/page/Gallery.ts'

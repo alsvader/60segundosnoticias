@@ -32,7 +32,7 @@ Las consultas públicas de Posts y Pages SHALL incluir explícitamente `_status:
 - **THEN** su `where` incluye explícitamente la restricción `_status: published`, sin depender únicamente de `overrideAccess: false`
 
 ### Requirement: Globals Navigation, Footer y SiteSettings accesibles vía DAL
-El sistema SHALL definir los Payload Globals `Navigation`, `Footer` y `SiteSettings`, y el DAL SHALL exponer `getNavigation()`, `getFooter()` y `getSettings()` para leerlos. El Global `Home` no SHALL existir.
+El sistema SHALL definir los Payload Globals `Navigation`, `Footer`, `SiteSettings` y `Home`, y el DAL SHALL exponer `getNavigation()`, `getFooter()`, `getSettings()` y `getHome()` para leerlos, cada uno vía Payload Local API con `overrideAccess: false`.
 
 #### Scenario: El site shell necesita la configuración de navegación
 - **WHEN** el layout público necesita los items de navegación
@@ -40,7 +40,11 @@ El sistema SHALL definir los Payload Globals `Navigation`, `Footer` y `SiteSetti
 
 #### Scenario: Se busca el Global Home
 - **WHEN** se revisan los Globals definidos en `payload.config.ts`
-- **THEN** no existe un Global `Home`
+- **THEN** existe un Global `Home`
+
+#### Scenario: La página de inicio necesita el layout de Home
+- **WHEN** la página pública `/` necesita el layout configurado de Home
+- **THEN** llama a `getHome()`, que lee el Global `Home` vía Payload Local API con `overrideAccess: false` y devuelve únicamente el estado publicado
 
 ### Requirement: Proyección/profundidad evita sobre-consulta
 Las consultas de listado de Posts (por ejemplo para `ArticleCard`) SHALL evitar cargar el campo `content` (Lexical) completo y SHALL usar una profundidad de relación suficiente para poblar `featuredImage`, `primaryCategory` y `author`, sin poblar relaciones anidadas innecesarias.

@@ -2,8 +2,14 @@ import type { Post } from '@/payload-types'
 import type { ArticleCardData } from '@/components/editorial/article-card'
 import { formatShortDate } from '@/lib/format/date'
 import { getPostUrl } from '@/lib/url/canonical'
+import type { MediaSizeName } from '@/lib/view-models/media'
 import { mapUserToAuthorSummary } from '@/lib/view-models/author'
 import { mapMediaToMediaData } from '@/lib/view-models/media'
+
+type MapPostToArticleCardDataOptions = {
+  /** Defaults to 'card' - override for a context that isn't a list/grid card (e.g. the Home Hero's main story). */
+  imagePreferredSize?: MediaSizeName
+}
 
 /**
  * Requires `post.primaryCategory` to be populated (query depth >= 1) -
@@ -11,7 +17,10 @@ import { mapMediaToMediaData } from '@/lib/view-models/media'
  * whose primary category didn't come back populated can't be mapped to
  * a valid href. Returns undefined rather than construct a broken link.
  */
-export function mapPostToArticleCardData(post: Post): ArticleCardData | undefined {
+export function mapPostToArticleCardData(
+  post: Post,
+  options: MapPostToArticleCardDataOptions = {},
+): ArticleCardData | undefined {
   const primaryCategory = post.primaryCategory
 
   if (!primaryCategory || typeof primaryCategory === 'number') {
@@ -19,7 +28,7 @@ export function mapPostToArticleCardData(post: Post): ArticleCardData | undefine
   }
 
   const image = mapMediaToMediaData(post.featuredImage, {
-    preferredSize: 'card',
+    preferredSize: options.imagePreferredSize ?? 'card',
     fallbackAlt: post.title,
   })
   const author = mapUserToAuthorSummary(post.author)

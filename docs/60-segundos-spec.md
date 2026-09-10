@@ -1054,6 +1054,7 @@ No puede editar CSS arbitrario.
 
 ## 19.1 Home Blocks V1
 
+- EditorialIntro
 - HeroNews
 - CategoryExplorer
 - LatestPosts
@@ -1061,6 +1062,25 @@ No puede editar CSS arbitrario.
 - FeaturedPosts
 - VideoFeature
 - Banner
+
+## 19.2 EditorialIntroBlock
+
+Composición editorial introductoria inspirada en `docs/references/home-reference.jpeg`. No es un Hero de noticias (no depende de un Post) ni un Banner (identidad editorial/publicación, no contenido secundario/promocional).
+
+Campos:
+
+- headlinePrimary (texto, requerido) — primera parte del titular, tinta/negro.
+- headlineAccent (texto, requerido) — segunda parte del titular, rojo de marca.
+- description (textarea, requerido)
+- backgroundImage (relación a Media, requerido) — composición visual de fondo completa (puede incluir mapa, collage editorial u otros elementos decorativos como una sola imagen preparada; esos elementos NO se modelan como campos CMS separados).
+- foregroundImage (relación a Media, requerido) — imagen/gráfico prominente junto al texto, hacia el centro de la composición en desktop, renderizado sobre backgroundImage.
+- cta (grupo, modelo de enlace reutilizable `linkFields` — mismo shape que Navigation/Footer: label/type[category|page|external]/category/page/url/openInNewTab)
+
+No incluye: posición de fondo/foreground configurable, colores personalizados, CSS arbitrario, selector de variante visual, selector de textura, selector de fuente, campo de mapa separado, campos de galería separados, un modelo de enlace propio distinto al ya usado por Navigation/Footer. El Admin controla copy y assets; el componente posee la composición aprobada.
+
+Capa conceptual: canvas del sitio → backgroundImage → foregroundImage → headline/description/CTA.
+
+Como cualquier Home block, es agregable, eliminable y reordenable libremente — no está forzado a renderizar primero.
 
 ---
 
@@ -1071,8 +1091,7 @@ Campos generales:
 - eyebrow
 - headline
 - description
-- ctaLabel
-- ctaLink
+- cta opcional (grupo, modelo de enlace reutilizable `linkFields` — mismo shape que Navigation/Footer, no un par de campos de texto plano)
 - contentMode:
   - `manual`
   - `automatic`
@@ -1171,8 +1190,7 @@ Campos condicionales según source.
 - title
 - description
 - image
-- linkLabel
-- linkURL / resolved link
+- link opcional (grupo, modelo de enlace reutilizable `linkFields` — mismo shape que Navigation/Footer)
 - variant:
   - `editorial`
   - `promotional`
@@ -2417,6 +2435,7 @@ External embeds/videos deben degradar de forma segura si fallan.
 
 # 59. Home Sections
 
+- EditorialIntroSection
 - HeroNewsSection
 - CategoryExplorerSection
 - LatestPostsSection
@@ -3615,6 +3634,8 @@ Los siguientes criterios son normativos. Un agente debe reportar `PASS`, `FAIL`,
 | AC-HOME-016 | Bloque manual permite selección editorial explícita. |
 | AC-HOME-017 | Home soporta Draft. |
 | AC-HOME-018 | Preview muestra Home draft antes de Publish. |
+| AC-HOME-019 | Existe EditorialIntro. |
+| AC-HOME-020 | EditorialIntro compone backgroundImage y foregroundImage en capas, ambos gestionados desde el CMS. |
 | AC-NAV-001 | Navigation es administrable. |
 | AC-NAV-002 | Navigation soporta Category/Page/External. |
 | AC-NAV-003 | Navigation soporta children/submenu. |

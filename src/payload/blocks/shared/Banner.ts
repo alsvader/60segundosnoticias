@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { optionalLinkFields } from '../../fields/link-fields.ts'
+
 export const Banner: Block = {
   slug: 'banner',
   interfaceName: 'BannerBlock',
@@ -7,8 +9,14 @@ export const Banner: Block = {
     { name: 'title', type: 'text' },
     { name: 'description', type: 'textarea' },
     { name: 'image', type: 'upload', relationTo: 'media' },
-    { name: 'linkLabel', type: 'text' },
-    { name: 'linkURL', type: 'text' },
+    {
+      name: 'link',
+      type: 'group',
+      fields: optionalLinkFields,
+      admin: {
+        description: 'Opcional.',
+      },
+    },
     {
       name: 'variant',
       type: 'select',

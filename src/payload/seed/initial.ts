@@ -7,12 +7,16 @@ import type { CategoryThemeKey } from '../../lib/constants/category-theme-keys.t
 /**
  * `seed:initial` - idempotent baseline data for a fresh environment.
  *
- * Scoped to what already has a schema in this phase: the initial
- * Categories. Navigation/Home/SiteSettings are Globals that do not exist
- * yet (later phases) and are deliberately NOT created or faked here.
+ * Creates the initial Categories and, since its schema now exists, a
+ * minimal baseline `Home` layout. `Navigation`/`SiteSettings` are Globals
+ * with existing schema too, but seeding them is not this phase's
+ * responsibility and is deliberately left alone here.
  *
  * Safe to run repeatedly: each Category is looked up by `slug` before
- * creating it, so re-running never produces duplicates.
+ * creating it, and the `Home` layout is only ever set once (never
+ * overwritten if already non-empty - including a real Admin's own
+ * configuration), so re-running never produces duplicates or clobbers
+ * editorial work.
  */
 
 type InitialCategory = {
@@ -51,6 +55,36 @@ for (const category of INITIAL_CATEGORIES) {
     overrideAccess: true,
   })
   console.log(`created: ${category.slug}`)
+}
+
+const home = await payload.findGlobal({ slug: 'home', depth: 0, overrideAccess: true })
+
+if (!home.layout || home.layout.length === 0) {
+  const categoryDocs = await payload.find({
+    collection: 'categories',
+    where: { slug: { in: INITIAL_CATEGORIES.map((category) => category.slug) } },
+    limit: INITIAL_CATEGORIES.length,
+    overrideAccess: true,
+  })
+
+  await payload.updateGlobal({
+    slug: 'home',
+    data: {
+      layout: [
+        {
+          blockType: 'categoryExplorer',
+          title: 'Explora nuestras secciones',
+          categories: categoryDocs.docs.map((category) => category.id),
+          showViewAll: false,
+        },
+      ],
+      _status: 'published',
+    },
+    overrideAccess: true,
+  })
+  console.log('created: Home baseline (CategoryExplorer)')
+} else {
+  console.log('skip (already exists): Home layout')
 }
 
 console.log('seed:initial done.')

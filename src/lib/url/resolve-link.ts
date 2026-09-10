@@ -13,8 +13,9 @@ export type ResolvedLink = {
  * without importing the Navigation/Footer generated types directly.
  */
 export type LinkLike = {
-  label: string
-  type: 'category' | 'page' | 'external'
+  /** Optional to also accept an optional single CTA (HeroNews.cta, Banner.link) that may be left entirely unset. */
+  label?: string | null
+  type?: ('category' | 'page' | 'external') | null
   category?: { slug?: string | null } | number | null
   page?: { slug?: string | null } | number | null
   url?: string | null
@@ -35,7 +36,12 @@ function isSafeExternalUrl(url: string): boolean {
  * 'category'` with no category selected, or an unsafe external URL) -
  * callers should skip rendering it rather than link to nothing.
  */
-export function resolveLink(item: LinkLike): ResolvedLink | undefined {
+export function resolveLink(item: LinkLike | null | undefined): ResolvedLink | undefined {
+  // Covers both a genuinely absent item and an optional CTA/link group
+  // (HeroNews.cta, Banner.link) left entirely unset by the Admin - a link
+  // with no label isn't renderable regardless of type/url.
+  if (!item || !item.label) return undefined
+
   if (item.type === 'category') {
     const category = item.category
     const slug = category && typeof category !== 'number' ? category.slug : undefined

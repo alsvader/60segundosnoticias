@@ -101,11 +101,13 @@ export interface Config {
     navigation: Navigation;
     footer: Footer;
     siteSettings: SiteSetting;
+    home: Home;
   };
   globalsSelect: {
     navigation: NavigationSelect<false> | NavigationSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     siteSettings: SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    home: HomeSelect<false> | HomeSelect<true>;
   };
   locale: null;
   widgets: {
@@ -460,8 +462,17 @@ export interface BannerBlock {
   title?: string | null;
   description?: string | null;
   image?: (number | null) | Media;
-  linkLabel?: string | null;
-  linkURL?: string | null;
+  /**
+   * Opcional.
+   */
+  link?: {
+    label?: string | null;
+    type?: ('category' | 'page' | 'external') | null;
+    category?: (number | null) | Category;
+    page?: (number | null) | Page;
+    url?: string | null;
+    openInNewTab?: boolean | null;
+  };
   variant?: ('editorial' | 'promotional' | 'dark') | null;
   id?: string | null;
   blockName?: string | null;
@@ -885,8 +896,16 @@ export interface BannerBlockSelect<T extends boolean = true> {
   title?: T;
   description?: T;
   image?: T;
-  linkLabel?: T;
-  linkURL?: T;
+  link?:
+    | T
+    | {
+        label?: T;
+        type?: T;
+        category?: T;
+        page?: T;
+        url?: T;
+        openInNewTab?: T;
+      };
   variant?: T;
   id?: T;
   blockName?: T;
@@ -1073,6 +1092,190 @@ export interface SiteSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home".
+ */
+export interface Home {
+  id: number;
+  layout?:
+    | (
+        | EditorialIntroBlock
+        | HeroNewsBlock
+        | CategoryExplorerBlock
+        | LatestPostsBlock
+        | PostsByCategoryBlock
+        | FeaturedPostsBlock
+        | VideoFeatureBlock
+        | BannerBlock
+      )[]
+    | null;
+  seo?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    metaImage?: (number | null) | Media;
+    canonicalURL?: string | null;
+    noIndex?: boolean | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "EditorialIntroBlock".
+ */
+export interface EditorialIntroBlock {
+  /**
+   * Primera parte del titular (color tinta/negro). Ej.: "Noticias al".
+   */
+  headlinePrimary: string;
+  /**
+   * Segunda parte del titular (color rojo de marca). Ej.: "Momento".
+   */
+  headlineAccent: string;
+  description: string;
+  /**
+   * Composición visual de fondo completa (puede incluir mapa, collage editorial u otros elementos decorativos como una sola imagen preparada).
+   */
+  backgroundImage: number | Media;
+  /**
+   * Imagen/gráfico prominente junto al texto, renderizado sobre backgroundImage.
+   */
+  foregroundImage: number | Media;
+  cta: {
+    label: string;
+    type: 'category' | 'page' | 'external';
+    category?: (number | null) | Category;
+    page?: (number | null) | Page;
+    url?: string | null;
+    openInNewTab?: boolean | null;
+    id?: string | null;
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'editorialIntro';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroNewsBlock".
+ */
+export interface HeroNewsBlock {
+  eyebrow?: string | null;
+  headline: string;
+  description?: string | null;
+  /**
+   * Opcional.
+   */
+  cta?: {
+    label?: string | null;
+    type?: ('category' | 'page' | 'external') | null;
+    category?: (number | null) | Category;
+    page?: (number | null) | Page;
+    url?: string | null;
+    openInNewTab?: boolean | null;
+  };
+  contentMode: 'manual' | 'automatic';
+  /**
+   * Historia principal.
+   */
+  mainPost?: (number | null) | Post;
+  /**
+   * Hasta 3 historias secundarias.
+   */
+  secondaryPosts?: (number | Post)[] | null;
+  /**
+   * Opcional: restringe a una categoría. Sin seleccionar, usa las publicaciones más recientes de cualquier categoría.
+   */
+  sourceCategory?: (number | null) | Category;
+  /**
+   * Historia principal + secundarias, en total.
+   */
+  limit?: number | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'heroNews';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CategoryExplorerBlock".
+ */
+export interface CategoryExplorerBlock {
+  title?: string | null;
+  /**
+   * Categorías a mostrar, en el orden seleccionado.
+   */
+  categories?: (number | Category)[] | null;
+  showViewAll?: boolean | null;
+  viewAllLabel?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'categoryExplorer';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LatestPostsBlock".
+ */
+export interface LatestPostsBlock {
+  title?: string | null;
+  limit?: number | null;
+  /**
+   * Opcional: restringe a una categoría.
+   */
+  category?: (number | null) | Category;
+  layout: 'grid' | 'list' | 'mixed';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'latestPosts';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PostsByCategoryBlock".
+ */
+export interface PostsByCategoryBlock {
+  title?: string | null;
+  category: number | Category;
+  limit?: number | null;
+  layout: 'grid' | 'horizontal' | 'featured-grid';
+  showViewAll?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'postsByCategory';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FeaturedPostsBlock".
+ */
+export interface FeaturedPostsBlock {
+  title?: string | null;
+  /**
+   * Selección editorial explícita. No se deriva del campo "featured" de Posts.
+   */
+  posts?: (number | Post)[] | null;
+  layout: 'grid' | 'carousel' | 'editorial';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'featuredPosts';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "VideoFeatureBlock".
+ */
+export interface VideoFeatureBlock {
+  title?: string | null;
+  source: 'post' | 'external';
+  post?: (number | null) | Post;
+  /**
+   * URL de YouTube o Vimeo.
+   */
+  videoURL?: string | null;
+  thumbnail?: (number | null) | Media;
+  headline?: string | null;
+  description?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'videoFeature';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "navigation_select".
  */
 export interface NavigationSelect<T extends boolean = true> {
@@ -1210,6 +1413,150 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home_select".
+ */
+export interface HomeSelect<T extends boolean = true> {
+  layout?:
+    | T
+    | {
+        editorialIntro?: T | EditorialIntroBlockSelect<T>;
+        heroNews?: T | HeroNewsBlockSelect<T>;
+        categoryExplorer?: T | CategoryExplorerBlockSelect<T>;
+        latestPosts?: T | LatestPostsBlockSelect<T>;
+        postsByCategory?: T | PostsByCategoryBlockSelect<T>;
+        featuredPosts?: T | FeaturedPostsBlockSelect<T>;
+        videoFeature?: T | VideoFeatureBlockSelect<T>;
+        banner?: T | BannerBlockSelect<T>;
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        metaImage?: T;
+        canonicalURL?: T;
+        noIndex?: T;
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "EditorialIntroBlock_select".
+ */
+export interface EditorialIntroBlockSelect<T extends boolean = true> {
+  headlinePrimary?: T;
+  headlineAccent?: T;
+  description?: T;
+  backgroundImage?: T;
+  foregroundImage?: T;
+  cta?:
+    | T
+    | {
+        label?: T;
+        type?: T;
+        category?: T;
+        page?: T;
+        url?: T;
+        openInNewTab?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroNewsBlock_select".
+ */
+export interface HeroNewsBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headline?: T;
+  description?: T;
+  cta?:
+    | T
+    | {
+        label?: T;
+        type?: T;
+        category?: T;
+        page?: T;
+        url?: T;
+        openInNewTab?: T;
+      };
+  contentMode?: T;
+  mainPost?: T;
+  secondaryPosts?: T;
+  sourceCategory?: T;
+  limit?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CategoryExplorerBlock_select".
+ */
+export interface CategoryExplorerBlockSelect<T extends boolean = true> {
+  title?: T;
+  categories?: T;
+  showViewAll?: T;
+  viewAllLabel?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LatestPostsBlock_select".
+ */
+export interface LatestPostsBlockSelect<T extends boolean = true> {
+  title?: T;
+  limit?: T;
+  category?: T;
+  layout?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PostsByCategoryBlock_select".
+ */
+export interface PostsByCategoryBlockSelect<T extends boolean = true> {
+  title?: T;
+  category?: T;
+  limit?: T;
+  layout?: T;
+  showViewAll?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FeaturedPostsBlock_select".
+ */
+export interface FeaturedPostsBlockSelect<T extends boolean = true> {
+  title?: T;
+  posts?: T;
+  layout?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "VideoFeatureBlock_select".
+ */
+export interface VideoFeatureBlockSelect<T extends boolean = true> {
+  title?: T;
+  source?: T;
+  post?: T;
+  videoURL?: T;
+  thumbnail?: T;
+  headline?: T;
+  description?: T;
+  id?: T;
+  blockName?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
