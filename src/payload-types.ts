@@ -97,8 +97,16 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    navigation: Navigation;
+    footer: Footer;
+    siteSettings: SiteSetting;
+  };
+  globalsSelect: {
+    navigation: NavigationSelect<false> | NavigationSelect<true>;
+    footer: FooterSelect<false> | FooterSelect<true>;
+    siteSettings: SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -934,6 +942,274 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation".
+ */
+export interface Navigation {
+  id: number;
+  logo?: (number | null) | Media;
+  items?:
+    | {
+        label: string;
+        type: 'category' | 'page' | 'external';
+        category?: (number | null) | Category;
+        page?: (number | null) | Page;
+        url?: string | null;
+        openInNewTab?: boolean | null;
+        children?:
+          | {
+              label: string;
+              type: 'category' | 'page' | 'external';
+              category?: (number | null) | Category;
+              page?: (number | null) | Page;
+              url?: string | null;
+              openInNewTab?: boolean | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  socialLinks?:
+    | {
+        platform: 'facebook' | 'instagram' | 'x' | 'youtube' | 'tiktok';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  cta?: {
+    label?: string | null;
+    url?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer".
+ */
+export interface Footer {
+  id: number;
+  logo?: (number | null) | Media;
+  description?: string | null;
+  columns?:
+    | {
+        title: string;
+        links?:
+          | {
+              label: string;
+              type: 'category' | 'page' | 'external';
+              category?: (number | null) | Category;
+              page?: (number | null) | Page;
+              url?: string | null;
+              openInNewTab?: boolean | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  socialLinks?:
+    | {
+        platform: 'facebook' | 'instagram' | 'x' | 'youtube' | 'tiktok';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  legalLinks?:
+    | {
+        label: string;
+        type: 'category' | 'page' | 'external';
+        category?: (number | null) | Category;
+        page?: (number | null) | Page;
+        url?: string | null;
+        openInNewTab?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  copyright?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "siteSettings".
+ */
+export interface SiteSetting {
+  id: number;
+  branding: {
+    siteName: string;
+    tagline?: string | null;
+    logo?: (number | null) | Media;
+    logoDark?: (number | null) | Media;
+    favicon?: (number | null) | Media;
+  };
+  contact?: {
+    publicEmail?: string | null;
+    phone?: string | null;
+    whatsapp?: string | null;
+  };
+  social?: {
+    facebook?: string | null;
+    instagram?: string | null;
+    x?: string | null;
+    youtube?: string | null;
+    tiktok?: string | null;
+  };
+  seo?: {
+    defaultMetaTitle?: string | null;
+    defaultMetaDescription?: string | null;
+    defaultMetaImage?: (number | null) | Media;
+    siteURL?: string | null;
+  };
+  organization?: {
+    organizationName?: string | null;
+    organizationLogo?: (number | null) | Media;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation_select".
+ */
+export interface NavigationSelect<T extends boolean = true> {
+  logo?: T;
+  items?:
+    | T
+    | {
+        label?: T;
+        type?: T;
+        category?: T;
+        page?: T;
+        url?: T;
+        openInNewTab?: T;
+        children?:
+          | T
+          | {
+              label?: T;
+              type?: T;
+              category?: T;
+              page?: T;
+              url?: T;
+              openInNewTab?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  socialLinks?:
+    | T
+    | {
+        platform?: T;
+        url?: T;
+        id?: T;
+      };
+  cta?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer_select".
+ */
+export interface FooterSelect<T extends boolean = true> {
+  logo?: T;
+  description?: T;
+  columns?:
+    | T
+    | {
+        title?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              type?: T;
+              category?: T;
+              page?: T;
+              url?: T;
+              openInNewTab?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  socialLinks?:
+    | T
+    | {
+        platform?: T;
+        url?: T;
+        id?: T;
+      };
+  legalLinks?:
+    | T
+    | {
+        label?: T;
+        type?: T;
+        category?: T;
+        page?: T;
+        url?: T;
+        openInNewTab?: T;
+        id?: T;
+      };
+  copyright?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "siteSettings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  branding?:
+    | T
+    | {
+        siteName?: T;
+        tagline?: T;
+        logo?: T;
+        logoDark?: T;
+        favicon?: T;
+      };
+  contact?:
+    | T
+    | {
+        publicEmail?: T;
+        phone?: T;
+        whatsapp?: T;
+      };
+  social?:
+    | T
+    | {
+        facebook?: T;
+        instagram?: T;
+        x?: T;
+        youtube?: T;
+        tiktok?: T;
+      };
+  seo?:
+    | T
+    | {
+        defaultMetaTitle?: T;
+        defaultMetaDescription?: T;
+        defaultMetaImage?: T;
+        siteURL?: T;
+      };
+  organization?:
+    | T
+    | {
+        organizationName?: T;
+        organizationLogo?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

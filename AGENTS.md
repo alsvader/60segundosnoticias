@@ -7,10 +7,11 @@ These instructions apply to any coding agent working in this repository.
 1. Read `docs/AI-WORKFLOW.md`.
 2. Treat `docs/60-segundos-spec.md` as the canonical **target-state specification**.
 3. Use `docs/DESIGN-SYSTEM.md` for Design System implementation conventions (tokens, typography, category themes, components) established from Phase 4 onward.
-4. Use the active OpenSpec change under `openspec/changes/` as the exact implementation scope.
-5. Use Graphify before broad codebase exploration to identify relevant modules, dependencies and blast radius.
-6. Inspect the actual relevant source files before modifying them.
-7. Select and follow only the project-scoped skills relevant to the task; use `docs/AI-SKILLS.md` and `skills-lock.json` as the registry.
+4. Use `docs/FRONTEND-ARCHITECTURE.md` for frontend data-access/view-model/URL/site-shell conventions established from Phase 5 onward.
+5. Use the active OpenSpec change under `openspec/changes/` as the exact implementation scope.
+6. Use Graphify before broad codebase exploration to identify relevant modules, dependencies and blast radius.
+7. Inspect the actual relevant source files before modifying them.
+8. Select and follow only the project-scoped skills relevant to the task; use `docs/AI-SKILLS.md` and `skills-lock.json` as the registry.
 
 ## Source-of-truth priority
 

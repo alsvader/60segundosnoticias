@@ -223,9 +223,9 @@
   },
   "src/components/ui/button.tsx": {
     "mtime": 1789012646.2528887,
-    "seen": 1789012986.031557,
+    "seen": 1789014803.389887,
     "ast_hash": "c99ea98666c92a3e68d2b983b758ef0b",
-    "semantic_hash": ""
+    "semantic_hash": "c99ea98666c92a3e68d2b983b758ef0b"
   },
   "src/lib/env/index.ts": {
     "mtime": 1788941454.2291236,
@@ -913,9 +913,9 @@
   },
   "src/components/editorial/article-card.tsx": {
     "mtime": 1789012618.122234,
-    "seen": 1789012986.031549,
+    "seen": 1789014803.3897521,
     "ast_hash": "3505bcae4e3ed9188137d3922dc1f7e6",
-    "semantic_hash": ""
+    "semantic_hash": "3505bcae4e3ed9188137d3922dc1f7e6"
   },
   "src/components/editorial/article-metadata.tsx": {
     "mtime": 1789000403.859672,
@@ -925,21 +925,21 @@
   },
   "src/components/editorial/breadcrumbs.tsx": {
     "mtime": 1789012625.8902576,
-    "seen": 1789012986.031551,
+    "seen": 1789014803.389775,
     "ast_hash": "f2d58d9336fa2847f96d3f3c62161fd6",
-    "semantic_hash": ""
+    "semantic_hash": "f2d58d9336fa2847f96d3f3c62161fd6"
   },
   "src/components/editorial/category-badge.tsx": {
     "mtime": 1789012595.0131805,
-    "seen": 1789012986.031552,
+    "seen": 1789014803.3897758,
     "ast_hash": "c5be98d69f063d9eb1f8b70fca63c0f6",
-    "semantic_hash": ""
+    "semantic_hash": "c5be98d69f063d9eb1f8b70fca63c0f6"
   },
   "src/components/editorial/category-card.tsx": {
     "mtime": 1789012609.3267052,
-    "seen": 1789012986.031552,
+    "seen": 1789014803.389777,
     "ast_hash": "e922f01131d4ec79ddc60093b84efb0a",
-    "semantic_hash": ""
+    "semantic_hash": "e922f01131d4ec79ddc60093b84efb0a"
   },
   "src/components/editorial/category-icon-map.tsx": {
     "mtime": 1789000249.8960073,
@@ -979,80 +979,128 @@
   },
   "docs/DESIGN-SYSTEM.md": {
     "mtime": 1789012877.291076,
-    "seen": 1789012986.031609,
+    "seen": 1789014803.391062,
     "ast_hash": "556040e71139234789dc1e39b8142d0c",
+    "semantic_hash": "556040e71139234789dc1e39b8142d0c"
+  },
+  "openspec/changes/archive/2026-09-09-design-system-shadcn/.openspec.yaml": {
+    "mtime": 1788997590.501873,
+    "seen": 1789013502.53518,
+    "ast_hash": "60f594212b4e47c88f58df3de20eab91",
     "semantic_hash": ""
   },
-  "openspec/changes/design-system-shadcn/.openspec.yaml": {
-    "mtime": 1788997590.501873,
-    "seen": 1789011527.767227,
-    "ast_hash": "60f594212b4e47c88f58df3de20eab91",
-    "semantic_hash": "60f594212b4e47c88f58df3de20eab91"
-  },
-  "openspec/changes/design-system-shadcn/design.md": {
+  "openspec/changes/archive/2026-09-09-design-system-shadcn/design.md": {
     "mtime": 1788997828.486583,
-    "seen": 1789011527.767228,
+    "seen": 1789014803.391063,
     "ast_hash": "cf82213a3999e0e700d3c3536bf52b0e",
     "semantic_hash": "cf82213a3999e0e700d3c3536bf52b0e"
   },
-  "openspec/changes/design-system-shadcn/proposal.md": {
+  "openspec/changes/archive/2026-09-09-design-system-shadcn/proposal.md": {
     "mtime": 1788997640.739095,
-    "seen": 1789011527.7672288,
+    "seen": 1789014803.391063,
     "ast_hash": "9a935f4a32f8e74772ff89b16d63ed3d",
     "semantic_hash": "9a935f4a32f8e74772ff89b16d63ed3d"
   },
-  "openspec/changes/design-system-shadcn/specs/accessibility-foundation/spec.md": {
+  "openspec/changes/archive/2026-09-09-design-system-shadcn/specs/accessibility-foundation/spec.md": {
     "mtime": 1788997763.087456,
-    "seen": 1789011527.7672288,
+    "seen": 1789014803.3910642,
     "ast_hash": "e07b3ed0c2d9d9124a36ee68902534b7",
     "semantic_hash": "e07b3ed0c2d9d9124a36ee68902534b7"
   },
-  "openspec/changes/design-system-shadcn/specs/category-theme-system/spec.md": {
+  "openspec/changes/archive/2026-09-09-design-system-shadcn/specs/category-theme-system/spec.md": {
     "mtime": 1788997712.3585756,
-    "seen": 1789011527.76723,
+    "seen": 1789014803.3910651,
     "ast_hash": "aba1c365be7df2016f2db9fb42f22c7e",
     "semantic_hash": "aba1c365be7df2016f2db9fb42f22c7e"
   },
-  "openspec/changes/design-system-shadcn/specs/design-tokens/spec.md": {
+  "openspec/changes/archive/2026-09-09-design-system-shadcn/specs/design-tokens/spec.md": {
     "mtime": 1788997684.3379042,
-    "seen": 1789011527.767231,
+    "seen": 1789014803.3910651,
     "ast_hash": "7cb2a8c9828b6eaad4d7472422c4673a",
     "semantic_hash": "7cb2a8c9828b6eaad4d7472422c4673a"
   },
-  "openspec/changes/design-system-shadcn/specs/editorial-components/spec.md": {
+  "openspec/changes/archive/2026-09-09-design-system-shadcn/specs/editorial-components/spec.md": {
     "mtime": 1788997748.3022397,
-    "seen": 1789011527.767232,
+    "seen": 1789014803.391066,
     "ast_hash": "57347bfcc6f8547f61cc7bbe8462ff61",
     "semantic_hash": "57347bfcc6f8547f61cc7bbe8462ff61"
   },
-  "openspec/changes/design-system-shadcn/specs/layout-primitives/spec.md": {
+  "openspec/changes/archive/2026-09-09-design-system-shadcn/specs/layout-primitives/spec.md": {
     "mtime": 1788997700.120208,
-    "seen": 1789011527.767232,
+    "seen": 1789014803.3910668,
     "ast_hash": "e1153caf8c3fb7fb315dcd09f72e3ba7",
     "semantic_hash": "e1153caf8c3fb7fb315dcd09f72e3ba7"
   },
-  "openspec/changes/design-system-shadcn/specs/shadcn-primitives/spec.md": {
+  "openspec/changes/archive/2026-09-09-design-system-shadcn/specs/shadcn-primitives/spec.md": {
     "mtime": 1788997730.7678633,
-    "seen": 1789011527.7672331,
+    "seen": 1789014803.391068,
     "ast_hash": "c9f32a96d74fc4af481a507204c1d7e0",
     "semantic_hash": "c9f32a96d74fc4af481a507204c1d7e0"
   },
-  "openspec/changes/design-system-shadcn/specs/texture-foundation/spec.md": {
+  "openspec/changes/archive/2026-09-09-design-system-shadcn/specs/texture-foundation/spec.md": {
     "mtime": 1788997721.0449274,
-    "seen": 1789011527.767234,
+    "seen": 1789014803.391068,
     "ast_hash": "2dd76ac3e68f1566c000ef4692aafc32",
     "semantic_hash": "2dd76ac3e68f1566c000ef4692aafc32"
   },
-  "openspec/changes/design-system-shadcn/specs/typography-system/spec.md": {
+  "openspec/changes/archive/2026-09-09-design-system-shadcn/specs/typography-system/spec.md": {
     "mtime": 1788997692.3964558,
-    "seen": 1789011527.767234,
+    "seen": 1789014803.391069,
     "ast_hash": "a07a38671d7df6b2bfaebb4b406d5f26",
     "semantic_hash": "a07a38671d7df6b2bfaebb4b406d5f26"
   },
-  "openspec/changes/design-system-shadcn/tasks.md": {
-    "mtime": 1789012972.7963667,
-    "seen": 1789012986.0316448,
-    "ast_hash": "cce3e92f17a4c5ca46cb9eefb04b64a8",
-    "semantic_hash": ""
+  "openspec/changes/archive/2026-09-09-design-system-shadcn/tasks.md": {
+    "mtime": 1789012994.6474292,
+    "seen": 1789014803.39107,
+    "ast_hash": "9d62c786495fb3b6bb41ab39ec6fbbee",
+    "semantic_hash": "9d62c786495fb3b6bb41ab39ec6fbbee"
+  },
+  "openspec/specs/accessibility-foundation/spec.md": {
+    "mtime": 1789013397.4032953,
+    "seen": 1789014803.391071,
+    "ast_hash": "b85e4be7241d4bd6d0044abb41cf9097",
+    "semantic_hash": "b85e4be7241d4bd6d0044abb41cf9097"
+  },
+  "openspec/specs/category-theme-system/spec.md": {
+    "mtime": 1789013350.0222957,
+    "seen": 1789014803.391071,
+    "ast_hash": "1fd30e4e48a76d27bd9d6aec5a5964be",
+    "semantic_hash": "1fd30e4e48a76d27bd9d6aec5a5964be"
+  },
+  "openspec/specs/design-tokens/spec.md": {
+    "mtime": 1789013433.4405148,
+    "seen": 1789014803.391072,
+    "ast_hash": "5f12f2feefffb9da29471242396292c6",
+    "semantic_hash": "5f12f2feefffb9da29471242396292c6"
+  },
+  "openspec/specs/editorial-components/spec.md": {
+    "mtime": 1789013367.472504,
+    "seen": 1789014803.391073,
+    "ast_hash": "e12afcf18c7100e618ad745b0e138e8a",
+    "semantic_hash": "e12afcf18c7100e618ad745b0e138e8a"
+  },
+  "openspec/specs/layout-primitives/spec.md": {
+    "mtime": 1789013255.2713974,
+    "seen": 1789014803.391073,
+    "ast_hash": "75cc0acba86b051222a5a76331022247",
+    "semantic_hash": "75cc0acba86b051222a5a76331022247"
+  },
+  "openspec/specs/shadcn-primitives/spec.md": {
+    "mtime": 1789013407.4437983,
+    "seen": 1789014803.391074,
+    "ast_hash": "e66f35216590c21b5c7179004a6af740",
+    "semantic_hash": "e66f35216590c21b5c7179004a6af740"
+  },
+  "openspec/specs/texture-foundation/spec.md": {
+    "mtime": 1789013438.059699,
+    "seen": 1789014803.3910751,
+    "ast_hash": "f18f2926d6d5ca030759102eab11a367",
+    "semantic_hash": "f18f2926d6d5ca030759102eab11a367"
+  },
+  "openspec/specs/typography-system/spec.md": {
+    "mtime": 1789013246.5501382,
+    "seen": 1789014803.3910751,
+    "ast_hash": "6227242591b4c3de2b72262c6897f463",
+    "semantic_hash": "6227242591b4c3de2b72262c6897f463"
   }
 }

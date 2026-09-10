@@ -6,6 +6,7 @@ Primary references:
 
 - Target product specification: `docs/60-segundos-spec.md`
 - Design System implementation reference: `docs/DESIGN-SYSTEM.md`
+- Frontend architecture reference: `docs/FRONTEND-ARCHITECTURE.md`
 - AI/SDD workflow: `docs/AI-WORKFLOW.md`
 - Project skill registry: `docs/AI-SKILLS.md`
 - Current planned work: `openspec/changes/`

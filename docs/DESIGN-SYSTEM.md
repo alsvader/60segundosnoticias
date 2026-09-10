@@ -107,7 +107,8 @@ Los tamaños de texto `xs`/`sm`/`default` (24/28/32px de alto) reciben un tratam
 - `lg` (36px) no estaba en el alcance solicitado para este fix y permanece sin cambios.
 
 Verificado: `pnpm build` genera las clases Tailwind esperadas (`min-w-11 → min-width: calc(var(--spacing) * 11)` = 44px; `after:inset-x-0 → inset-inline: calc(var(--spacing) * 0)` = 0, confirmando cero expansión horizontal).
-- **No se instaló ningún primitivo adicional.** Se evaluó cada componente editorial de esta change (`CategoryBadge`, `CategoryCard`, `ArticleCard`, `ArticleMetadata`, `SectionHeader`, `Breadcrumbs`, `Pagination`, `ResponsiveMedia`) y ninguno requirió un primitivo shadcn nuevo: `Pagination` reutiliza `Button`; el resto son composiciones de HTML semántico + Lucide + `next/link`/`next/image`. `Input`, `Textarea`, `Label`, `Skeleton` y `Avatar` quedan diferidos hasta que un componente de una fase futura los consuma realmente.
+- **Ningún primitivo adicional en esta change (Fase 4).** Se evaluó cada componente editorial (`CategoryBadge`, `CategoryCard`, `ArticleCard`, `ArticleMetadata`, `SectionHeader`, `Breadcrumbs`, `Pagination`, `ResponsiveMedia`) y ninguno requirió un primitivo shadcn nuevo: `Pagination` reutiliza `Button`; el resto son composiciones de HTML semántico + Lucide + `next/link`/`next/image`. `Input`, `Textarea`, `Label`, `Skeleton` y `Avatar` siguen diferidos.
+- **`Sheet` instalado en Fase 5** (`openspec/changes/public-frontend-core/`) — primer consumidor real: `src/components/site/mobile-nav.tsx` (navegación móvil del site shell). Se apoya en `radix-ui` (ya instalado); no agregó ninguna dependencia nueva. Ver `docs/FRONTEND-ARCHITECTURE.md`.
 
 ## Componentes editoriales (`src/components/editorial/`)
 
