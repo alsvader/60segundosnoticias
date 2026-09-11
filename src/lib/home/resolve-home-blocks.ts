@@ -176,7 +176,7 @@ async function resolveHeroNews(block: RawHomeBlock & { blockType: 'heroNews' }, 
     const sourceCategoryId = isPopulated<Category>(block.sourceCategory) ? block.sourceCategory.id : undefined
     const limit = block.limit ?? 4
     const posts = sourceCategoryId
-      ? await getPostsByCategory({ categoryId: sourceCategoryId, limit })
+      ? (await getPostsByCategory({ categoryId: sourceCategoryId, limit })).docs
       : await getLatestPosts({ limit })
     mainPost = posts[0]
     secondaryPosts = posts.slice(1)
@@ -243,7 +243,7 @@ async function resolvePostsByCategory(block: RawHomeBlock & { blockType: 'postsB
   const category = isPopulated<Category>(block.category) ? block.category : undefined
   if (!category) return undefined
 
-  const posts = await getPostsByCategory({ categoryId: category.id, limit: block.limit ?? 6 })
+  const { docs: posts } = await getPostsByCategory({ categoryId: category.id, limit: block.limit ?? 6 })
   const cards = toArticleCards(posts)
 
   if (cards.length === 0) return undefined

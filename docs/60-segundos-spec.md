@@ -3582,7 +3582,7 @@ Los siguientes criterios son normativos. Un agente debe reportar `PASS`, `FAIL`,
 | AC-CONTENT-003 | Article soporta Image/Gallery/Video/Quote/Callout/Embed. |
 | AC-CONTENT-004 | Payload no acepta arbitrary CSS. |
 | AC-CONTENT-005 | Payload no acepta scripts arbitrarios. |
-| AC-BLOCK-IMG-001 | Image alignment solo normal/wide/full. |
+| AC-BLOCK-IMG-001 | Image size solo small/medium/large/full. |
 | AC-BLOCK-IMG-002 | CMS no acepta tamaños/márgenes/clases libres. |
 | AC-BLOCK-GAL-001 | Gallery soporta grid/carousel. |
 | AC-BLOCK-GAL-002 | Carousel soporta teclado/touch accesible. |
@@ -3668,6 +3668,10 @@ Los siguientes criterios son normativos. Un agente debe reportar `PASS`, `FAIL`,
 | AC-SHARE-003 | Copy muestra feedback accesible. |
 | AC-SHARE-004 | Native Share se usa cuando existe. |
 | AC-SHARE-005 | No botón web falso para Instagram. |
+| AC-ASIDE-001 | Aside del Article se controla globalmente (no por Post) vía un Global de Payload. |
+| AC-ASIDE-002 | Aside soporta modos latest/newest-per-category/featured, heading opcional editable, y límite configurable. |
+| AC-ASIDE-003 | Aside es sticky junto al contenido desde el breakpoint de 2 columnas; mobile-first (apilado, sin sticky, por debajo de ese breakpoint). |
+| AC-ASIDE-004 | Aside nunca incluye el Post actual en su listado. |
 | AC-SEARCH-001 | Existe `/buscar`. |
 | AC-SEARCH-002 | `?q=` ejecuta búsqueda. |
 | AC-SEARCH-003 | Search vacío no consulta todos los Posts. |

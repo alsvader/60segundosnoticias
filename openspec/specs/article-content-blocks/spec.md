@@ -5,10 +5,10 @@ Define los seis blocks de contenido embebidos en el editor Lexical de `Posts.con
 ## Requirements
 
 ### Requirement: ImageBlock
-El sistema SHALL definir un `ImageBlock` con `image` (relación a Media, requerido), `caption`, `credits` y `alignment` restringido a `normal`, `wide` o `full`.
+El sistema SHALL definir un `ImageBlock` con `image` (relación a Media, requerido), `caption`, `credits` y `size` restringido a `small`, `medium`, `large` o `full` (refinamiento post-implementación sobre el `alignment` `normal`/`wide`/`full` originalmente especificado — ver `category-article-pages`, Decisión 14).
 
-#### Scenario: alignment fuera del conjunto permitido es rechazado
-- **WHEN** se intenta guardar un `ImageBlock` con un `alignment` distinto de `normal`, `wide` o `full`
+#### Scenario: size fuera del conjunto permitido es rechazado
+- **WHEN** se intenta guardar un `ImageBlock` con un `size` distinto de `small`, `medium`, `large` o `full`
 - **THEN** la operación es rechazada
 
 Referencia: AC-BLOCK-IMG-001, AC-BLOCK-IMG-002
@@ -23,7 +23,7 @@ El sistema SHALL definir un `GalleryBlock` con un arreglo de al menos dos imáge
 Referencia: AC-BLOCK-GAL-001
 
 ### Requirement: VideoBlock
-El sistema SHALL definir un `VideoBlock` con `provider` restringido a `youtube`, `vimeo` o `uploaded`, con campos condicionales según el provider (`url` o archivo subido), `poster` y `caption`.
+El sistema SHALL definir un `VideoBlock` con `provider` restringido a `youtube`, `vimeo` o `uploaded`, con campos condicionales según el provider (`url` o archivo subido), `poster`, `caption`, y un campo `portrait` (checkbox) para aspect ratio 9:16 en contenido tipo Shorts/Reels (adición post-implementación, ver `category-article-pages`, Decisión 15).
 
 #### Scenario: provider no soportado es rechazado
 - **WHEN** se intenta guardar un `VideoBlock` con un `provider` distinto de `youtube`, `vimeo` o `uploaded`
@@ -50,7 +50,7 @@ El sistema SHALL definir un `CalloutBlock` con `variant` restringido a `info`, `
 Referencia: §10.5 del Master Spec
 
 ### Requirement: EmbedBlock con providers controlados
-El sistema SHALL definir un `EmbedBlock` con `provider` restringido a `instagram`, `x`, `tiktok` o `generic`, y `url`, SHALL NOT aceptar `<script>` crudo ni iframes arbitrarios.
+El sistema SHALL definir un `EmbedBlock` con `provider` restringido a `instagram`, `x`, `tiktok`, `facebook`, `linkedin` o `generic` (ampliado sobre los 3 originalmente especificados, ver `category-article-pages`, Decisión 12), `url`, y un campo `alignment` (`left`/`center`/`right`) para posicionar la caja del embed. SHALL NOT aceptar `<script>` crudo ni iframes arbitrarios.
 
 #### Scenario: provider no controlado es rechazado
 - **WHEN** se intenta guardar un `EmbedBlock` con un `provider` fuera del conjunto permitido

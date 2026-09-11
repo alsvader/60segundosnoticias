@@ -3,25 +3,29 @@ export type ExternalVideoProvider = 'youtube' | 'vimeo'
 export type ExternalVideo = {
   provider: ExternalVideoProvider
   embedId: string
+  /** `true` only for a detected YouTube Shorts URL — Vimeo has no URL-based orientation signal. */
+  isVertical?: boolean
 }
 
 const YOUTUBE_HOSTS = new Set(['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be'])
 const VIMEO_HOSTS = new Set(['vimeo.com', 'www.vimeo.com', 'player.vimeo.com'])
 
-function extractYoutubeId(url: URL): string | undefined {
+function extractYoutubeId(url: URL): { embedId: string; isShort: boolean } | undefined {
   if (url.hostname === 'youtu.be') {
-    return url.pathname.replace(/^\//, '') || undefined
+    const embedId = url.pathname.replace(/^\//, '')
+    return embedId ? { embedId, isShort: false } : undefined
   }
 
   if (url.pathname === '/watch') {
-    return url.searchParams.get('v') ?? undefined
+    const embedId = url.searchParams.get('v')
+    return embedId ? { embedId, isShort: false } : undefined
   }
 
   const embedMatch = /^\/embed\/([^/]+)/.exec(url.pathname)
-  if (embedMatch) return embedMatch[1]
+  if (embedMatch) return { embedId: embedMatch[1], isShort: false }
 
   const shortsMatch = /^\/shorts\/([^/]+)/.exec(url.pathname)
-  if (shortsMatch) return shortsMatch[1]
+  if (shortsMatch) return { embedId: shortsMatch[1], isShort: true }
 
   return undefined
 }
@@ -53,8 +57,8 @@ export function resolveExternalVideoUrl(rawUrl: string | null | undefined): Exte
   const hostname = url.hostname.toLowerCase()
 
   if (YOUTUBE_HOSTS.has(hostname)) {
-    const embedId = extractYoutubeId(url)
-    return embedId ? { provider: 'youtube', embedId } : undefined
+    const result = extractYoutubeId(url)
+    return result ? { provider: 'youtube', embedId: result.embedId, isVertical: result.isShort } : undefined
   }
 
   if (VIMEO_HOSTS.has(hostname)) {

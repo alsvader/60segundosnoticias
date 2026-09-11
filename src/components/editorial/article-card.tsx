@@ -72,6 +72,7 @@ export function ArticleCard({ article, variant = 'default', className }: Article
             colorTheme={article.category.colorTheme}
             icon={article.category.icon}
             variant="compact"
+            className="self-start"
           />
         ) : null}
         <h3 className={cn('font-[var(--font-display)] font-semibold text-[var(--ink-950)]', isCompact ? 'text-base' : 'type-h3')}>

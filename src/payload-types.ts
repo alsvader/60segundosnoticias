@@ -102,12 +102,14 @@ export interface Config {
     footer: Footer;
     siteSettings: SiteSetting;
     home: Home;
+    articleSidebar: ArticleSidebar;
   };
   globalsSelect: {
     navigation: NavigationSelect<false> | NavigationSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     siteSettings: SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     home: HomeSelect<false> | HomeSelect<true>;
+    articleSidebar: ArticleSidebarSelect<false> | ArticleSidebarSelect<true>;
   };
   locale: null;
   widgets: {
@@ -419,6 +421,10 @@ export interface VideoBlock {
   provider: 'youtube' | 'vimeo' | 'uploaded';
   url?: string | null;
   video?: (number | null) | Media;
+  /**
+   * Marca esta opción para video vertical (formato Shorts/Reels) — por ejemplo un video subido en 9:16 o un Vimeo vertical. Los enlaces de YouTube Shorts se detectan automáticamente y no necesitan esta casilla.
+   */
+  portrait?: boolean | null;
   poster?: (number | null) | Media;
   caption?: string | null;
   id?: string | null;
@@ -432,8 +438,17 @@ export interface VideoBlock {
 export interface CTABlock {
   title: string;
   description?: string | null;
-  linkLabel?: string | null;
-  linkURL?: string | null;
+  /**
+   * Opcional.
+   */
+  link?: {
+    label?: string | null;
+    type?: ('category' | 'page' | 'external') | null;
+    category?: (number | null) | Category;
+    page?: (number | null) | Page;
+    url?: string | null;
+    openInNewTab?: boolean | null;
+  };
   id?: string | null;
   blockName?: string | null;
   blockType: 'cta';
@@ -856,6 +871,7 @@ export interface VideoBlockSelect<T extends boolean = true> {
   provider?: T;
   url?: T;
   video?: T;
+  portrait?: T;
   poster?: T;
   caption?: T;
   id?: T;
@@ -868,8 +884,16 @@ export interface VideoBlockSelect<T extends boolean = true> {
 export interface CTABlockSelect<T extends boolean = true> {
   title?: T;
   description?: T;
-  linkLabel?: T;
-  linkURL?: T;
+  link?:
+    | T
+    | {
+        label?: T;
+        type?: T;
+        category?: T;
+        page?: T;
+        url?: T;
+        openInNewTab?: T;
+      };
   id?: T;
   blockName?: T;
 }
@@ -1276,6 +1300,24 @@ export interface VideoFeatureBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "articleSidebar".
+ */
+export interface ArticleSidebar {
+  id: number;
+  postsPanel?: {
+    enabled?: boolean | null;
+    mode?: ('latest' | 'newest-per-category' | 'featured') | null;
+    /**
+     * Opcional — si se deja vacío, se usa un título automático según el modo elegido.
+     */
+    heading?: string | null;
+    limit?: number | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "navigation_select".
  */
 export interface NavigationSelect<T extends boolean = true> {
@@ -1560,6 +1602,23 @@ export interface VideoFeatureBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "articleSidebar_select".
+ */
+export interface ArticleSidebarSelect<T extends boolean = true> {
+  postsPanel?:
+    | T
+    | {
+        enabled?: T;
+        mode?: T;
+        heading?: T;
+        limit?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "collections_widget".
  */
 export interface CollectionsWidget {
@@ -1576,7 +1635,7 @@ export interface ImageBlock {
   image: number | Media;
   caption?: string | null;
   credits?: string | null;
-  alignment?: ('normal' | 'wide' | 'full') | null;
+  size?: ('small' | 'medium' | 'large' | 'full') | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'imageBlock';
@@ -1610,8 +1669,12 @@ export interface CalloutBlock {
  * via the `definition` "EmbedBlock".
  */
 export interface EmbedBlock {
-  provider: 'instagram' | 'x' | 'tiktok' | 'generic';
+  provider: 'instagram' | 'x' | 'tiktok' | 'facebook' | 'linkedin' | 'generic';
+  /**
+   * Para LinkedIn, usar la URL especial de embed (linkedin.com/embed/feed/update/urn:li:share:...) generada por el botón "Embed this post" de LinkedIn — no el link normal de la publicación. Para los demás providers, la URL normal de la publicación.
+   */
   url: string;
+  alignment?: ('left' | 'center' | 'right') | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'embedBlock';

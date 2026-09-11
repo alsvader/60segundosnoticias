@@ -78,9 +78,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1789025240.1003711,
-    "seen": 1789025945.0449228,
-    "ast_hash": "886e58fa09b22616434cc9ec8d277080",
+    "mtime": 1789072097.5721805,
+    "seen": 1789072114.564796,
+    "ast_hash": "5bf01bf2cfe85f8b5f6e28d9e4d2a052",
     "semantic_hash": ""
   },
   "docs/60-segundos-spec.md": {
@@ -102,10 +102,10 @@
     "semantic_hash": "7f1cc71dc9a530dd95736247b2532ce8"
   },
   "docs/ASSETS.md": {
-    "mtime": 1788892806.0,
-    "seen": 1788936658.8977122,
-    "ast_hash": "aa1a00b8e918f5b46bb6fac512af4afe",
-    "semantic_hash": "aa1a00b8e918f5b46bb6fac512af4afe"
+    "mtime": 1789064724.760382,
+    "seen": 1789072114.5648,
+    "ast_hash": "c8eb6a7313b7369a9e49b92ee95bb5e2",
+    "semantic_hash": ""
   },
   "openspec/config.yaml": {
     "mtime": 1788967289.2021112,
@@ -780,9 +780,9 @@
     "semantic_hash": "9207846064ab156cc7ccf62b877d00f0"
   },
   "src/payload/seed/dev.ts": {
-    "mtime": 1789063527.6049526,
-    "seen": 1789063948.733567,
-    "ast_hash": "43e20c91d4f14e7dc8150ca9127fcf56",
+    "mtime": 1789069895.2204494,
+    "seen": 1789072114.564781,
+    "ast_hash": "9d3de387feb40fd9f86e8c6c90d3a881",
     "semantic_hash": ""
   },
   "src/payload/seed/initial.ts": {
@@ -894,10 +894,10 @@
     "semantic_hash": "1bf8aa614be65d286aa4d04ad481c3fa"
   },
   "openspec/specs/seed-workflow/spec.md": {
-    "mtime": 1788995989.6567676,
-    "seen": 1788997021.807727,
-    "ast_hash": "415af0bc2f59a0b43e454a48d0087273",
-    "semantic_hash": "415af0bc2f59a0b43e454a48d0087273"
+    "mtime": 1789064870.0824537,
+    "seen": 1789072114.564894,
+    "ast_hash": "f40a792a11915b36e16c9be1c8090106",
+    "semantic_hash": ""
   },
   "src/app/(frontend)/fonts.ts": {
     "mtime": 1789000221.2528253,
@@ -972,9 +972,9 @@
     "semantic_hash": "c12ad844b5adf3c78da8f7657ec08292"
   },
   "docs/DESIGN-SYSTEM.md": {
-    "mtime": 1789019668.8212945,
-    "seen": 1789019722.407784,
-    "ast_hash": "cb6bceb2fe4b2c30e5fadd87fc421b10",
+    "mtime": 1789064741.4429877,
+    "seen": 1789072114.5648,
+    "ast_hash": "447cbc0ddfeb5d2524f7ebffe4780181",
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-09-09-design-system-shadcn/.openspec.yaml": {
@@ -1230,9 +1230,9 @@
     "semantic_hash": ""
   },
   "docs/FRONTEND-ARCHITECTURE.md": {
-    "mtime": 1789059081.6010563,
-    "seen": 1789059338.546035,
-    "ast_hash": "4f1291606728cc0247a36eb4f641eebc",
+    "mtime": 1789072102.968114,
+    "seen": 1789072114.564801,
+    "ast_hash": "b4af079ababfb2d71a9130cb3e71c3cf",
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-09-10-public-frontend-core/.openspec.yaml": {
@@ -1302,9 +1302,9 @@
     "semantic_hash": ""
   },
   "openspec/specs/frontend-data-access/spec.md": {
-    "mtime": 1789021120.8526778,
-    "seen": 1789021386.701709,
-    "ast_hash": "69e8697125db0f28ebc71e8d23af0d50",
+    "mtime": 1789064860.2469087,
+    "seen": 1789072114.5648751,
+    "ast_hash": "1ac8adaad8cea0cb88534aa170f92b0f",
     "semantic_hash": ""
   },
   "openspec/specs/locale-formatting/spec.md": {
@@ -1457,70 +1457,10 @@
     "ast_hash": "50a3699c0e62848dbe576a281e16b858",
     "semantic_hash": ""
   },
-  "openspec/changes/dynamic-home-builder/.openspec.yaml": {
-    "mtime": 1789023182.2479808,
-    "seen": 1789025945.044972,
-    "ast_hash": "f76f8ea71db3cf104cf7e638123257f2",
-    "semantic_hash": ""
-  },
-  "openspec/changes/dynamic-home-builder/design.md": {
-    "mtime": 1789063927.6928277,
-    "seen": 1789063948.7362309,
-    "ast_hash": "c97a4b2b9bcfee4e109f04f858e5884a",
-    "semantic_hash": ""
-  },
-  "openspec/changes/dynamic-home-builder/proposal.md": {
-    "mtime": 1789058601.1498327,
-    "seen": 1789059338.546092,
-    "ast_hash": "d5fb11aaa04cd0526410b7316f031a96",
-    "semantic_hash": ""
-  },
-  "openspec/changes/dynamic-home-builder/specs/frontend-data-access/spec.md": {
-    "mtime": 1789023816.6958206,
-    "seen": 1789025945.044974,
-    "ast_hash": "b776f4ea2101145ff7bf1d3b4bba9757",
-    "semantic_hash": ""
-  },
-  "openspec/changes/dynamic-home-builder/specs/home-block-renderer/spec.md": {
-    "mtime": 1789058639.6866205,
-    "seen": 1789059338.5460942,
-    "ast_hash": "6ed536555b730685dab970f310d7fcaa",
-    "semantic_hash": ""
-  },
-  "openspec/changes/dynamic-home-builder/specs/home-data-resolution/spec.md": {
-    "mtime": 1789023729.054731,
-    "seen": 1789025945.0449762,
-    "ast_hash": "a476118cc8a481550b12260223c07a59",
-    "semantic_hash": ""
-  },
-  "openspec/changes/dynamic-home-builder/specs/home-global/spec.md": {
-    "mtime": 1789058605.4388041,
-    "seen": 1789059338.546096,
-    "ast_hash": "931ef66d0b21af62f0e607d9e44be3df",
-    "semantic_hash": ""
-  },
-  "openspec/changes/dynamic-home-builder/specs/home-sections/spec.md": {
-    "mtime": 1789061481.3832335,
-    "seen": 1789063948.7364008,
-    "ast_hash": "8d7f870567c7935d8aecfa2b9fd584cc",
-    "semantic_hash": ""
-  },
-  "openspec/changes/dynamic-home-builder/specs/seed-workflow/spec.md": {
-    "mtime": 1789058626.0645344,
-    "seen": 1789059338.546098,
-    "ast_hash": "82a452bb8368100b16aefa201f6498f1",
-    "semantic_hash": ""
-  },
-  "openspec/changes/dynamic-home-builder/tasks.md": {
-    "mtime": 1789063864.4616475,
-    "seen": 1789063948.736435,
-    "ast_hash": "117dd8e80689eaeccb2eef2da7c06a40",
-    "semantic_hash": ""
-  },
   "src/components/sections/home/editorial-intro-section.tsx": {
-    "mtime": 1789058896.0959084,
-    "seen": 1789059338.5459259,
-    "ast_hash": "459805d2a358e5535b6e624cd5f7d5b3",
+    "mtime": 1789064395.9004836,
+    "seen": 1789072114.564686,
+    "ast_hash": "536eeb766a008555df8cd50435dea628",
     "semantic_hash": ""
   },
   "src/payload/blocks/home/EditorialIntro.ts": {
@@ -1563,6 +1503,90 @@
     "mtime": 1789062633.846666,
     "seen": 1789063948.7335649,
     "ast_hash": "a47e5e93833173bdaafd3f0bb4cc7699",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-09-10-dynamic-home-builder/.openspec.yaml": {
+    "mtime": 1789023182.2479808,
+    "seen": 1789072114.564845,
+    "ast_hash": "f76f8ea71db3cf104cf7e638123257f2",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-09-10-dynamic-home-builder/design.md": {
+    "mtime": 1789063927.6928277,
+    "seen": 1789072114.564846,
+    "ast_hash": "c97a4b2b9bcfee4e109f04f858e5884a",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-09-10-dynamic-home-builder/proposal.md": {
+    "mtime": 1789058601.1498327,
+    "seen": 1789072114.564847,
+    "ast_hash": "d5fb11aaa04cd0526410b7316f031a96",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-09-10-dynamic-home-builder/specs/frontend-data-access/spec.md": {
+    "mtime": 1789023816.6958206,
+    "seen": 1789072114.5648482,
+    "ast_hash": "b776f4ea2101145ff7bf1d3b4bba9757",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-09-10-dynamic-home-builder/specs/home-block-renderer/spec.md": {
+    "mtime": 1789058639.6866205,
+    "seen": 1789072114.564849,
+    "ast_hash": "6ed536555b730685dab970f310d7fcaa",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-09-10-dynamic-home-builder/specs/home-data-resolution/spec.md": {
+    "mtime": 1789023729.054731,
+    "seen": 1789072114.564849,
+    "ast_hash": "a476118cc8a481550b12260223c07a59",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-09-10-dynamic-home-builder/specs/home-global/spec.md": {
+    "mtime": 1789058605.4388041,
+    "seen": 1789072114.5648499,
+    "ast_hash": "931ef66d0b21af62f0e607d9e44be3df",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-09-10-dynamic-home-builder/specs/home-sections/spec.md": {
+    "mtime": 1789061481.3832335,
+    "seen": 1789072114.564851,
+    "ast_hash": "8d7f870567c7935d8aecfa2b9fd584cc",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-09-10-dynamic-home-builder/specs/seed-workflow/spec.md": {
+    "mtime": 1789058626.0645344,
+    "seen": 1789072114.564852,
+    "ast_hash": "82a452bb8368100b16aefa201f6498f1",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-09-10-dynamic-home-builder/tasks.md": {
+    "mtime": 1789064552.7696724,
+    "seen": 1789072114.564852,
+    "ast_hash": "4b2466653bc114622137754905f8fe60",
+    "semantic_hash": ""
+  },
+  "openspec/specs/home-block-renderer/spec.md": {
+    "mtime": 1789064884.9515584,
+    "seen": 1789072114.564877,
+    "ast_hash": "f5866cb23a5a8e0c376d021a6709fe53",
+    "semantic_hash": ""
+  },
+  "openspec/specs/home-data-resolution/spec.md": {
+    "mtime": 1789064898.866671,
+    "seen": 1789072114.564878,
+    "ast_hash": "93be135c2b581bccc885addbb435734b",
+    "semantic_hash": ""
+  },
+  "openspec/specs/home-global/spec.md": {
+    "mtime": 1789064911.3681095,
+    "seen": 1789072114.5648792,
+    "ast_hash": "3ac95bbdf6715a548dc20c86681f1c2a",
+    "semantic_hash": ""
+  },
+  "openspec/specs/home-sections/spec.md": {
+    "mtime": 1789064938.2054203,
+    "seen": 1789072114.5648792,
+    "ast_hash": "1635a60704c76ddfbbdd471e2a2b5594",
     "semantic_hash": ""
   }
 }

@@ -9,6 +9,7 @@ import { Posts } from './src/payload/collections/Posts.ts'
 import { Redirects } from './src/payload/collections/Redirects.ts'
 import { Tags } from './src/payload/collections/Tags.ts'
 import { Users } from './src/payload/collections/Users.ts'
+import { ArticleSidebar } from './src/payload/globals/ArticleSidebar.ts'
 import { Footer } from './src/payload/globals/Footer.ts'
 import { Home } from './src/payload/globals/Home.ts'
 import { Navigation } from './src/payload/globals/Navigation.ts'
@@ -25,7 +26,7 @@ export default buildConfig({
     migrationDir: 'src/payload/migrations',
   }),
   collections: [Users, Media, Categories, Tags, Posts, Pages, Redirects],
-  globals: [Navigation, Footer, SiteSettings, Home],
+  globals: [Navigation, Footer, SiteSettings, Home, ArticleSidebar],
   typescript: {
     outputFile: 'src/payload-types.ts',
   },

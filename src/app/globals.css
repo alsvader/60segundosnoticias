@@ -230,6 +230,46 @@
   --cat-accent-fg: var(--paper-50);
 }
 
+/*
+ * Social share button colors (ShareActions). Each network gets a solid
+ * brand-color background with white text/icon, applied via a `data-network`
+ * attribute on the shared Button primitive — mirrors the [data-cat-theme]
+ * convention above without teaching button.tsx about social networks.
+ */
+[data-network="facebook"] {
+  --social-accent: #1877f2;
+}
+
+[data-network="x"] {
+  --social-accent: #1da1f2;
+}
+
+[data-network="whatsapp"] {
+  --social-accent: #25d366;
+}
+
+[data-network="instagram"] {
+  --social-accent: #e4405f;
+}
+
+[data-network="youtube"] {
+  --social-accent: #ff0000;
+}
+
+[data-network="tiktok"] {
+  --social-accent: #000000;
+}
+
+[data-slot="button"][data-network] {
+  background-color: var(--social-accent);
+  color: #fff;
+  border-color: transparent;
+}
+
+[data-slot="button"][data-network]:hover {
+  background-color: color-mix(in oklch, var(--social-accent) 85%, black 15%);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -308,6 +348,89 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+  }
+
+  /* `RichText` (@payloadcms/richtext-lexical/react) wraps article/page
+     content in `<div class="payload-richtext">` when no className is
+     passed (LexicalRenderer never passes one). Its default heading/
+     paragraph converters emit bare unclassed elements, so without this
+     they only get Tailwind's preflight reset. `>` (direct child) is
+     intentional on headings/p/lists — Article Content Blocks (e.g.
+     QuoteBlockView's <blockquote class="type-h3">) are siblings at the
+     same level and already carry their own intentional typography;
+     without `>`, a bare descendant selector would also reach their
+     nested <p> and override its inherited size. */
+  /* Property values duplicated from `.type-h2`/`.type-h3`/`.type-body`
+     above — Tailwind v4's `@apply` only accepts registered utilities, not
+     plain `@layer components` classes, so those can't be referenced here
+     directly. */
+  .payload-richtext > h1,
+  .payload-richtext > h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.75rem, 1.1vw + 1.5rem, 2.625rem);
+    line-height: 1.15;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .payload-richtext > h3,
+  .payload-richtext > h4,
+  .payload-richtext > h5,
+  .payload-richtext > h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 0.6vw + 1.35rem, 2rem);
+    line-height: 1.2;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .payload-richtext > p {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: clamp(1.0625rem, 0.15vw + 1.02rem, 1.125rem);
+    line-height: 1.7;
+    color: var(--ink-950);
+    margin-bottom: 1.25rem;
+  }
+
+  .payload-richtext > ul,
+  .payload-richtext > ol {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: clamp(1.0625rem, 0.15vw + 1.02rem, 1.125rem);
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+    padding-left: 1.5rem;
+  }
+  .payload-richtext > ul {
+    list-style: disc;
+  }
+  .payload-richtext > ol {
+    list-style: decimal;
+  }
+  .payload-richtext li {
+    margin-bottom: 0.5rem;
+  }
+
+  .payload-richtext a {
+    color: var(--brand-red-500);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .payload-richtext strong {
+    font-weight: 700;
+  }
+  .payload-richtext em {
+    font-style: italic;
+  }
+
+  .payload-richtext > :first-child {
+    margin-top: 0;
+  }
+  .payload-richtext > :last-child {
+    margin-bottom: 0;
   }
 }
 
@@ -388,4 +511,27 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Vidstack Default Theme, mapped to existing editorial tokens (VideoPlayer,
+   src/components/content/video-player.tsx) — approximates the previous
+   hand-rolled dark/red player look without a headless custom UI. */
+.editorial-video-player {
+  --video-brand: var(--brand-red-500);
+  --video-bg: var(--ink-950);
+  --video-border-radius: 0.75rem; /* rounded-xl */
+  --video-controls-color: var(--paper-50);
+}
+
+/* Vidstack's default theme applies `object-fit: contain` to the inner
+   video/iframe. A YouTube embed iframe carries no width/height attributes,
+   so the browser falls back to the UA default intrinsic ratio (300x150,
+   2:1) for that calculation — inside a portrait 9:16 box, that leaves the
+   video rendered small with empty space around it instead of filling the
+   box (TikTok's plain iframe has no object-fit rule, so it isn't affected).
+   Scoped to the portrait modifier only — horizontal videos keep Vidstack's
+   default `contain` untouched. */
+.editorial-video-player--portrait [data-media-provider] video,
+.editorial-video-player--portrait [data-media-provider] iframe {
+  object-fit: cover;
 }

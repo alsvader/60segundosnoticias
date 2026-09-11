@@ -31,6 +31,15 @@ export const VideoBlock: Block = {
       },
     },
     {
+      name: 'portrait',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description:
+          'Marca esta opción para video vertical (formato Shorts/Reels) — por ejemplo un video subido en 9:16 o un Vimeo vertical. Los enlaces de YouTube Shorts se detectan automáticamente y no necesitan esta casilla.',
+      },
+    },
+    {
       name: 'poster',
       type: 'upload',
       relationTo: 'media',
