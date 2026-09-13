@@ -1587,20 +1587,27 @@ Solo contenido publicado se sincroniza al índice y es buscable (`syncDrafts: fa
 
 Al índice `search` solo se sincroniza la información crítica para búsqueda, nunca el documento completo de Payload. Para contenido Lexical, evaluar derivar texto plano acotado vía `beforeSync` del plugin en vez de indexar el documento Lexical serializado completo.
 
-Buscar como mínimo:
+Contenido indexado en V1:
+
+- **Posts** publicados — contenido primario de Search.
+- **Pages** publicadas — contienen información pública que un usuario puede buscar independientemente de las noticias.
+
+**Categories NO se indexan como documentos de Search independientes en V1**: la navegación por categoría ya tiene una experiencia de exploración dedicada, los documentos de Category tienen poca prosa propia, y mezclar Categories como resultado agrega complejidad sin valor claro en V1. El `name`/`slug` de `primaryCategory` sí puede formar parte del registro de Search de un Post — el `name` participa en el matching, el `slug` existe para construir su URL canónica —, sin que eso implique indexar la Collection Categories. Igualmente, los nombres de `tags` pueden contribuir al texto buscable de un Post sin que Tags tenga documentos de Search propios ni rutas públicas de Tag.
+
+Buscar como mínimo en Posts:
 
 - title;
 - excerpt;
-- tags;
-- category.
+- tags (nombres);
+- primaryCategory.name.
 
-Body content puede añadirse si se implementa eficientemente como texto plano derivado (no el documento Lexical completo), pero **no es requisito V1**.
+Buscar como mínimo en Pages: texto público relevante derivado de sus Page Blocks (Hero, RichText, ImageText, CTA, FAQ, Banner), nunca el JSON crudo de los blocks.
 
-Solo Posts publicados en V1. La Fase 9 debe verificar si Pages/Categories también deben participar en el índice, y qué campos adicionales participan en relevancia.
+Body content (Posts) puede añadirse si se implementa eficientemente como texto plano derivado (no el documento Lexical completo), pero **no es requisito V1**.
 
 No ejecutar búsqueda vacía sobre toda la base.
 
-Relevancia V1: determinística y simple, usando la prioridad de collection/documento que ya expone el plugin — sin algoritmo de ranking complejo ni búsqueda semántica/vectorial/IA.
+Relevancia V1: determinística y simple, usando la prioridad de collection/documento que ya expone el plugin — sin algoritmo de ranking complejo ni búsqueda semántica/vectorial/IA. En igualdad de condiciones, Posts rankean antes que Pages (noticias antes que contenido genérico); la representación numérica exacta de esa prioridad es detalle de implementación (design.md).
 
 Ciclo de vida del índice:
 
@@ -3729,6 +3736,8 @@ Los siguientes criterios son normativos. Un agente debe reportar `PASS`, `FAIL`,
 | AC-SEARCH-012 | Los resultados de Search usan URLs públicas canónicas (`getPostUrl()`/`getPageUrl()`). |
 | AC-SEARCH-013 | Ningún contenido en Draft aparece nunca en `/buscar`. |
 | AC-SEARCH-014 | V1 no requiere ningún servicio de búsqueda externo (Algolia/Elasticsearch/OpenSearch/Meilisearch/Typesense u otro). |
+| AC-SEARCH-015 | Search solo devuelve published Pages. |
+| AC-SEARCH-016 | Categories no aparecen como resultados de Search independientes; su información (nombre/slug de `primaryCategory`) solo participa dentro del registro de Search de un Post. |
 
 ## 84.10 Preview / Redirect / SEO
 

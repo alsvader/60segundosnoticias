@@ -4,6 +4,7 @@ import { Menu } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
+import { SearchForm } from '@/components/site/search-form'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import type { ResolvedLink, ResolvedNavItem } from '@/lib/url/resolve-link'
@@ -14,11 +15,10 @@ type MobileNavProps = {
 }
 
 /**
- * The only Client Component in the site shell - scoped to open/close
- * state for the mobile menu trigger. Receives already-resolved items;
- * does not fetch or resolve anything itself. Escape-to-close, focus
- * management and scroll lock come from Radix Dialog (which shadcn's
- * Sheet wraps), not custom code here.
+ * Scoped to open/close state for the mobile menu trigger. Receives
+ * already-resolved items; does not fetch or resolve anything itself.
+ * Escape-to-close, focus management and scroll lock come from Radix
+ * Dialog (which shadcn's Sheet wraps), not custom code here.
  */
 export function MobileNav({ navItems, cta }: MobileNavProps) {
   const [open, setOpen] = useState(false)
@@ -35,6 +35,7 @@ export function MobileNav({ navItems, cta }: MobileNavProps) {
           <SheetTitle>Navegación</SheetTitle>
         </SheetHeader>
         <nav aria-label="Navegación móvil" className="flex flex-col gap-1 px-4 pb-4">
+          <SearchForm idPrefix="mobile-nav" className="mb-3 flex gap-2" />
           {navItems.map((item) => (
             <div key={item.href}>
               <Link

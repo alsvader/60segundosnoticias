@@ -15,6 +15,7 @@ import { Home } from './src/payload/globals/Home.ts'
 import { Navigation } from './src/payload/globals/Navigation.ts'
 import { SiteSettings } from './src/payload/globals/SiteSettings.ts'
 import { payloadEnv } from './src/lib/env/payload.ts'
+import { search } from './src/payload/plugins/search.ts'
 
 export default buildConfig({
   secret: payloadEnv.PAYLOAD_SECRET,
@@ -27,6 +28,7 @@ export default buildConfig({
   }),
   collections: [Users, Media, Categories, Tags, Posts, Pages, Redirects],
   globals: [Navigation, Footer, SiteSettings, Home, ArticleSidebar],
+  plugins: [search],
   typescript: {
     outputFile: 'src/payload-types.ts',
   },

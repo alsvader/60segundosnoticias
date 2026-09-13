@@ -213,4 +213,13 @@ Implementado en `openspec/changes/preview-seo-cache-redirects/` (Master Spec §1
 
 ## Fuera de alcance de Fase 8
 
-Búsqueda, ruta de Autor/Tag, almacenamiento de objetos en producción, orquestación de migraciones en CI/producción, alternativas Markdown de Article/Page (`.md`, diferido explícitamente), reglas de robots específicas por crawler de IA (Fase 9/10/11).
+Búsqueda (implementada en Fase 9, ver abajo), ruta de Autor/Tag, almacenamiento de objetos en producción, orquestación de migraciones en CI/producción, alternativas Markdown de Article/Page (`.md`, diferido explícitamente), reglas de robots específicas por crawler de IA (Fase 10/11).
+
+## Search (Fase 9)
+
+Implementado en `openspec/changes/site-search/` (Master Spec §36). Detalle técnico completo (comportamiento exacto del plugin, política de drafts, runbook de reindex, limitación de acentos) en `docs/SEARCH.md` — este archivo solo referencia cómo `/buscar` encaja en el pipeline ya documentado arriba.
+
+- **Backend**: `@payloadcms/plugin-search` (`src/payload/plugins/search.ts`) indexa Posts y Pages publicados en una Collection `search` dedicada — nunca Categories como documentos independientes. `access`: `create`/`update`/`delete` solo Admin; `read` público, igual que Categories/Media.
+- **DAL**: `searchContent()` (`src/lib/data/search.ts`) es la única función pública del DAL deliberadamente sin `unstable_cache` — la cardinalidad de `q` es arbitraria. Sigue usando `findPublished()` (sin `overrideAccess: true`), igual que el resto del DAL.
+- **View model**: `src/lib/view-models/search.ts` normaliza el documento crudo de `search` a `SearchResult`/`SearchResultPage`, reutilizando `ArticleCardData` en vez de un componente nuevo.
+- **Ruta**: `/buscar?q=...&page=N` (`src/app/(frontend)/buscar/page.tsx`) — `noindex`, excluida de `sitemap.xml`/`llms.txt`, reutiliza `ArticleCard`/`Pagination` ya existentes.

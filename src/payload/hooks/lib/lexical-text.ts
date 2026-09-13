@@ -13,7 +13,24 @@ type LexicalNode = {
   type?: string
 }
 
-const TEXT_LIKE_BLOCK_FIELD_KEYS = ['quote', 'title', 'content', 'caption', 'text']
+const TEXT_LIKE_BLOCK_FIELD_KEYS = ['quote', 'title', 'content', 'caption', 'text', 'images']
+
+/** True for a plain field-value object (e.g. one `images[]` entry, `{ image, caption }`) that
+ *  carries none of the shape markers of an actual Lexical node - so it needs to be scanned as a
+ *  field bag (below) rather than walked as a node via `extractFromNode`. */
+const looksLikeFieldBag = (node: LexicalNode): boolean =>
+  node.type === undefined && node.text === undefined && node.children === undefined
+
+const extractFieldBagText = (fields: Record<string, unknown>): string => {
+  const parts: string[] = []
+  for (const key of TEXT_LIKE_BLOCK_FIELD_KEYS) {
+    const value = fields[key]
+    if (value) {
+      parts.push(extractFromValue(value))
+    }
+  }
+  return parts.join(' ')
+}
 
 const extractFromValue = (value: unknown): string => {
   if (typeof value === 'string') {
@@ -23,7 +40,10 @@ const extractFromValue = (value: unknown): string => {
     return value.map(extractFromValue).join(' ')
   }
   if (value && typeof value === 'object') {
-    return extractFromNode(value as LexicalNode)
+    const node = value as LexicalNode
+    return looksLikeFieldBag(node)
+      ? extractFieldBagText(node as unknown as Record<string, unknown>)
+      : extractFromNode(node)
   }
   return ''
 }
@@ -40,12 +60,7 @@ const extractFromNode = (node: LexicalNode): string => {
   }
 
   if (node.type === 'block' && node.fields && typeof node.fields === 'object') {
-    for (const key of TEXT_LIKE_BLOCK_FIELD_KEYS) {
-      const value = node.fields[key]
-      if (value) {
-        parts.push(extractFromValue(value))
-      }
-    }
+    parts.push(extractFieldBagText(node.fields))
   }
 
   return parts.join(' ')

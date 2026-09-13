@@ -22,6 +22,7 @@
   "dependencies": {
     "@payloadcms/db-postgres": "3.87.1",
     "@payloadcms/next": "3.87.1",
+    "@payloadcms/plugin-search": "3.87.1",
     "@payloadcms/richtext-lexical": "3.87.1",
     "@vidstack/react": "1.15.6",
     "class-variance-authority": "^0.7.1",

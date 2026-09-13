@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import { Container } from '@/components/layout/container'
+import { HeaderSearch } from '@/components/site/header-search'
 import { MobileNav } from '@/components/site/mobile-nav'
 import { Button } from '@/components/ui/button'
 import type { ResolvedLink, ResolvedNavItem } from '@/lib/url/resolve-link'
@@ -76,6 +77,7 @@ export function Header({ siteName, logo, navItems, cta }: HeaderProps) {
         </nav>
 
         <div className="flex items-center gap-2">
+          <HeaderSearch />
           {cta ? (
             <Button asChild size="sm" className="hidden md:inline-flex">
               <Link href={cta.href} target={cta.openInNewTab ? '_blank' : undefined}>

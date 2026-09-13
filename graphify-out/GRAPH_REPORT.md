@@ -1,16 +1,16 @@
 # Graph Report - 60segundosnoticias  (2026-09-13)
 
 ## Corpus Check
-- 375 files · ~401,051 words
+- 391 files · ~433,729 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2578 nodes · 3728 edges · 201 communities (153 shown, 46 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 111 edges (avg confidence: 0.87)
+- 2712 nodes · 3932 edges · 209 communities (161 shown, 46 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 114 edges (avg confidence: 0.87)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `134a98ce`
+- Built from commit: `b2977ff5`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -20,7 +20,7 @@
 - Editorial Workflow Change Proposal
 - Payload CMS Core Tasks
 - Payload CMS Core — proposal.md
-- payload.config.ts
+- [post]/page.tsx
 - Bootstrap Technical Foundation — tasks.md
 - package.json
 - components.json
@@ -30,7 +30,7 @@
 - (payload)/layout.tsx
 - Requirements
 - ADDED Requirements
-- article-editor.ts
+- payload
 - ADDED Requirements
 - layout-primitives spec (archived)
 - Requirements
@@ -40,7 +40,7 @@
 - 60 Segundos Noticias — Master Specification
 - Requirements
 - Requirements
-- [post]/page.tsx
+- [category]/page.tsx
 - ADDED Requirements
 - ADDED Requirements
 - Editorial Components (capability)
@@ -57,36 +57,36 @@
 - 60 Segundos Noticias — Design System (Fase 4)
 - Requirements
 - Requirements
-- 2026-09-09-design-system-shadcn/proposal.md
-- design-tokens spec (archived)
+- build-search-doc.ts
+- category-theme-system spec (archived)
 - Accessibility Foundation (capability)
 - Requirements
 - Requirements
 - Requirements
 - ADDED Requirements
-- Typography System (capability)
+- ADDED Requirements
 - Requirements
 - Requirements
 - Requirements
 - @payloadcms/db-postgres
-- shell/cache-invalidation.ts
-- Category Theme System (capability)
+- invalidate.ts
+- 2026-09-09-design-system-shadcn/proposal.md
 - texture-foundation spec (archived)
 - ADDED Requirements
-- AGENTS.md — Agent Instructions
+- ADDED Requirements
 - Requirements
 - Requirements
-- category-theme-keys.ts
+- ADDED Requirements
 - OPSX: Apply command
 - ADDED Requirements
 - 2026-09-10-public-frontend-core/tasks.md
 - check-environment.sh
-- mapMediaToMediaData
+- article-card.tsx
 - D6: publishedAt assignment and restore defense
 - 60 Segundos Noticias — Frontend Architecture (Fase 5-8)
 - canonical.ts
 - ADDED Requirements
-- dev.ts
+- resolve-root-slug.ts
 - category-icon-map.tsx (CategoryIconKey to Lucide mapping)
 - article-header.tsx
 - postcss.config.mjs
@@ -134,7 +134,7 @@
 - Campos publicos/editoriales
 - Roles de usuario
 - react
-- article-card.tsx
+- mapMediaToMediaData
 - embed-block.tsx
 - Decisions
 - ADDED Requirements
@@ -142,10 +142,10 @@
 - ADDED Requirements
 - Requirements
 - environment-validation capability
-- invalidate.ts
+- references.ts
 - Decisions
-- payload
-- compose.yaml
+- Home.ts
+- buscar/page.tsx
 - ADDED Requirements
 - Requirements
 - 2026-09-10-public-frontend-core/proposal.md
@@ -154,7 +154,7 @@
 - resolve-home-blocks.ts
 - ADDED Requirements
 - ADDED Requirements
-- ADDED Requirements
+- Button (shadcn primitive, re-themed)
 - Decisions
 - ADDED Requirements
 - Requirements
@@ -166,15 +166,15 @@
 - ADDED Requirements
 - ADDED Requirements
 - Requirements
-- accessibility-foundation spec (archived)
+- payload.config.ts
 - Requirement: seed:initial pobla solo entidades con schema ya implementado
 - video-block.tsx
 - 2026-09-10-dynamic-home-builder/proposal.md
 - Requirement: Globals Navigation, Footer y SiteSettings accesibles vía DAL
 - lexical-renderer.tsx
-- add-draft-mode-banner/proposal.md
+- site-search/tasks.md
 - Requirements
-- add-draft-mode-banner/design.md
+- page-block-renderer.tsx
 - Requirements
 - ADDED Requirements
 - ADDED Requirements
@@ -186,19 +186,19 @@
 - author-card.tsx
 - ADDED Requirements
 - ADDED Requirements
-- gallery-block.tsx
+- llms-txt.ts
 - Requirements
 - ADDED Requirements
 - posts.ts
 - (frontend)/layout.tsx
 - 2026-09-11-category-article-pages/tasks.md
 - 2026-09-11-preview-seo-cache-redirects/tasks.md
-- resolve-root-slug.ts
+- draft-documents.ts
 - 60 Segundos Noticias — Preview, SEO, Cache y Redirects (Fase 8)
 - Requirement: Búsqueda pública de contenido por slug
 - Requirements
 - ADDED Requirements
-- Requirement: Indicador visible de Draft Mode
+- 2026-09-13-add-draft-mode-banner/proposal.md
 - 2026-09-11-category-article-pages/design.md
 - 2026-09-11-category-article-pages/proposal.md
 - Requirements
@@ -211,32 +211,40 @@
 - 2026-09-11-preview-seo-cache-redirects/design.md
 - 2026-09-11-preview-seo-cache-redirects/proposal.md
 - Requirement: Origen de sitio canónico centralizado
-- add-draft-mode-banner/tasks.md
+- site-search/design.md
+- site-search/proposal.md
 - REMOVED Requirements
-- enforce-uploader.ts
+- 2026-09-13-add-draft-mode-banner/design.md
+- Design Tokens (capability)
+- Requirement: Indicador visible de Draft Mode
+- 2026-09-13-add-draft-mode-banner/tasks.md
+- eslint.config.mjs
+- Texture Foundation (capability)
+- 60 Segundos Noticias — Search (Fase 9)
+- payload.ts
 
 ## God Nodes (most connected - your core abstractions)
-1. `payload` - 64 edges
+1. `payload` - 65 edges
 2. `mapMediaToMediaData()` - 29 edges
-3. `server-only` - 19 edges
-4. `findPublished()` - 19 edges
-5. `getCategoryUrl()` - 19 edges
-6. `getPostUrl()` - 19 edges
-7. `60 Segundos Noticias — Master Specification` - 19 edges
-8. `react` - 18 edges
+3. `findPublished()` - 21 edges
+4. `getPostUrl()` - 21 edges
+5. `server-only` - 20 edges
+6. `react` - 19 edges
+7. `getCategoryUrl()` - 19 edges
+8. `60 Segundos Noticias — Master Specification` - 19 edges
 9. `getAbsoluteUrl()` - 18 edges
 10. `ArticlePage()` - 17 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `.claude/CLAUDE.md (graphify trigger)` --semantically_similar_to--> `CLAUDE.md — Claude Code Project Instructions`  [INFERRED] [semantically similar]
   .claude/CLAUDE.md → CLAUDE.md
-- `editorial-components spec (archived)` --references--> `Pagination component`  [EXTRACTED]
-  openspec/changes/archive/2026-09-09-design-system-shadcn/specs/editorial-components/spec.md → docs/DESIGN-SYSTEM.md
-- `AI / SDD Workflow` --references--> `Bootstrap Technical Foundation — proposal.md`  [INFERRED]
-  docs/AI-WORKFLOW.md → openspec/changes/archive/2026-09-09-bootstrap-technical-foundation/proposal.md
 - `AI / SDD Workflow` --references--> `Payload CMS Core — proposal.md`  [INFERRED]
   docs/AI-WORKFLOW.md → openspec/changes/archive/2026-09-09-payload-cms-core/proposal.md
-- `D5: Incremental shadcn primitive installation` --references--> `Button (shadcn primitive, re-themed)`  [EXTRACTED]
+- `editorial-components spec (archived)` --references--> `Pagination component`  [EXTRACTED]
+  openspec/changes/archive/2026-09-09-design-system-shadcn/specs/editorial-components/spec.md → docs/DESIGN-SYSTEM.md
+- `category-theme-system spec (archived)` --references--> `CATEGORY_THEME_KEYS (framework-neutral constant)`  [EXTRACTED]
+  openspec/changes/archive/2026-09-09-design-system-shadcn/specs/category-theme-system/spec.md → docs/DESIGN-SYSTEM.md
+- `D7: Fonts via next/font/google, no font management library` --references--> `DESIGN-SYSTEM.md (Fase 4 implementation doc)`  [EXTRACTED]
   openspec/changes/archive/2026-09-09-design-system-shadcn/design.md → docs/DESIGN-SYSTEM.md
 
 ## Import Cycles
@@ -261,11 +269,11 @@
 - **Documents independently restating the Master Spec > OpenSpec > implementation > tooling priority order** — docs_60_segundos_spec_doc, concept_source_of_truth_priority [INFERRED 0.85]
 - **44px touch target accessibility fix flow** — docs_design_system_touch_target_technique, docs_design_system_button_component, docs_design_system_pagination, openspec_changes_archive_2026_09_09_design_system_shadcn_specs_accessibility_foundation_spec_ac_a11y_007_touch_target, openspec_changes_archive_2026_09_09_design_system_shadcn_tasks [INFERRED 0.85]
 
-## Communities (201 total, 46 thin omitted)
+## Communities (209 total, 46 thin omitted)
 
 ### Community 0 - "payload-types.ts"
-Cohesion: 0.04
-Nodes (55): ArticleSidebar, ArticleSidebarSelect, Auth, BannerBlock, BannerBlockSelect, CategoriesSelect, CategoryExplorerBlock, CategoryExplorerBlockSelect (+47 more)
+Cohesion: 0.03
+Nodes (58): ArticleSidebar, ArticleSidebarSelect, Auth, BannerBlock, BannerBlockSelect, CategoriesSelect, CategoryExplorerBlock, CategoryExplorerBlockSelect (+50 more)
 
 ### Community 1 - "ADDED Requirements"
 Cohesion: 0.17
@@ -283,17 +291,17 @@ Nodes (30): Page Blocks Spec (Archived Change), Pages Collection Spec (Archived 
 Cohesion: 0.14
 Nodes (18): article-content-blocks capability, categories-collection capability, cms-access-control capability, media-collection capability, page-blocks capability, pages-collection capability, posts-collection capability, redirects-collection capability (+10 more)
 
-### Community 5 - "payload.config.ts"
-Cohesion: 0.07
-Nodes (29): sharp, zod, GET, OPTIONS, POST, DELETE, GET, OPTIONS (+21 more)
+### Community 5 - "[post]/page.tsx"
+Cohesion: 0.17
+Nodes (19): ArticlePage(), ArticlePageProps, generateMetadata(), loadPost, ArticleAside(), ArticleAsideProps, RelatedPosts(), RelatedPostsProps (+11 more)
 
 ### Community 6 - "Bootstrap Technical Foundation — tasks.md"
 Cohesion: 0.20
 Nodes (9): Bootstrap Technical Foundation — tasks.md, 1. Verificación de versiones y bootstrap del proyecto, 2. Esqueleto de Next.js (App Router), 3. Integración de Payload CMS + PostgreSQL, 4. Tailwind CSS + shadcn/ui, 5. Validación de variables de entorno, 6. Endpoint `/api/health`, 7. Docker Compose para desarrollo (+1 more)
 
 ### Community 7 - "package.json"
-Cohesion: 0.07
-Nodes (25): eslintConfig, engines, node, name, pnpm, onlyBuiltDependencies, private, type (+17 more)
+Cohesion: 0.08
+Nodes (25): engines, node, name, pnpm, onlyBuiltDependencies, private, type, version (+17 more)
 
 ### Community 8 - "components.json"
 Cohesion: 0.09
@@ -308,8 +316,8 @@ Cohesion: 0.11
 Nodes (18): Purpose, Requirement: Accessible name en controles solo-icono, Requirement: Alt apropiado en imágenes editoriales, Requirement: Contraste apropiado en category themes, Requirement: Foco visible, Requirement: Jerarquía de encabezados correcta, Requirement: Motion respeta reduced motion, Requirement: Navegación por teclado en funciones críticas (+10 more)
 
 ### Community 11 - "dependencies"
-Cohesion: 0.10
-Nodes (21): dependencies, class-variance-authority, cn, graphql, lucide-react, next, payload, @payloadcms/db-postgres (+13 more)
+Cohesion: 0.09
+Nodes (22): dependencies, class-variance-authority, cn, graphql, lucide-react, next, payload, @payloadcms/db-postgres (+14 more)
 
 ### Community 12 - "(payload)/layout.tsx"
 Cohesion: 0.16
@@ -323,9 +331,9 @@ Nodes (17): Purpose, Requirement: ArticleCard como fundación reutilizable, Requ
 Cohesion: 0.12
 Nodes (17): ADDED Requirements, Requirement: Accessible name en controles solo-icono, Requirement: Alt apropiado en imágenes editoriales, Requirement: Contraste apropiado en category themes, Requirement: Foco visible, Requirement: Jerarquía de encabezados correcta, Requirement: Motion respeta reduced motion, Requirement: Navegación por teclado en funciones críticas (+9 more)
 
-### Community 15 - "article-editor.ts"
-Cohesion: 0.16
-Nodes (9): @payloadcms/richtext-lexical, CalloutBlock, EmbedBlock, GalleryBlock, ImageBlock, QuoteBlock, VideoBlock, RichText (+1 more)
+### Community 15 - "payload"
+Cohesion: 0.11
+Nodes (17): payload, @payloadcms/richtext-lexical, isLoggedIn(), CalloutBlock, EmbedBlock, GalleryBlock, ImageBlock, QuoteBlock (+9 more)
 
 ### Community 16 - "ADDED Requirements"
 Cohesion: 0.12
@@ -340,20 +348,20 @@ Cohesion: 0.13
 Nodes (14): Purpose, Requirement: Build y tipado sin errores, Requirement: Next.js y Payload como una sola aplicación, Requirement: Persistencia de Payload en PostgreSQL, Requirement: Server Components por defecto, Requirement: shadcn/ui como única base de primitivos de UI, Requirement: Sin Collections ni Globals de Payload en esta fase, Requirements (+6 more)
 
 ### Community 19 - "category-badge.tsx"
-Cohesion: 0.20
-Nodes (14): CategoryHeader(), CategoryHeaderData, CategoryHeaderProps, CategoryBadge(), CategoryBadgeProps, categoryBadgeVariants, CategoryCard(), CategoryCardData (+6 more)
+Cohesion: 0.13
+Nodes (20): CategoryHeader(), CategoryHeaderData, CategoryHeaderProps, CategoryBadge(), CategoryBadgeProps, categoryBadgeVariants, CategoryCard(), CategoryCardProps (+12 more)
 
 ### Community 20 - "home-block-renderer.tsx"
-Cohesion: 0.10
-Nodes (25): SectionHeader(), SectionHeaderProps, Container(), ContainerProps, CategoryExplorerSection(), CategoryExplorerSectionProps, EditorialIntroSection(), EditorialIntroSectionProps (+17 more)
+Cohesion: 0.11
+Nodes (22): ArticleCard(), SectionHeader(), SectionHeaderProps, CategoryExplorerSection(), CategoryExplorerSectionProps, FeaturedPostsSection(), FeaturedPostsSectionProps, HeroNewsSection() (+14 more)
 
 ### Community 21 - "Bootstrap Technical Foundation — proposal.md"
-Cohesion: 0.18
-Nodes (11): local-docker-environment capability, Bootstrap Technical Foundation — change config, Bootstrap Technical Foundation — proposal.md, Capabilities, Impact, Modified Capabilities, New Capabilities, What Changes (+3 more)
+Cohesion: 0.16
+Nodes (17): health-check capability, local-docker-environment capability, Next.js, Payload CMS, PostgreSQL, AI / SDD Workflow, Bootstrap Technical Foundation — change config, Bootstrap Technical Foundation — proposal.md (+9 more)
 
 ### Community 22 - "60 Segundos Noticias — Master Specification"
-Cohesion: 0.14
-Nodes (14): Acceptance Criteria (AC-* normative checklist), Block rendering pipeline (Payload Block → Resolver → View Model → Renderer → Section), Tag-based cache and targeted revalidation, Category color themes and icon keys, Data Access Layer (src/lib/data), 60 Segundos editorial Design System, Docker Compose app+db architecture, Admin/Writer roles and permissions (+6 more)
+Cohesion: 0.10
+Nodes (25): AGENTS.md — Agent Instructions, .claude/CLAUDE.md (graphify trigger), CLAUDE.md — Claude Code Project Instructions, Acceptance Criteria (AC-* normative checklist), Block rendering pipeline (Payload Block → Resolver → View Model → Renderer → Section), Tag-based cache and targeted revalidation, Category color themes and icon keys, Data Access Layer (src/lib/data) (+17 more)
 
 ### Community 23 - "Requirements"
 Cohesion: 0.14
@@ -363,9 +371,9 @@ Nodes (13): Purpose, Requirement: Fondo principal editorial, Requirement: Fuente
 Cohesion: 0.14
 Nodes (13): Purpose, Requirement: Comunicación interna `app` → `db` por nombre de servicio, Requirement: Desarrollo con Fast Refresh mediante montaje de fuente, Requirement: Healthchecks para ambos servicios, Requirement: Persistencia de datos de PostgreSQL entre reinicios, Requirement: Servicios `app` y `db`, Requirements, Scenario: conexión interna usa el nombre del servicio (+5 more)
 
-### Community 25 - "[post]/page.tsx"
-Cohesion: 0.10
-Nodes (44): nextConfig, next, generateMetadata(), getResolvedRootSlug, RootSlugPage(), RootSlugPageProps, ArticlePage(), ArticlePageProps (+36 more)
+### Community 25 - "[category]/page.tsx"
+Cohesion: 0.13
+Nodes (25): nextConfig, next, generateMetadata(), getResolvedRootSlug, RootSlugPage(), RootSlugPageProps, generateMetadata(), HomePage() (+17 more)
 
 ### Community 26 - "ADDED Requirements"
 Cohesion: 0.08
@@ -376,16 +384,16 @@ Cohesion: 0.12
 Nodes (16): app-bootstrap capability, App Bootstrap — spec.md, ADDED Requirements, Purpose, Requirement: Build y tipado sin errores, Requirement: Next.js y Payload como una sola aplicación, Requirement: Persistencia de Payload en PostgreSQL, Requirement: Server Components por defecto (+8 more)
 
 ### Community 28 - "Editorial Components (capability)"
-Cohesion: 0.26
-Nodes (12): Correct Heading Hierarchy (AC-A11Y-005), ArticleCard, ArticleMetadata, Breadcrumbs, CategoryBadge, CategoryCard, Editorial Components (capability), Pagination (+4 more)
+Cohesion: 0.18
+Nodes (17): Appropriate Contrast in Category Themes (AC-A11Y-006), --cat-accent / --cat-accent-fg / --cat-soft / --cat-soft-fg / --cat-border, CATEGORY_THEME_KEYS, Category Theme System (capability), Only Controlled Keys, No Arbitrary CMS Color, data-cat-theme Attribute Mapping Mechanism, Explicit Per-theme Contrast Requirement, ArticleCard (+9 more)
 
 ### Community 29 - "Categories.ts"
-Cohesion: 0.19
-Nodes (12): invalidateCategory(), categoryAffectsNavigation(), CATEGORY_ICON_KEYS, isReservedSlug(), RESERVED_SLUGS, Categories, slugField(), createNamespaceSlugValidate() (+4 more)
+Cohesion: 0.26
+Nodes (9): invalidateCategory(), categoryAffectsNavigation(), isReservedSlug(), RESERVED_SLUGS, createNamespaceSlugValidate(), findAffectedPublishedPostIds(), invalidateCategoryCache(), invalidateCategoryCacheOnDelete() (+1 more)
 
 ### Community 30 - "Posts.ts"
-Cohesion: 0.15
-Nodes (18): isAdminOrWriter(), Posts, countWords(), extractFromNode(), extractFromValue(), extractLexicalText(), LexicalNode, TEXT_LIKE_BLOCK_FIELD_KEYS (+10 more)
+Cohesion: 0.18
+Nodes (12): isAdminOrWriter(), isOwnerOrAdmin(), Posts, seoFields, enforceAuthor(), assignPublishedAt(), hasValue(), publishValidation() (+4 more)
 
 ### Community 31 - "editorial-components spec (archived)"
 Cohesion: 0.20
@@ -400,8 +408,8 @@ Cohesion: 0.17
 Nodes (12): ADDED Requirements, Requirement: Comunicación interna `app` → `db` por nombre de servicio, Requirement: Desarrollo con Fast Refresh mediante montaje de fuente, Requirement: Healthchecks para ambos servicios, Requirement: Persistencia de datos de PostgreSQL entre reinicios, Requirement: Servicios `app` y `db`, Scenario: conexión interna usa el nombre del servicio, Scenario: eliminación explícita de volúmenes (+4 more)
 
 ### Community 34 - "2026-09-09-design-system-shadcn/tasks.md"
-Cohesion: 0.17
-Nodes (11): 10. Validación final, 11. Fixes de la ronda de `/opsx:verify` (WARNING → resuelto), 1. Tokens de color y eliminación de dark mode, 2. Tipografía, 3. Category theme system, 4. Layout primitives, 5. Texturas, 6. Primitivos shadcn (+3 more)
+Cohesion: 0.11
+Nodes (19): DESIGN-SYSTEM.md (Fase 4 implementation doc), Motion tokens (--motion-fast/normal/slow + reduced-motion reset), 44px touch target technique (icon ::after 4-way + text min-w-11 + vertical-only ::after), accessibility-foundation spec (archived), AC-A11Y-006: Category theme contrast requirement, AC-A11Y-007: 44px touch target requirement, AC-A11Y-008: prefers-reduced-motion requirement, Purpose (+11 more)
 
 ### Community 35 - "Requirements"
 Cohesion: 0.17
@@ -431,17 +439,17 @@ Nodes (10): Purpose, Requirement: Instalación incremental, no masiva, Requireme
 Cohesion: 0.18
 Nodes (10): Purpose, Requirement: Escala tipográfica del Design System, Requirement: Restricción de uppercase, Requirement: Tipografía display usa Oswald, Requirement: Tipografía long-form usa Inter, Requirements, Scenario: Se define un título de artículo (H1), Scenario: Se renderiza texto de cuerpo (+2 more)
 
-### Community 42 - "2026-09-09-design-system-shadcn/proposal.md"
-Cohesion: 0.14
-Nodes (13): bootstrap-technical-foundation (prior phase), Capabilities, editorial-workflow (prior phase), Impact, Modified Capabilities, New Capabilities, payload-cms-core (prior phase), What Changes (+5 more)
+### Community 42 - "build-search-doc.ts"
+Cohesion: 0.09
+Nodes (30): anyone(), countWords(), extractFieldBagText(), extractFromNode(), extractFromValue(), extractLexicalText(), LexicalNode, looksLikeFieldBag() (+22 more)
 
-### Community 43 - "design-tokens spec (archived)"
-Cohesion: 0.24
-Nodes (11): Button (shadcn primitive, re-themed), src/app/globals.css (token source of truth), Pagination component, D1: Tokens as CSS variables in @theme, no JS token file, D5: Incremental shadcn primitive installation, D6: Explicit removal of dark mode, shadcn-primitives capability, design-tokens spec (archived) (+3 more)
+### Community 43 - "category-theme-system spec (archived)"
+Cohesion: 0.27
+Nodes (10): CATEGORY_THEME_KEYS (framework-neutral constant), resolveCategoryThemeKey() (src/lib/editorial/category-theme.ts), src/app/globals.css (token source of truth), D1: Tokens as CSS variables in @theme, no JS token file, D2: Category theme via data-cat-theme, not dynamic Tailwind classes, D6: Explicit removal of dark mode, category-theme-system spec (archived), Purpose (+2 more)
 
 ### Community 44 - "Accessibility Foundation (capability)"
-Cohesion: 0.13
-Nodes (20): Accessibility Foundation (capability), Accessible Name on Icon-only Controls (AC-A11Y-002), Required Alt Text on ResponsiveMedia (AC-A11Y-004), Keyboard Navigation on Critical Controls (AC-A11Y-001), Motion Respects prefers-reduced-motion (AC-A11Y-008), 44px Minimum Touch Targets (AC-A11Y-007), Visible Focus State (AC-A11Y-003), Brand/Semantic Color Tokens (brand-red, ink, paper, border, success/warning/error/info) (+12 more)
+Cohesion: 0.15
+Nodes (18): Accessibility Foundation (capability), Accessible Name on Icon-only Controls (AC-A11Y-002), Required Alt Text on ResponsiveMedia (AC-A11Y-004), Correct Heading Hierarchy (AC-A11Y-005), Keyboard Navigation on Critical Controls (AC-A11Y-001), Motion Respects prefers-reduced-motion (AC-A11Y-008), 44px Minimum Touch Targets (AC-A11Y-007), Visible Focus State (AC-A11Y-003) (+10 more)
 
 ### Community 45 - "Requirements"
 Cohesion: 0.20
@@ -459,9 +467,9 @@ Nodes (24): Purpose, Requirement: BannerSection comparte contrato con el Page Ba
 Cohesion: 0.12
 Nodes (16): ADDED Requirements, Purpose, Requirement: Footer es administrable, Requirement: Header y Footer son presentacionales, Requirement: La ruta raíz no implementa contenido de Home, Requirement: Navegación móvil como Client Component acotado, Requirement: Navigation es administrable y dirige el Header, Requirement: SiteSettings integrado para identidad de marca (+8 more)
 
-### Community 49 - "Typography System (capability)"
-Cohesion: 0.13
-Nodes (15): D7: Fonts via next/font/google, no font management library, typography-system spec (archived), ADDED Requirements, Purpose, Requirement: Escala tipográfica del Design System, Requirement: Restricción de uppercase, Requirement: Tipografía display usa Oswald, Requirement: Tipografía long-form usa Inter (+7 more)
+### Community 49 - "ADDED Requirements"
+Cohesion: 0.17
+Nodes (12): D7: Fonts via next/font/google, no font management library, typography-system spec (archived), ADDED Requirements, Purpose, Requirement: Escala tipográfica del Design System, Requirement: Restricción de uppercase, Requirement: Tipografía display usa Oswald, Requirement: Tipografía long-form usa Inter (+4 more)
 
 ### Community 50 - "Requirements"
 Cohesion: 0.12
@@ -475,13 +483,13 @@ Nodes (8): Purpose, Requirement: Plantilla de variables de entorno versionada, R
 Cohesion: 0.22
 Nodes (8): Purpose, Requirement: Endpoint `/api/health` disponible, Requirement: Sin exposición de información sensible, Requirement: Utilizable como healthcheck de Docker Compose, Requirements, Scenario: healthcheck de Docker Compose consulta el endpoint, Scenario: respuesta sin datos sensibles, Scenario: verificación de estado operativo
 
-### Community 54 - "shell/cache-invalidation.ts"
-Cohesion: 0.23
-Nodes (11): invalidateArticleSidebar(), invalidateFooter(), invalidateNavigation(), invalidateSettings(), ArticleSidebar, hasChangedRelevantField(), invalidateArticleSidebarCache(), invalidateFooterCache() (+3 more)
+### Community 54 - "invalidate.ts"
+Cohesion: 0.16
+Nodes (19): invalidateArticleSidebar(), InvalidateCategoryArgs, invalidateFooter(), invalidateHome(), invalidateNavigation(), InvalidatePageArgs, InvalidatePostArgs, invalidateSettings() (+11 more)
 
-### Community 55 - "Category Theme System (capability)"
-Cohesion: 0.18
-Nodes (12): Appropriate Contrast in Category Themes (AC-A11Y-006), --cat-accent / --cat-accent-fg / --cat-soft / --cat-soft-fg / --cat-border, CATEGORY_THEME_KEYS, Category Theme System (capability), Only Controlled Keys, No Arbitrary CMS Color, data-cat-theme Attribute Mapping Mechanism, Explicit Per-theme Contrast Requirement, Paper/Off-white Main Background (--paper) (+4 more)
+### Community 55 - "2026-09-09-design-system-shadcn/proposal.md"
+Cohesion: 0.14
+Nodes (13): bootstrap-technical-foundation (prior phase), Capabilities, editorial-workflow (prior phase), Impact, Modified Capabilities, New Capabilities, payload-cms-core (prior phase), What Changes (+5 more)
 
 ### Community 56 - "texture-foundation spec (archived)"
 Cohesion: 0.18
@@ -491,9 +499,9 @@ Nodes (11): .texture-paper-grain / .texture-newspaper-pattern utilities, texture
 Cohesion: 0.13
 Nodes (14): ADDED Requirements, Purpose, Requirement: Acceso público seguro por defecto, sin escape hatch genérico, Requirement: DAL centraliza toda lectura pública de Payload, Requirement: Filtrado explícito de _status como defensa adicional, Requirement: Globals Navigation, Footer y SiteSettings accesibles vía DAL, Requirement: Proyección/profundidad evita sobre-consulta, Scenario: El site shell necesita la configuración de navegación (+6 more)
 
-### Community 58 - "AGENTS.md — Agent Instructions"
-Cohesion: 0.24
-Nodes (11): AGENTS.md — Agent Instructions, .claude/CLAUDE.md (graphify trigger), CLAUDE.md — Claude Code Project Instructions, Graphify-first navigation rule, OpenSpec change workflow, Presentational components do not query Payload directly (rule), skills-lock.json roster, Project skills routing/precedence policy (+3 more)
+### Community 58 - "ADDED Requirements"
+Cohesion: 0.07
+Nodes (26): ADDED Requirements, Purpose, Requirement: Accesibilidad de la interfaz de búsqueda, Requirement: `/buscar` no se trata como destino indexable, Requirement: Búsqueda vacía no consulta todo el contenido, Requirement: Comportamiento responsive, Requirement: Estado vacío, Requirement: Ningún contenido en Draft aparece en los resultados públicos (+18 more)
 
 ### Community 59 - "Requirements"
 Cohesion: 0.08
@@ -503,9 +511,9 @@ Nodes (25): Purpose, Requirement: Acceso público seguro por defecto, sin escape
 Cohesion: 0.07
 Nodes (27): article-page Specification, Purpose, Requirement: Author Card con datos públicos, sin ruta de autor, Requirement: Composición editorial del Article, Requirement: Related Posts, Requirement: Resolución canónica de `/<category>/<post>`, Requirement: Sharing con URL canónica, Requirement: Tags visuales sin ruta pública (+19 more)
 
-### Community 61 - "category-theme-keys.ts"
-Cohesion: 0.27
-Nodes (7): ArticleCardData Contract (decoupled from Payload Post), CATEGORY_THEME_KEYS, CategoryThemeKey, CATEGORY_THEME_KEY_SET, DEFAULT_CATEGORY_THEME_KEY, INITIAL_CATEGORIES, InitialCategory
+### Community 61 - "ADDED Requirements"
+Cohesion: 0.09
+Nodes (22): ADDED Requirements, Purpose, Requirement: Ediciones en Draft de contenido ya publicado no contaminan el índice, Requirement: El contenido existente puede reindexarse bajo demanda, Requirement: El índice de búsqueda no se expone como API de datos sin restricciones, Requirement: Ningún servicio de búsqueda externo es necesario en V1, Requirement: Solo Posts y Pages publicados se indexan, Requirement: Solo se sincroniza texto acotado, nunca el documento completo (+14 more)
 
 ### Community 62 - "OPSX: Apply command"
 Cohesion: 0.40
@@ -523,29 +531,29 @@ Nodes (13): 10. Accesibilidad, 11. Documentación, 12. Validación final, 13. Fi
 Cohesion: 0.60
 Nodes (5): fail(), has(), ok(), check-environment.sh script, warn()
 
-### Community 66 - "mapMediaToMediaData"
+### Community 66 - "article-card.tsx"
 Cohesion: 0.14
-Nodes (20): ImageTextSection(), ImageTextSectionProps, PageHeroSection(), PageHeroSectionProps, formatLongDate(), formatShortDate(), LONG_DATE_FORMATTER, SHORT_DATE_FORMATTER (+12 more)
+Nodes (16): cn, ArticleCardProps, ArticleCardVariant, ArticleMetadata(), ArticleMetadataData, ArticleMetadataProps, formatReadingTime(), ResponsiveMedia() (+8 more)
 
 ### Community 67 - "D6: publishedAt assignment and restore defense"
 Cohesion: 0.40
 Nodes (5): D6: publishedAt assignment and restore defense, publishedAt permanece estable (delta), publishedAt se asigna una sola vez (delta), publishedAt permanece estable, publishedAt se asigna una sola vez
 
 ### Community 68 - "60 Segundos Noticias — Frontend Architecture (Fase 5-8)"
-Cohesion: 0.13
-Nodes (14): 60 Segundos Noticias — Frontend Architecture (Fase 5-8), Article/Category/Page Pipeline (Fase 7), Data Access Layer (`src/lib/data/`), Fechas, Flujo general, Fuera de alcance de Fase 8, Home Block Pipeline (Fase 6), Los cuatro roles de la base de datos en desarrollo (+6 more)
+Cohesion: 0.12
+Nodes (15): 60 Segundos Noticias — Frontend Architecture (Fase 5-8), Article/Category/Page Pipeline (Fase 7), Data Access Layer (`src/lib/data/`), Fechas, Flujo general, Fuera de alcance de Fase 8, Home Block Pipeline (Fase 6), Los cuatro roles de la base de datos en desarrollo (+7 more)
 
 ### Community 69 - "canonical.ts"
-Cohesion: 0.16
-Nodes (21): GET(), GET(), getPublishedPagesForLlms(), getPublishedPostsForLlms(), createHistoricalRedirect(), CreateHistoricalRedirectArgs, RedirectChainDoc, buildLlmsTxtContent() (+13 more)
+Cohesion: 0.20
+Nodes (16): GET(), createHistoricalRedirect(), CreateHistoricalRedirectArgs, RedirectChainDoc, getPageUrl(), getPostUrl(), normalizePath(), mapSearchDocToResult() (+8 more)
 
 ### Community 70 - "ADDED Requirements"
 Cohesion: 0.15
 Nodes (12): ADDED Requirements, Purpose, Requirement: AuthorSummary excluye campos privados de Users, Requirement: Category theme/icon permanecen controlados en el mapeo, Requirement: Los componentes presentacionales no reciben documentos Payload completos, Requirement: Selección de tamaño de imagen apropiado, Requirement: Solo view models con consumidor real en esta change, Scenario: Se evalúa crear un nuevo view model (+4 more)
 
-### Community 71 - "dev.ts"
-Cohesion: 0.18
-Nodes (6): CATEGORY_LABELS, CATEGORY_POSTS, categoryBySlug, CategoryPostSeed, createdPostsByCategory, devBlocks
+### Community 71 - "resolve-root-slug.ts"
+Cohesion: 0.24
+Nodes (10): ResolvedRootSlug, resolveRootSlug(), ResolveRootSlugOptions, getCategoryBySlug(), getPageBySlug(), GetPageBySlugArgs, LlmsPageEntry, SitemapPageEntry (+2 more)
 
 ### Community 73 - "category-icon-map.tsx (CategoryIconKey to Lucide mapping)"
 Cohesion: 0.67
@@ -560,12 +568,12 @@ Cohesion: 0.12
 Nodes (16): Purpose, Requirement: AuthorSummary excluye campos privados de Users, Requirement: Category theme/icon permanecen controlados en el mapeo, Requirement: Contrato de detalle de Article, Requirement: Los componentes presentacionales no reciben documentos Payload completos, Requirement: Related Posts reutiliza ArticleCardData, Requirement: Selección de tamaño de imagen apropiado, Requirement: Solo view models con consumidor real (+8 more)
 
 ### Community 119 - "react"
-Cohesion: 0.11
-Nodes (18): class-variance-authority, cn, react, ErrorBoundaryProps, Pagination(), PaginationProps, Header(), HeaderProps (+10 more)
+Cohesion: 0.08
+Nodes (27): class-variance-authority, lucide-react, radix-ui, react, ErrorBoundaryProps, Container(), ContainerProps, EditorialIntroSection() (+19 more)
 
-### Community 120 - "article-card.tsx"
-Cohesion: 0.14
-Nodes (17): ArticleAside(), ArticleAsideProps, RelatedPosts(), RelatedPostsProps, ArticleCard(), ArticleCardData, ArticleCardProps, ArticleCardVariant (+9 more)
+### Community 120 - "mapMediaToMediaData"
+Cohesion: 0.17
+Nodes (18): formatLongDate(), formatShortDate(), LONG_DATE_FORMATTER, SHORT_DATE_FORMATTER, BreadcrumbItem, NewsArticleInput, OrganizationInput, PublisherInput (+10 more)
 
 ### Community 121 - "embed-block.tsx"
 Cohesion: 0.11
@@ -595,21 +603,21 @@ Nodes (22): article-content-rendering Specification, Purpose, Requirement: Bloqu
 Cohesion: 0.20
 Nodes (11): environment-validation capability, Environment Validation (bootstrap) — spec.md, ADDED Requirements, Purpose, Requirement: Plantilla de variables de entorno versionada, Requirement: Separación entre variables públicas y privadas, Requirement: Validación de variables críticas al arrancar/build, Scenario: secreto no expuesto al cliente (+3 more)
 
-### Community 128 - "invalidate.ts"
-Cohesion: 0.14
-Nodes (26): InvalidateCategoryArgs, invalidateHome(), invalidatePage(), InvalidatePageArgs, invalidatePost(), InvalidatePostArgs, InvalidateSettingsArgs, revalidateKeyedTags() (+18 more)
+### Community 128 - "references.ts"
+Cohesion: 0.20
+Nodes (18): invalidatePage(), invalidatePost(), blockReferencesPost(), extractId(), HomeBlock, LinkLike, linksReferenceCategory(), linksReferencePage() (+10 more)
 
 ### Community 129 - "Decisions"
 Cohesion: 0.14
 Nodes (14): Bootstrap Technical Foundation — design.md, Context, D1. Baseline de versiones fijado explícitamente, D2. Alcance de Docker: dev ahora, hardening en Phase 10, D3. Validación de entorno con Zod, fallo temprano, D4. `payload.config.ts` en la raíz del proyecto; sin `src/payload/` todavía, D5. `payload-types.ts` como efecto natural, no como entregable, D6. shadcn/ui: inicializar, agregar solo el primitivo mínimo necesario (+6 more)
 
-### Community 130 - "payload"
+### Community 130 - "Home.ts"
 Cohesion: 0.12
-Nodes (21): payload, buildPreviewUrl(), generateHomePreviewURL(), generatePagePreviewURL(), generatePostPreviewURL(), CategoryExplorer, EditorialIntro, FeaturedPosts (+13 more)
+Nodes (16): buildPreviewUrl(), generateHomePreviewURL(), generatePagePreviewURL(), generatePostPreviewURL(), CategoryExplorer, EditorialIntro, FeaturedPosts, HeroNews (+8 more)
 
-### Community 131 - "compose.yaml"
-Cohesion: 0.52
-Nodes (6): health-check capability, Next.js, Payload CMS, PostgreSQL, AI / SDD Workflow, README.md — 60 Segundos Noticias
+### Community 131 - "buscar/page.tsx"
+Cohesion: 0.19
+Nodes (10): buildResultHref(), BuscarPage(), BuscarPageProps, Pagination(), PaginationProps, SearchForm(), SearchFormProps, searchContent() (+2 more)
 
 ### Community 132 - "ADDED Requirements"
 Cohesion: 0.22
@@ -632,8 +640,8 @@ Cohesion: 0.33
 Nodes (5): Purpose, Requirement: Utilidad centralizada de formato de fecha, Requirements, Scenario: Se formatea la fecha de publicación de un Post, Scenario: Se revisan las dependencias
 
 ### Community 137 - "resolve-home-blocks.ts"
-Cohesion: 0.27
-Nodes (17): getPostsByCategory(), isPopulated(), RawHomeBlock, resolveBanner(), resolveBlock(), resolveCategoryExplorer(), ResolvedBanner, ResolvedVideoMedia (+9 more)
+Cohesion: 0.14
+Nodes (26): CategoryCardData, getPostsByCategory(), ExternalVideo, ExternalVideoProvider, extractVimeoId(), extractYoutubeId(), resolveExternalVideoUrl(), VIMEO_HOSTS (+18 more)
 
 ### Community 138 - "ADDED Requirements"
 Cohesion: 0.09
@@ -643,9 +651,9 @@ Nodes (21): ADDED Requirements, Purpose, Requirement: Bloque no reconocido no ro
 Cohesion: 0.20
 Nodes (10): ADDED Requirements, Requirement: Constantes de Payload permanecen framework-neutral, Requirement: Contraste explícito por tema, Requirement: Mapeo de category theme mediante atributo de datos, Requirement: Solo keys controladas, sin color arbitrario del CMS, Scenario: Se audita el código por clases Tailwind dinámicas de categoría, Scenario: Se inspecciona category-theme-keys.ts tras el cambio, Scenario: Se usa el theme yellow (+2 more)
 
-### Community 140 - "ADDED Requirements"
-Cohesion: 0.22
-Nodes (9): ADDED Requirements, Requirement: Instalación incremental, no masiva, Requirement: Primitivos retematizados, no apariencia genérica de shadcn, Requirement: shadcn como única base de primitivos, Requirement: Sin modo oscuro heredado en los primitivos, Scenario: Se evalúa añadir un primitivo nuevo, Scenario: Se inspecciona un primitivo shadcn generado, Scenario: Se renderiza Button tras la retematización (+1 more)
+### Community 140 - "Button (shadcn primitive, re-themed)"
+Cohesion: 0.14
+Nodes (15): Button (shadcn primitive, re-themed), Pagination component, D5: Incremental shadcn primitive installation, shadcn-primitives capability, shadcn-primitives spec (archived), ADDED Requirements, Purpose, Requirement: Instalación incremental, no masiva (+7 more)
 
 ### Community 141 - "Decisions"
 Cohesion: 0.15
@@ -691,17 +699,17 @@ Nodes (10): ADDED Requirements, Purpose, Requirement: Bloque desconocido o malfo
 Cohesion: 0.18
 Nodes (10): Purpose, Requirement: Bloque desconocido o malformado no rompe la página, Requirement: Home mantiene un único encabezado H1 principal, Requirement: Home sin bloques configurados degrada de forma segura, Requirement: Renderizado exhaustivo de los tipos de bloque soportados, Requirements, Scenario: Admin reordena HeroNews fuera de la primera posición, Scenario: Home con los 8 tipos de bloque configurados (+2 more)
 
-### Community 152 - "accessibility-foundation spec (archived)"
-Cohesion: 0.17
-Nodes (13): DESIGN-SYSTEM.md (Fase 4 implementation doc), CATEGORY_THEME_KEYS (framework-neutral constant), resolveCategoryThemeKey() (src/lib/editorial/category-theme.ts), Motion tokens (--motion-fast/normal/slow + reduced-motion reset), 44px touch target technique (icon ::after 4-way + text min-w-11 + vertical-only ::after), D2: Category theme via data-cat-theme, not dynamic Tailwind classes, accessibility-foundation spec (archived), AC-A11Y-006: Category theme contrast requirement (+5 more)
+### Community 152 - "payload.config.ts"
+Cohesion: 0.09
+Nodes (23): GET, OPTIONS, POST, DELETE, GET, OPTIONS, PATCH, POST (+15 more)
 
 ### Community 153 - "Requirement: seed:initial pobla solo entidades con schema ya implementado"
 Cohesion: 0.25
 Nodes (7): ADDED Requirements, MODIFIED Requirements, Requirement: seed:dev puede configurar bloques de Home representativos, Requirement: seed:initial pobla solo entidades con schema ya implementado, Scenario: ejecutar seed:initial en esta fase, Scenario: seed:dev configura Home con contenido de desarrollo, Scenario: seed:initial no sobrescribe una Home ya configurada por un administrador
 
 ### Community 154 - "video-block.tsx"
-Cohesion: 0.15
-Nodes (15): @vidstack/react, VideoBlockView(), VideoBlockViewProps, VideoPlayer(), VideoPlayerProps, VideoSection(), VideoSectionProps, ExternalVideo (+7 more)
+Cohesion: 0.24
+Nodes (8): @vidstack/react, VideoBlockView(), VideoBlockViewProps, VideoPlayer(), VideoPlayerProps, VideoSection(), VideoSectionProps, VideoBlock
 
 ### Community 155 - "2026-09-10-dynamic-home-builder/proposal.md"
 Cohesion: 0.29
@@ -715,17 +723,17 @@ Nodes (5): MODIFIED Requirements, Requirement: Globals Navigation, Footer y Site
 Cohesion: 0.12
 Nodes (16): CalloutBlockView(), CalloutBlockViewProps, VARIANT_STYLES, ImageBlockView(), ImageBlockViewProps, SIZE_CLASSES, QuoteBlockView(), QuoteBlockViewProps (+8 more)
 
-### Community 158 - "add-draft-mode-banner/proposal.md"
-Cohesion: 0.29
-Nodes (6): Capabilities, Impact, Modified Capabilities, New Capabilities, What Changes, Why
+### Community 158 - "site-search/tasks.md"
+Cohesion: 0.18
+Nodes (10): 10. Entrada de búsqueda en Header/MobileNav (refinamiento de UX aprobado post-implementación), 1. Extracción de texto buscable, 2. Configuración del Payload Search Plugin, 3. Migración, 4. Indexación inicial, 5. DAL y view model público, 6. Ruta pública `/buscar`, 7. Accesibilidad y responsive (+2 more)
 
 ### Community 159 - "Requirements"
 Cohesion: 0.10
 Nodes (20): Purpose, Requirement: Endpoint público de llms.txt, Requirement: Estructura llms.txt v2, Requirement: Listado de Posts recientes acotado, Requirement: Revalidación ante cambios de contenido representado, Requirement: Sin alternativas Markdown de página completa, Requirement: Solo contenido publicado, Requirement: Terminología sin promesas de posicionamiento (+12 more)
 
-### Community 160 - "add-draft-mode-banner/design.md"
-Cohesion: 0.33
-Nodes (5): Context, Decisions, Goals / Non-Goals, Migration Plan, Risks / Trade-offs
+### Community 160 - "page-block-renderer.tsx"
+Cohesion: 0.12
+Nodes (15): GalleryBlockView(), GalleryBlockViewProps, CTASection(), CTASectionProps, GallerySection(), GallerySectionProps, ImageTextSection(), ImageTextSectionProps (+7 more)
 
 ### Community 161 - "Requirements"
 Cohesion: 0.11
@@ -740,8 +748,8 @@ Cohesion: 0.10
 Nodes (19): ADDED Requirements, Purpose, Requirement: Cache pública con invalidación por tags de dependencia, Requirement: Draft Mode nunca sirve ni contamina cache pública, Requirement: Fallo de invalidación no corrompe una publicación, Requirement: Invalidación de Home, Requirement: Invalidación específica de Navigation/Footer/SiteSettings/ArticleSidebar, Requirement: Invalidación por cambio de Category (+11 more)
 
 ### Community 164 - "faq-section.tsx"
-Cohesion: 0.29
-Nodes (8): radix-ui, FAQSection(), FAQSectionProps, Accordion(), AccordionContent(), AccordionItem(), AccordionTrigger(), FAQBlock
+Cohesion: 0.33
+Nodes (7): FAQSection(), FAQSectionProps, Accordion(), AccordionContent(), AccordionItem(), AccordionTrigger(), FAQBlock
 
 ### Community 165 - "Requirements"
 Cohesion: 0.10
@@ -760,8 +768,8 @@ Cohesion: 0.12
 Nodes (15): ADDED Requirements, Purpose, Requirement: Control global vía Payload Global, Requirement: El post actual nunca aparece en su propio aside, Requirement: Layout de 2 columnas sticky, mobile-first, Requirement: Modos de selección de posts, Scenario: Aside deshabilitado o sin posts, Scenario: Cambio de configuración afecta todos los Articles (+7 more)
 
 ### Community 169 - "author-card.tsx"
-Cohesion: 0.17
-Nodes (13): lucide-react, AuthorCard(), AuthorCardProps, PLATFORM_ICONS, ShareActions(), ShareActionsProps, FacebookLogo(), IconProps (+5 more)
+Cohesion: 0.18
+Nodes (12): AuthorCard(), AuthorCardProps, PLATFORM_ICONS, ShareActions(), ShareActionsProps, FacebookLogo(), IconProps, InstagramLogo() (+4 more)
 
 ### Community 170 - "ADDED Requirements"
 Cohesion: 0.12
@@ -771,9 +779,9 @@ Nodes (15): ADDED Requirements, Purpose, Requirement: Composición visual de la 
 Cohesion: 0.12
 Nodes (16): ADDED Requirements, Purpose, Requirement: Autorización de Preview delegada al control de acceso existente, Requirement: Categories sin flujo de Preview, Requirement: Destino de Preview derivado del documento, nunca de la URL de la solicitud, Requirement: Draft Mode no sirve ni contamina cache pública, Requirement: Entrada de Preview protegida por secreto, Requirement: Habilitación y salida de Draft Mode (+8 more)
 
-### Community 172 - "gallery-block.tsx"
-Cohesion: 0.38
-Nodes (5): GalleryBlockView(), GalleryBlockViewProps, GallerySection(), GallerySectionProps, GalleryBlock
+### Community 172 - "llms-txt.ts"
+Cohesion: 0.42
+Nodes (7): GET(), getPublishedPagesForLlms(), getPublishedPostsForLlms(), buildLlmsTxtContent(), escapeMarkdownInline(), formatLink(), getLlmsTxtContent
 
 ### Community 173 - "Requirements"
 Cohesion: 0.12
@@ -784,12 +792,12 @@ Cohesion: 0.13
 Nodes (14): ADDED Requirements, Purpose, Requirement: 404 con identidad de marca, Requirement: Error boundary con identidad de marca para fallas inesperadas, Requirement: Resolución de `/<slug>`, Requirement: Rutas reservadas no colisionan con `/<slug>`, Scenario: Contenido en draft accedido públicamente, Scenario: Contenido inexistente no activa el error boundary (+6 more)
 
 ### Community 175 - "posts.ts"
-Cohesion: 0.11
-Nodes (34): server-only, getSitemapEntries, sitemap(), CACHE_TAGS, getArticleSidebarPosts(), GetArticleSidebarPostsArgs, MODE_LABELS, getAllCategories() (+26 more)
+Cohesion: 0.14
+Nodes (22): getSitemapEntries, sitemap(), getArticleSidebarPosts(), GetArticleSidebarPostsArgs, MODE_LABELS, getAllCategories(), getCategoriesForNavigation(), getPublishedPagesForSitemap() (+14 more)
 
 ### Community 176 - "(frontend)/layout.tsx"
-Cohesion: 0.10
-Nodes (27): inter, oswald, FrontendLayout(), metadata, BannerData, BannerSection(), BannerSectionProps, BannerVariant (+19 more)
+Cohesion: 0.14
+Nodes (21): server-only, inter, oswald, FrontendLayout(), metadata, PageBlockRenderer(), DraftModeBanner(), CACHE_TAGS (+13 more)
 
 ### Community 177 - "2026-09-11-category-article-pages/tasks.md"
 Cohesion: 0.14
@@ -799,9 +807,9 @@ Nodes (13): 10. Graphify, 11. Validación estática y de build, 12. Verificació
 Cohesion: 0.12
 Nodes (16): 10. Preview / Draft Mode, 11. `/llms.txt`, 12. Actualización narrow del Master Spec, 13. Documentación, 14. Graphify, 15. Validación estática y de build, 16. Verificación end-to-end (datos reales), 1. Origen de sitio canónico (+8 more)
 
-### Community 179 - "resolve-root-slug.ts"
-Cohesion: 0.17
-Nodes (17): ResolvedRootSlug, ResolveRootSlugOptions, ActiveRedirect, findActiveRedirectByPath(), getPayload(), canViewDraftRevision(), extractUserId(), PreviewUser (+9 more)
+### Community 179 - "draft-documents.ts"
+Cohesion: 0.22
+Nodes (12): ActiveRedirect, getPayload(), canViewDraftRevision(), extractUserId(), PreviewUser, currentPreviewUser(), findDraftHome(), findDraftPostBySlug() (+4 more)
 
 ### Community 180 - "60 Segundos Noticias — Preview, SEO, Cache y Redirects (Fase 8)"
 Cohesion: 0.17
@@ -812,16 +820,16 @@ Cohesion: 0.17
 Nodes (11): ADDED Requirements, Requirement: Búsqueda pública de contenido por slug, Requirement: La consulta de detalle de Article es la única que carga contenido completo, Requirement: Related Posts vía DAL, Scenario: Auditoría de consultas de listado, Scenario: Auditoría de la consulta de detalle, Scenario: Page en draft por slug, Scenario: Page publicada por slug (+3 more)
 
 ### Community 182 - "Requirements"
-Cohesion: 0.12
-Nodes (16): Purpose, Requirement: Autorización de Preview delegada al control de acceso existente, Requirement: Categories sin flujo de Preview, Requirement: Destino de Preview derivado del documento, nunca de la URL de la solicitud, Requirement: Draft Mode no sirve ni contamina cache pública, Requirement: Entrada de Preview protegida por secreto, Requirement: Habilitación y salida de Draft Mode, Requirements (+8 more)
+Cohesion: 0.10
+Nodes (20): Purpose, Requirement: Autorización de Preview delegada al control de acceso existente, Requirement: Categories sin flujo de Preview, Requirement: Destino de Preview derivado del documento, nunca de la URL de la solicitud, Requirement: Draft Mode no sirve ni contamina cache pública, Requirement: Entrada de Preview protegida por secreto, Requirement: Habilitación y salida de Draft Mode, Requirement: Indicador visible de Draft Mode (+12 more)
 
 ### Community 183 - "ADDED Requirements"
 Cohesion: 0.12
 Nodes (15): ADDED Requirements, Purpose, Requirement: Cadena de fallback de metadata, Requirement: Metadata de Category con fallback definido, Requirement: Metadata de Home, Requirement: Origen único para toda URL absoluta de metadata, Requirement: Sin doble consulta entre metadata y render, Scenario: Article accedido por una categoría adicional nunca genera un canonical alterno (+7 more)
 
-### Community 184 - "Requirement: Indicador visible de Draft Mode"
-Cohesion: 0.33
-Nodes (5): ADDED Requirements, Requirement: Indicador visible de Draft Mode, Scenario: Página pública con Draft Mode deshabilitado, Scenario: Página pública con Draft Mode habilitado, Scenario: Salida desde el indicador
+### Community 184 - "2026-09-13-add-draft-mode-banner/proposal.md"
+Cohesion: 0.29
+Nodes (6): Capabilities, Impact, Modified Capabilities, New Capabilities, What Changes, Why
 
 ### Community 185 - "2026-09-11-category-article-pages/design.md"
 Cohesion: 0.29
@@ -871,17 +879,49 @@ Nodes (6): Capabilities, Impact, Modified Capabilities, New Capabilities, What C
 Cohesion: 0.40
 Nodes (4): ADDED Requirements, Requirement: Origen de sitio canónico centralizado, Scenario: El origen del sitio falta o es inválido en producción, Scenario: Se necesita la URL absoluta de un Article para compartir
 
-### Community 198 - "add-draft-mode-banner/tasks.md"
+### Community 198 - "site-search/design.md"
+Cohesion: 0.29
+Nodes (6): Context, Decisions, Goals / Non-Goals, Migration Plan, Open Questions, Risks / Trade-offs
+
+### Community 199 - "site-search/proposal.md"
+Cohesion: 0.29
+Nodes (6): Capabilities, Impact, Modified Capabilities, New Capabilities, What Changes, Why
+
+### Community 201 - "2026-09-13-add-draft-mode-banner/design.md"
+Cohesion: 0.33
+Nodes (5): Context, Decisions, Goals / Non-Goals, Migration Plan, Risks / Trade-offs
+
+### Community 202 - "Design Tokens (capability)"
+Cohesion: 0.25
+Nodes (8): Design Tokens (capability), src/app/globals.css, No Dark Mode in V1, Restricted Radius/Shadow Scale, Incremental, Not Mass Installation, No Inherited Dark Mode in Primitives, shadcn/ui as Sole Primitive Base, shadcn Primitives Policy (capability)
+
+### Community 203 - "Requirement: Indicador visible de Draft Mode"
+Cohesion: 0.33
+Nodes (5): ADDED Requirements, Requirement: Indicador visible de Draft Mode, Scenario: Página pública con Draft Mode deshabilitado, Scenario: Página pública con Draft Mode habilitado, Scenario: Salida desde el indicador
+
+### Community 204 - "2026-09-13-add-draft-mode-banner/tasks.md"
 Cohesion: 0.40
 Nodes (4): 1. Componente del indicador, 2. Integración en el layout público, 3. Accesibilidad, 4. Validación y documentación
+
+### Community 206 - "Texture Foundation (capability)"
+Cohesion: 0.40
+Nodes (5): Paper/Off-white Main Background (--paper), newspaper-pattern.webp Utility, paper-grain.webp Utility, No Arbitrary CMS Texture Selection, Texture Foundation (capability)
+
+### Community 207 - "60 Segundos Noticias — Search (Fase 9)"
+Cohesion: 0.17
+Nodes (11): 60 Segundos Noticias — Search (Fase 9), Acceso de la Collection `search`, Arquitectura, Cache, Collections indexadas, Extracción de texto buscable (`beforeSync`), Forma del documento de Search, Política de Drafts (+3 more)
+
+### Community 209 - "payload.ts"
+Cohesion: 0.40
+Nodes (3): zod, payloadEnv, payloadEnvSchema
 
 ## Ambiguous Edges - Review These
 - `Motion Respects prefers-reduced-motion (AC-A11Y-008)` → `Brand/Semantic Color Tokens (brand-red, ink, paper, border, success/warning/error/info)`  [AMBIGUOUS]
   openspec/specs/accessibility-foundation/spec.md · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **1219 isolated node(s):** `$schema`, `style`, `rsc`, `tsx`, `config` (+1214 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1304 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **1293 isolated node(s):** `$schema`, `style`, `rsc`, `tsx`, `config` (+1288 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1381 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **46 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
@@ -889,15 +929,15 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `Motion Respects prefers-reduced-motion (AC-A11Y-008)` and `Brand/Semantic Color Tokens (brand-red, ink, paper, border, success/warning/error/info)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **Why does `Category Theme System (capability)` connect `Category Theme System (capability)` to `2026-09-09-design-system-shadcn/tasks.md`, `2026-09-09-design-system-shadcn/proposal.md`, `category-badge.tsx`, `accessibility-foundation spec (archived)`, `category-theme-keys.ts`?**
-  _High betweenness centrality (0.029) - this node is a cross-community bridge._
-- **Why does `payload` connect `payload` to `invalidate.ts`, `payload.config.ts`, `canonical.ts`, `package.json`, `dev.ts`, `enforce-uploader.ts`, `(payload)/layout.tsx`, `posts.ts`, `article-editor.ts`, `resolve-root-slug.ts`, `category-theme-keys.ts`, `shell/cache-invalidation.ts`, `Categories.ts`, `Posts.ts`?**
-  _High betweenness centrality (0.023) - this node is a cross-community bridge._
+- **Why does `Category Theme System (capability)` connect `Editorial Components (capability)` to `category-badge.tsx`, `2026-09-09-design-system-shadcn/tasks.md`, `category-theme-system spec (archived)`, `2026-09-09-design-system-shadcn/proposal.md`?**
+  _High betweenness centrality (0.048) - this node is a cross-community bridge._
+- **Why does `payload` connect `payload` to `references.ts`, `Home.ts`, `canonical.ts`, `package.json`, `build-search-doc.ts`, `(payload)/layout.tsx`, `posts.ts`, `(frontend)/layout.tsx`, `draft-documents.ts`, `category-badge.tsx`, `invalidate.ts`, `payload.config.ts`, `Categories.ts`, `Posts.ts`?**
+  _High betweenness centrality (0.036) - this node is a cross-community bridge._
 - **Why does `@payloadcms/db-postgres` connect `@payloadcms/db-postgres` to `payload.config.ts`, `package.json`?**
-  _High betweenness centrality (0.017) - this node is a cross-community bridge._
+  _High betweenness centrality (0.026) - this node is a cross-community bridge._
 - **What connects `$schema`, `style`, `rsc` to the rest of the system?**
-  _1219 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1293 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `payload-types.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.03636363636363636 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.034482758620689655 - nodes in this community are weakly interconnected._
 - **Should `Editorial Workflow Change Proposal` be split into smaller, more focused modules?**
   _Cohesion score 0.06585365853658537 - nodes in this community are weakly interconnected._
