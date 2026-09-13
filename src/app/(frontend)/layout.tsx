@@ -8,26 +8,33 @@ import { Header } from '@/components/site/header'
 import { getFooter } from '@/lib/data/footer'
 import { getNavigation } from '@/lib/data/navigation'
 import { getSettings } from '@/lib/data/settings'
+import { getSiteOrigin } from '@/lib/url/canonical'
 import { resolveLinks, resolveNavItems } from '@/lib/url/resolve-link'
 import { mapMediaToMediaData } from '@/lib/view-models/media'
 
 import { inter, oswald } from './fonts'
 
 export const metadata: Metadata = {
+  // Fase 8: permite que rutas hijas usen paths relativos en `alternates`/
+  // `openGraph.images` con la garantía de resolverse contra el mismo
+  // origen que `getAbsoluteUrl()` ya usa explícitamente en todos lados.
+  metadataBase: new URL(getSiteOrigin()),
   title: '60 Segundos Noticias',
   description: 'Portal editorial y multimedia 60 Segundos Noticias.',
 }
 
 /**
- * Without this, Next.js 16 statically prerenders frontend routes at
- * build time by default, which would bake Navigation/Footer/SiteSettings
- * into a stale snapshot until the next rebuild - directly contradicting
- * "administrable without a code change" (AC-NAV-004, AC-FOOT-001/002).
- * This is the smallest Phase 5 cache posture: no caching at all, always
- * fetch fresh. Phase 8 layers real tag-based revalidation on top of this
- * dynamic baseline; this does not preempt that work.
+ * Fase 8: `force-dynamic` (Fase 5) se removió. Navigation/Footer/
+ * SiteSettings ahora se sirven vía `unstable_cache`, con tags específicos
+ * invalidados por hooks `afterChange` en cada Global
+ * (`src/payload/hooks/shell/cache-invalidation.ts`) - "administrable sin
+ * cambio de código" (AC-NAV-004, AC-FOOT-001/002) se cumple mediante
+ * invalidación dirigida en vez de deshabilitar toda cache. Verificado en
+ * vivo: un cambio de contenido (Post) se refleja en la siguiente request
+ * sin rebuild (ver `openspec/changes/preview-seo-cache-redirects/tasks.md`
+ * §4.1); Navigation/Footer/SiteSettings específicamente se verifican en
+ * la sección 16 (requieren un usuario Admin real).
  */
-export const dynamic = 'force-dynamic'
 
 /**
  * The only place in the site shell that calls the DAL. Header/Footer/
@@ -53,6 +60,10 @@ export default async function FrontendLayout({ children }: { children: ReactNode
 
   return (
     <html lang="es-MX" className={`${oswald.variable} ${inter.variable}`}>
+      <head>
+        {/* llms.txt v2 discovery relation - the typed Metadata API's `alternates` has no field for `rel="describedby"` (only `canonical`/`languages`/`media`/`types`), so this is the framework's own sanctioned escape hatch for a link relation it doesn't model. */}
+        <link rel="describedby" href="/llms.txt" type="text/markdown" />
+      </head>
       <body className="flex min-h-screen flex-col bg-background text-foreground">
         <a
           href="#main-content"

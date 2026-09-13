@@ -992,6 +992,8 @@ Si cambia:
 
 - `Post.slug`
 - `Post.primaryCategory`
+- `Category.slug` (§30.10)
+- `Page.slug` (Page publicada — mismo tratamiento simétrico que Post/Category)
 
 comparar URL anterior vs nueva y crear redirect directo.
 
@@ -1820,6 +1822,19 @@ Centralizar lógica en `src/lib/seo/`.
 - BreadcrumbList
 
 Publisher/Organization viene de SiteSettings, no hardcodeado en múltiples archivos.
+
+## 41.6 LLM / Agent Discoverability (`/llms.txt`)
+
+`GET /llms.txt` expone un documento Markdown curado y acotado, complementario a metadata/JSON-LD/sitemap/robots — nunca un sustituto de ninguno de ellos, y nunca garantiza posicionamiento, citación ni inclusión en entrenamiento de modelos.
+
+Contenido:
+
+- identidad del sitio (H1) y resumen breve (blockquote), desde SiteSettings;
+- Categorías públicas;
+- Posts publicados recientes, acotados (no un volcado histórico completo);
+- Pages publicadas relevantes.
+
+Solo contenido publicado. URLs absolutas; los Posts usan `primaryCategory`. Estructura según la especificación llms.txt v2 vigente (H1/blockquote/secciones H2 de enlaces).
 
 ---
 
@@ -3385,6 +3400,7 @@ Configurar drafts/versions y schemas de blocks.
 - JSON-LD;
 - sitemap;
 - robots;
+- LLM / Agent Discoverability vía `/llms.txt`;
 - cache tags;
 - targeted revalidation;
 - redirect hooks/chains.
@@ -3708,6 +3724,12 @@ Los siguientes criterios son normativos. Un agente debe reportar `PASS`, `FAIL`,
 | AC-SEO-011 | Sitemap excluye admin/preview/search URLs. |
 | AC-SEO-012 | Existe robots.txt. |
 | AC-SEO-013 | Non-production puede bloquear indexación. |
+| AC-LLM-001 | Existe `GET /llms.txt` público con `Content-Type` Markdown. |
+| AC-LLM-002 | El contenido sigue la estructura llms.txt v2 (H1/blockquote/secciones H2 de enlaces). |
+| AC-LLM-003 | Solo incluye Categorías públicas y Posts/Pages publicados; ningún Draft. |
+| AC-LLM-004 | Todas las URLs son absolutas y los Posts usan `primaryCategory`. |
+| AC-LLM-005 | El listado de Posts recientes está acotado, no es un volcado histórico completo. |
+| AC-LLM-006 | Se revalida ante publish/unpublish/cambios de campos representados en el documento. |
 
 ## 84.11 Cache / Errors / UI / Responsive / A11y / Performance
 

@@ -4,10 +4,13 @@ import { isAdmin, isAdminOrWriter, isOwnerOrAdmin } from '../access/roles.ts'
 import { seoFields } from '../fields/seo-fields.ts'
 import { slugField } from '../fields/slug-field.ts'
 import { createArticleEditor } from '../fields/article-editor.ts'
+import { invalidatePostCache, invalidatePostCacheOnDelete } from '../hooks/posts/cache-invalidation.ts'
 import { enforceAuthor } from '../hooks/posts/enforce-author.ts'
 import { assignPublishedAt, publishValidation } from '../hooks/posts/publish-validation.ts'
 import { computeReadingTime } from '../hooks/posts/reading-time.ts'
+import { createPostRedirect } from '../hooks/posts/redirect-lifecycle.ts'
 import { generateSlugFromTitle } from '../hooks/posts/slug-lifecycle.ts'
+import { generatePostPreviewURL } from '@/lib/preview/generate-preview-url'
 
 export const Posts: CollectionConfig = {
   slug: 'posts',
@@ -17,6 +20,7 @@ export const Posts: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
+    preview: generatePostPreviewURL,
   },
   versions: {
     drafts: true,
@@ -44,6 +48,8 @@ export const Posts: CollectionConfig = {
   hooks: {
     beforeValidate: [generateSlugFromTitle],
     beforeChange: [enforceAuthor, publishValidation, assignPublishedAt, computeReadingTime],
+    afterChange: [invalidatePostCache, createPostRedirect],
+    afterDelete: [invalidatePostCacheOnDelete],
   },
   fields: [
     {

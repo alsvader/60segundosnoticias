@@ -1,6 +1,6 @@
-# 60 Segundos Noticias — Frontend Architecture (Fase 5-7)
+# 60 Segundos Noticias — Frontend Architecture (Fase 5-8)
 
-Este documento describe cómo se implementó el acceso a datos y el site shell público (`openspec/changes/public-frontend-core/`), extendido en Fase 6 (`openspec/changes/dynamic-home-builder/`) con el pipeline dinámico de Home, y en Fase 7 (`openspec/changes/category-article-pages/`) con las rutas públicas de Category/Article/Page genérica. Los requisitos de producto viven en `docs/60-segundos-spec.md` §18-§26/§32/§37-40; este archivo documenta convenciones de implementación.
+Este documento describe cómo se implementó el acceso a datos y el site shell público (`openspec/changes/public-frontend-core/`), extendido en Fase 6 (`openspec/changes/dynamic-home-builder/`) con el pipeline dinámico de Home, en Fase 7 (`openspec/changes/category-article-pages/`) con las rutas públicas de Category/Article/Page genérica, y en Fase 8 (`openspec/changes/preview-seo-cache-redirects/`) con Preview/Draft Mode, SEO/JSON-LD, cache por tags, Redirects y `/llms.txt`. Los requisitos de producto viven en `docs/60-segundos-spec.md` §17/§18-§26/§30-32/§37-42; este archivo documenta convenciones de implementación.
 
 ## Flujo general
 
@@ -199,6 +199,18 @@ Page), no asume que siempre es una categoría.
 
 Ver `README.md` — "Los cuatro roles de la base de datos en este proyecto": base de desarrollo local (push-managed) / migraciones versionadas en `src/payload/migrations/` / verificación de la cadena de migraciones en una base desechable / orquestación de migraciones en producción-CI (Fase 10). Este documento no repite esa distinción; solo referencia el flujo cuando el DAL o el schema cambian.
 
-## Fuera de alcance de esta Fase
+## Preview, SEO, cache y Redirects (Fase 8)
 
-Draft Mode/Preview, resolución en runtime de la Collection `Redirects`, revalidación por tags, metadata/JSON-LD, sitemap/robots, búsqueda, ruta de Autor/Tag, almacenamiento de objetos en producción, orquestación de migraciones en CI/producción (Fase 8/9/10/11).
+Implementado en `openspec/changes/preview-seo-cache-redirects/` (Master Spec §17/§30.6-30.10/§31/§40/§41/§42). Detalle técnico completo (precedencia de metadata, shapes de JSON-LD, matriz de invalidación, ciclo de vida de redirects, `/llms.txt`) en `docs/SEO-AND-CACHING.md` — este archivo solo referencia las convenciones que tocan el pipeline ya documentado arriba.
+
+- **Origen canónico**: `getSiteOrigin()`/`getAbsoluteUrl()` (`src/lib/url/canonical.ts`) son la única fuente de URLs absolutas — metadata/OG/JSON-LD/sitemap/robots/llms.txt/`ShareActions` las derivan todas de ahí, nunca de `process.env` leído independientemente. Deliberadamente sin `import 'server-only'`: los hooks de creación de redirects (ver más abajo) también las usan, y esos hooks se cargan bajo la CLI standalone de Payload (`payload run`/`migrate`), fuera del bundler de Next.js.
+- **Cache**: cada función pública del DAL está envuelta en `unstable_cache` con tags específicos (`src/lib/cache/tags.ts`), invalidados con `revalidateTag(tag, { expire: 0 })` desde hooks `afterChange`/`afterDelete` (`src/lib/cache/invalidate.ts`, uno por Collection/Global en `src/payload/hooks/*/cache-invalidation.ts`). `force-dynamic` (Fase 5) ya no existe en `(frontend)/layout.tsx`. `getPostBySlug()`/`getCategoryBySlug()`/`getPageBySlug()` — las únicas consultas que resuelven por slug público, no por id — se tagean por slug, no por id, porque el id no se conoce hasta que la consulta resuelve.
+- **Preview**: `/api/preview` (`PREVIEW_SECRET` + sesión Payload autenticada, nunca `overrideAccess: true`) y `/api/preview-exit`. Función de resolución dedicada en `src/lib/preview/resolve-preview-document.ts`, fuera de `public-query.ts` — el control de acceso ya existente de Posts/Pages decide qué puede previsualizar cada usuario, sin lógica de autorización duplicada. Categories no tienen Preview (sin `versions`).
+- **SEO/JSON-LD**: `src/lib/seo/metadata.ts` (`generateMetadata` por tipo de página) y `src/lib/seo/json-ld.tsx` (`JsonLd`, serialización segura contra `</script>` en texto editorial).
+- **sitemap/robots**: `src/app/sitemap.ts`/`src/app/robots.ts` (raíz de `app/`, no dentro de `(frontend)/` — son convenciones de archivo globales).
+- **Redirects**: lookup en runtime (`src/lib/data/redirects.ts`, `overrideAccess: true` acotado y aislado) integrado en los miss paths existentes (`resolveRootSlug()`, búsqueda de Post por slug) — nunca antes de que la resolución normal ya falle. Generación automática y aplanado de cadenas en `src/lib/redirects/create-historical-redirect.ts`, invocado desde hooks `afterChange` de Posts/Categories/Pages.
+- **`/llms.txt`**: `src/app/llms.txt/route.ts` + `src/lib/seo/llms-txt.ts` — LLM / Agent Discoverability, documento Markdown curado y acotado (25 Posts recientes), nunca un sustituto de metadata/sitemap/robots.
+
+## Fuera de alcance de Fase 8
+
+Búsqueda, ruta de Autor/Tag, almacenamiento de objetos en producción, orquestación de migraciones en CI/producción, alternativas Markdown de Article/Page (`.md`, diferido explícitamente), reglas de robots específicas por crawler de IA (Fase 9/10/11).

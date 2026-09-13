@@ -10,6 +10,7 @@ services:
       DATABASE_URI: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-60segundos}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-dev-only-local-secret-change-me}
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      PREVIEW_SECRET: ${PREVIEW_SECRET:-dev-only-preview-secret-change-me}
       WATCHPACK_POLLING: 'true'
     volumes:
       - .:/app

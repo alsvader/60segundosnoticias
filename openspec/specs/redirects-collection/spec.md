@@ -1,6 +1,6 @@
 ## Purpose
 
-Define el modelo de datos de `Redirects`, la base estructural para las redirecciones del sitio, sin generación automática de registros (eso corresponde a una fase posterior).
+Define el modelo de datos de `Redirects`, la base estructural para las redirecciones del sitio. La generación automática de registros y su resolución en runtime viven en la capability `redirects`.
 
 ## Requirements
 
@@ -30,12 +30,3 @@ Solo Admin SHALL poder crear, editar y eliminar `Redirects`.
 - **THEN** la operación es rechazada por control de acceso server-side
 
 Referencia: §7.2 del Master Spec
-
-### Requirement: Sin generación automática de redirects
-Esta Collection SHALL NOT incluir lógica que genere, modifique o elimine Redirects automáticamente a partir de cambios en otras Collections.
-
-#### Scenario: cambiar el slug de un Post no genera un Redirect en esta fase
-- **WHEN** cambia el slug de un Post en esta fase
-- **THEN** no se crea ningún Redirect automáticamente
-
-Referencia: la generación automática de redirects corresponde a una fase posterior (Preview + SEO + Cache + Redirects)

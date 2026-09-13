@@ -1,10 +1,15 @@
 import 'server-only'
 
+import { unstable_cache } from 'next/cache'
+
+import { CACHE_TAGS } from '@/lib/cache/tags'
 import { findGlobalPublished } from '@/lib/data/public-query'
 import { getFeaturedPosts, getLatestPosts, getNewestPostPerCategory } from '@/lib/data/posts'
 
 export async function getArticleSidebar() {
-  return findGlobalPublished('articleSidebar', 1)
+  return unstable_cache(async () => findGlobalPublished('articleSidebar', 1), ['getArticleSidebar'], {
+    tags: [CACHE_TAGS.articleSidebar],
+  })()
 }
 
 const MODE_LABELS: Record<string, string> = {

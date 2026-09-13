@@ -1,5 +1,8 @@
 import 'server-only'
 
+import { unstable_cache } from 'next/cache'
+
+import { CACHE_TAGS } from '@/lib/cache/tags'
 import { findGlobalPublished } from '@/lib/data/public-query'
 
 /**
@@ -8,5 +11,7 @@ import { findGlobalPublished } from '@/lib/data/public-query'
  * populated (depth 2) for `mapPostToArticleCardData` to produce a valid href.
  */
 export async function getHome() {
-  return findGlobalPublished('home', 2)
+  return unstable_cache(async () => findGlobalPublished('home', 2), ['getHome'], {
+    tags: [CACHE_TAGS.home],
+  })()
 }

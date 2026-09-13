@@ -3,12 +3,16 @@ import type { GlobalConfig } from 'payload'
 import { isAdmin } from '../access/roles.ts'
 import { linkFields } from '../fields/link-fields.ts'
 import { socialLinksField } from '../fields/social-links-field.ts'
+import { invalidateFooterCache } from '../hooks/shell/cache-invalidation.ts'
 
 export const Footer: GlobalConfig = {
   slug: 'footer',
   access: {
     read: () => true,
     update: isAdmin,
+  },
+  hooks: {
+    afterChange: [invalidateFooterCache],
   },
   fields: [
     {

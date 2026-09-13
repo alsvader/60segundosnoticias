@@ -1,3 +1,6 @@
+import { cache } from 'react'
+import { draftMode, headers } from 'next/headers'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { Breadcrumbs } from '@/components/editorial/breadcrumbs'
@@ -7,11 +10,81 @@ import { Pagination } from '@/components/editorial/pagination'
 import { CategoryHeader } from '@/components/content/category-header'
 import { PageBlockRenderer } from '@/components/sections/pages/page-block-renderer'
 import { getPostsByCategory } from '@/lib/data/posts'
+import { getSettings } from '@/lib/data/settings'
 import { resolveRootSlug } from '@/lib/content/resolve-root-slug'
-import { getCategoryUrl } from '@/lib/url/canonical'
+import { applyStoredRedirect } from '@/lib/redirects/apply-redirect'
+import { buildBreadcrumbListJsonLd, JsonLd } from '@/lib/seo/json-ld'
+import { buildMetadata, type SiteMetadataDefaults } from '@/lib/seo/metadata'
+import { getAbsoluteUrl, getCategoryUrl, getPageUrl } from '@/lib/url/canonical'
 import { mapPostToArticleCardData } from '@/lib/view-models/article-card'
 
 const CATEGORY_PAGE_SIZE = 12
+
+/**
+ * Dedupe por request - generateMetadata y el componente de página
+ * resuelven el mismo slug; sin esto se ejecutarían dos búsquedas
+ * (Category y, en el miss, Page) por solicitud en vez de una. Con Draft
+ * Mode habilitado, la Page se resuelve vía `findDraftPageBySlug()` (ver
+ * `resolveRootSlug()`) en vez del lookup público - Draft Mode por sí solo
+ * no le dice a Payload que debe devolver la versión en Draft.
+ */
+const getResolvedRootSlug = cache(async (slug: string) => {
+  const { isEnabled } = await draftMode()
+  return resolveRootSlug(slug, isEnabled ? { draftHeaders: await headers() } : undefined)
+})
+
+/**
+ * Metadata de Category (fallback `"{name} | 60 Segundos"`, AC-SEO-003) o de
+ * Page genérica (fallback a título + Hero.description/image cuando el
+ * primer block es un Hero, AC-SEO-004). Sin resolución válida, replica el
+ * `notFound()` del componente de página para que Next reemplace también la
+ * metadata, no solo el render.
+ */
+export async function generateMetadata({ params }: RootSlugPageProps): Promise<Metadata> {
+  const { category: slug } = await params
+  const resolved = await getResolvedRootSlug(slug)
+
+  if (resolved.type === 'redirect') {
+    applyStoredRedirect(resolved.to, resolved.statusCode)
+  }
+
+  if (resolved.type === 'not-found') {
+    notFound()
+  }
+
+  const settings = await getSettings()
+  const siteName = settings.branding?.siteName || '60 Segundos Noticias'
+  const siteDefaults: SiteMetadataDefaults = {
+    siteName,
+    defaultMetaTitle: settings.seo?.defaultMetaTitle,
+    defaultMetaDescription: settings.seo?.defaultMetaDescription,
+    defaultMetaImage: settings.seo?.defaultMetaImage,
+  }
+
+  if (resolved.type === 'category') {
+    const { category } = resolved
+    return buildMetadata({
+      seo: category.seo,
+      fallbackTitle: `${category.name} | 60 Segundos`,
+      fallbackDescription: category.description,
+      fallbackImage: category.image,
+      canonicalPath: getCategoryUrl(category.slug),
+      siteDefaults,
+    })
+  }
+
+  const { page } = resolved
+  const heroBlock = page.layout?.find((block) => block.blockType === 'hero')
+
+  return buildMetadata({
+    seo: page.seo,
+    fallbackTitle: page.title,
+    fallbackDescription: heroBlock?.description,
+    fallbackImage: heroBlock?.image,
+    canonicalPath: getPageUrl(page.slug),
+    siteDefaults,
+  })
+}
 
 type RootSlugPageProps = {
   params: Promise<{ category: string }>
@@ -36,7 +109,11 @@ type RootSlugPageProps = {
  */
 export default async function RootSlugPage({ params, searchParams }: RootSlugPageProps) {
   const { category: slug } = await params
-  const resolved = await resolveRootSlug(slug)
+  const resolved = await getResolvedRootSlug(slug)
+
+  if (resolved.type === 'redirect') {
+    applyStoredRedirect(resolved.to, resolved.statusCode)
+  }
 
   if (resolved.type === 'not-found') {
     notFound()
@@ -73,6 +150,12 @@ export default async function RootSlugPage({ params, searchParams }: RootSlugPag
 
   return (
     <Container className="flex flex-col gap-8 py-8 md:py-12">
+      <JsonLd
+        data={buildBreadcrumbListJsonLd([
+          { name: 'Inicio', url: getAbsoluteUrl('/') },
+          { name: category.name, url: getAbsoluteUrl(getCategoryUrl(category.slug)) },
+        ])}
+      />
       <Breadcrumbs items={[{ label: 'Inicio', href: '/' }, { label: category.name }]} />
       <CategoryHeader category={category} />
       {posts.length > 0 ? (

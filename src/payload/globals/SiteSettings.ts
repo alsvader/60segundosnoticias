@@ -1,12 +1,16 @@
 import type { GlobalConfig } from 'payload'
 
 import { isAdmin } from '../access/roles.ts'
+import { invalidateSettingsCache } from '../hooks/shell/cache-invalidation.ts'
 
 export const SiteSettings: GlobalConfig = {
   slug: 'siteSettings',
   access: {
     read: () => true,
     update: isAdmin,
+  },
+  hooks: {
+    afterChange: [invalidateSettingsCache],
   },
   fields: [
     {

@@ -3,12 +3,16 @@ import type { GlobalConfig } from 'payload'
 import { isAdmin } from '../access/roles.ts'
 import { linkFields } from '../fields/link-fields.ts'
 import { socialLinksField } from '../fields/social-links-field.ts'
+import { invalidateNavigationCache } from '../hooks/shell/cache-invalidation.ts'
 
 export const Navigation: GlobalConfig = {
   slug: 'navigation',
   access: {
     read: () => true,
     update: isAdmin,
+  },
+  hooks: {
+    afterChange: [invalidateNavigationCache],
   },
   fields: [
     {

@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
 import { isAdmin } from '../access/roles.ts'
+import { invalidateArticleSidebarCache } from '../hooks/shell/cache-invalidation.ts'
 
 /**
  * Site-wide control for the Article page's sidebar (no per-Post override —
@@ -13,6 +14,9 @@ export const ArticleSidebar: GlobalConfig = {
   access: {
     read: () => true,
     update: isAdmin,
+  },
+  hooks: {
+    afterChange: [invalidateArticleSidebarCache],
   },
   fields: [
     {

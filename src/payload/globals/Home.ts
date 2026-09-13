@@ -10,6 +10,8 @@ import { PostsByCategory } from '../blocks/home/PostsByCategory.ts'
 import { VideoFeature } from '../blocks/home/VideoFeature.ts'
 import { isAdmin } from '../access/roles.ts'
 import { seoFields } from '../fields/seo-fields.ts'
+import { invalidateHomeCache } from '../hooks/home/cache-invalidation.ts'
+import { generateHomePreviewURL } from '@/lib/preview/generate-preview-url'
 
 export const Home: GlobalConfig = {
   slug: 'home',
@@ -17,8 +19,14 @@ export const Home: GlobalConfig = {
     read: () => true,
     update: isAdmin,
   },
+  admin: {
+    preview: generateHomePreviewURL,
+  },
   versions: {
     drafts: true,
+  },
+  hooks: {
+    afterChange: [invalidateHomeCache],
   },
   fields: [
     {

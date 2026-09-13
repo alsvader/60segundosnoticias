@@ -9,6 +9,9 @@ import { ImageText } from '../blocks/page/ImageText.ts'
 import { RichText } from '../blocks/page/RichText.ts'
 import { Video } from '../blocks/page/Video.ts'
 import { isAdmin, isLoggedIn } from '../access/roles.ts'
+import { invalidatePageCache, invalidatePageCacheOnDelete } from '../hooks/pages/cache-invalidation.ts'
+import { generatePagePreviewURL } from '@/lib/preview/generate-preview-url'
+import { createPageRedirect } from '../hooks/pages/redirect-lifecycle.ts'
 import { seoFields } from '../fields/seo-fields.ts'
 import { slugField } from '../fields/slug-field.ts'
 import { createNamespaceSlugValidate } from '../fields/validate-namespace-slug.ts'
@@ -17,6 +20,7 @@ export const Pages: CollectionConfig = {
   slug: 'pages',
   admin: {
     useAsTitle: 'title',
+    preview: generatePagePreviewURL,
   },
   versions: {
     drafts: true,
@@ -36,6 +40,10 @@ export const Pages: CollectionConfig = {
     update: isAdmin,
     delete: isAdmin,
     readVersions: isLoggedIn,
+  },
+  hooks: {
+    afterChange: [invalidatePageCache, createPageRedirect],
+    afterDelete: [invalidatePageCacheOnDelete],
   },
   fields: [
     {
