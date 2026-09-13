@@ -1579,7 +1579,13 @@ Copy link debe proporcionar feedback visible y accesible.
 
 # 36. Search
 
-V1 usa PostgreSQL/Payload.
+V1 usa el Payload Search Plugin (`@payloadcms/plugin-search`) como backend de indexación, respaldado por la infraestructura PostgreSQL ya existente. No se introduce ningún servicio de búsqueda externo (Algolia, Elasticsearch, OpenSearch, Meilisearch, Typesense u otro) en V1 — es una decisión de escala inicial del proyecto, no una afirmación de que esas alternativas sean innecesarias para siempre; se reconsideran solo si una escala, relevancia, tolerancia a errores tipográficos, analítica o requisitos multilingües/operativos demostrados lo justifican.
+
+El plugin mantiene una Collection `search` dedicada e indexada, sincronizada automáticamente a partir de los documentos fuente. El frontend público NO consulta Posts/Pages completos con `LIKE` amplio como arquitectura primaria de búsqueda; las solicitudes de `/buscar` consultan el índice `search` dedicado.
+
+Solo contenido publicado se sincroniza al índice y es buscable (`syncDrafts: false`, `deleteDrafts: true`). Ningún Draft aparece nunca en `/buscar`.
+
+Al índice `search` solo se sincroniza la información crítica para búsqueda, nunca el documento completo de Payload. Para contenido Lexical, evaluar derivar texto plano acotado vía `beforeSync` del plugin en vez de indexar el documento Lexical serializado completo.
 
 Buscar como mínimo:
 
@@ -1588,11 +1594,22 @@ Buscar como mínimo:
 - tags;
 - category.
 
-Body content puede añadirse si se implementa eficientemente, pero **no es requisito V1**.
+Body content puede añadirse si se implementa eficientemente como texto plano derivado (no el documento Lexical completo), pero **no es requisito V1**.
 
-Solo Posts publicados.
+Solo Posts publicados en V1. La Fase 9 debe verificar si Pages/Categories también deben participar en el índice, y qué campos adicionales participan en relevancia.
 
 No ejecutar búsqueda vacía sobre toda la base.
+
+Relevancia V1: determinística y simple, usando la prioridad de collection/documento que ya expone el plugin — sin algoritmo de ranking complejo ni búsqueda semántica/vectorial/IA.
+
+Ciclo de vida del índice:
+
+- indexación inicial del contenido ya existente;
+- indexación automática de contenido publicado/actualizado;
+- remoción del índice cuando el contenido deja de ser público (unpublish/delete);
+- reindexación manual/bajo demanda para mantenimiento.
+
+Instalar el plugin no garantiza por sí solo la indexación retroactiva de registros preexistentes — la Fase 9 debe documentar cómo se reindexa el contenido ya existente tras el despliegue.
 
 Search UI:
 
@@ -1611,13 +1628,23 @@ Sin resultados:
 - sugerencia de revisar búsqueda;
 - link a últimas noticias si aporta valor.
 
-La capa de búsqueda debe estar detrás de:
+La capa de búsqueda pública debe estar detrás de un contrato de frontend estable, independiente del backend de indexación:
 
 ```text
-searchPosts()
+/buscar?q=...
+→ Search Page
+→ searchContent()
+→ Payload Search collection (@payloadcms/plugin-search)
+→ PostgreSQL
 ```
 
-para poder sustituir backend en el futuro.
+`searchContent()` normaliza los resultados del plugin a un contrato `SearchResult` seguro para el frontend: nunca expone campos internos de Payload, IDs internos innecesarios, URLs de Admin/Preview ni datos privados de User, y siempre usa URLs públicas canónicas (`getPostUrl()`/`getPageUrl()`). Esto preserva la posibilidad de sustituir el backend de indexación en el futuro sin tocar la UI pública.
+
+El `access` de la Collection `search` se define explícitamente en Fase 9 — no se expone como API de datos de frontend sin restricciones solo por ser generada por un plugin.
+
+La sincronización del índice (hooks propios del plugin) es la fuente de verdad de frescura de Search, distinta de la invalidación de cache de contenido fuente (§40); no se diseña una estrategia de cache global competidora para Search.
+
+El plugin agrega schema respaldado por base de datos (su Collection `search`); cualquier migración sigue el flujo ya establecido en §67 y `README.md` — nunca se corren migraciones versionadas contra la base de datos de desarrollo (administrada por push).
 
 ---
 
@@ -3407,12 +3434,12 @@ Configurar drafts/versions y schemas de blocks.
 
 ## Phase 9 — Search
 
-- `/buscar`;
-- parsing;
-- DAL;
-- Postgres query;
-- pagination;
-- empty states.
+- Payload Search Plugin (`@payloadcms/plugin-search`) como backend de indexación V1;
+- configuración del índice de búsqueda (Collection `search`, solo contenido publicado);
+- DAL/view model público de búsqueda (`searchContent()`);
+- `/buscar?q=...`;
+- ciclo de vida de indexación/reindexación;
+- search UX (input, resultados, paginación, empty states).
 
 ## Phase 10 — Docker + Production Hardening
 
@@ -3695,6 +3722,13 @@ Los siguientes criterios son normativos. Un agente debe reportar `PASS`, `FAIL`,
 | AC-SEARCH-005 | Search pagina. |
 | AC-SEARCH-006 | Pagination conserva `q`. |
 | AC-SEARCH-007 | Search sin resultados muestra EmptyState. |
+| AC-SEARCH-008 | Search se sirve desde la Collection `search` dedicada de `@payloadcms/plugin-search`, nunca desde un `LIKE` amplio sobre Posts/Pages completos. |
+| AC-SEARCH-009 | El contenido público existente puede reindexarse bajo demanda. |
+| AC-SEARCH-010 | Contenido publicado o actualizado se sincroniza automáticamente al índice de Search. |
+| AC-SEARCH-011 | Despublicar o eliminar contenido lo remueve del índice y deja de aparecer en `/buscar`. |
+| AC-SEARCH-012 | Los resultados de Search usan URLs públicas canónicas (`getPostUrl()`/`getPageUrl()`). |
+| AC-SEARCH-013 | Ningún contenido en Draft aparece nunca en `/buscar`. |
+| AC-SEARCH-014 | V1 no requiere ningún servicio de búsqueda externo (Algolia/Elasticsearch/OpenSearch/Meilisearch/Typesense u otro). |
 
 ## 84.10 Preview / Redirect / SEO
 
