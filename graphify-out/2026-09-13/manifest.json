@@ -162,9 +162,9 @@
     "semantic_hash": "f82d40129ab70e95110c0470895b366c"
   },
   "src/app/(frontend)/layout.tsx": {
-    "mtime": 1789322844.820384,
-    "seen": 1789323020.450971,
-    "ast_hash": "e9bfe4296e66cbe74824f907ffdfd198",
+    "mtime": 1789159982.4103556,
+    "seen": 1789160242.50943,
+    "ast_hash": "f6113c7af795b6b8d32cd55b39fa9737",
     "semantic_hash": ""
   },
   "src/app/(frontend)/page.tsx": {
@@ -2277,42 +2277,6 @@
     "mtime": 1789167836.854479,
     "seen": 1789167941.336737,
     "ast_hash": "f7a2ddd68fec76dfff56b69707dd0aa0",
-    "semantic_hash": ""
-  },
-  "src/components/site/draft-mode-banner.tsx": {
-    "mtime": 1789322977.6022105,
-    "seen": 1789323020.4510221,
-    "ast_hash": "3b6aed60cbdadc2f1dfcc3834e568e43",
-    "semantic_hash": ""
-  },
-  "openspec/changes/add-draft-mode-banner/.openspec.yaml": {
-    "mtime": 1789322348.088842,
-    "seen": 1789323020.451165,
-    "ast_hash": "023bd6a30a4a37ec1d0180ed76f93c32",
-    "semantic_hash": ""
-  },
-  "openspec/changes/add-draft-mode-banner/design.md": {
-    "mtime": 1789322709.7541451,
-    "seen": 1789323020.451166,
-    "ast_hash": "f36cb660bc74aa461bd06698f5a70961",
-    "semantic_hash": ""
-  },
-  "openspec/changes/add-draft-mode-banner/proposal.md": {
-    "mtime": 1789322664.387855,
-    "seen": 1789323020.4511669,
-    "ast_hash": "3474836f94891c5f4fa77ec247d88012",
-    "semantic_hash": ""
-  },
-  "openspec/changes/add-draft-mode-banner/specs/preview/spec.md": {
-    "mtime": 1789322689.5191116,
-    "seen": 1789323020.451168,
-    "ast_hash": "595f54debff155d614a17dedf8031ec1",
-    "semantic_hash": ""
-  },
-  "openspec/changes/add-draft-mode-banner/tasks.md": {
-    "mtime": 1789322733.85912,
-    "seen": 1789323020.451168,
-    "ast_hash": "dfe2c5ec727bd601f9fb890c44aee4db",
     "semantic_hash": ""
   }
 }

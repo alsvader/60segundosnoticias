@@ -1,8 +1,10 @@
+import { draftMode } from 'next/headers'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
 import '@/app/globals.css'
 
+import { DraftModeBanner } from '@/components/site/draft-mode-banner'
 import { Footer } from '@/components/site/footer'
 import { Header } from '@/components/site/header'
 import { getFooter } from '@/lib/data/footer'
@@ -41,7 +43,12 @@ export const metadata: Metadata = {
  * MobileNav below stay presentational, receiving plain resolved props.
  */
 export default async function FrontendLayout({ children }: { children: ReactNode }) {
-  const [navigation, footer, settings] = await Promise.all([getNavigation(), getFooter(), getSettings()])
+  const [{ isEnabled: isDraftModeEnabled }, navigation, footer, settings] = await Promise.all([
+    draftMode(),
+    getNavigation(),
+    getFooter(),
+    getSettings(),
+  ])
 
   const siteName = settings.branding?.siteName || '60 Segundos Noticias'
   const headerLogo = mapMediaToMediaData(navigation.logo, { fallbackAlt: siteName })
@@ -65,6 +72,7 @@ export default async function FrontendLayout({ children }: { children: ReactNode
         <link rel="describedby" href="/llms.txt" type="text/markdown" />
       </head>
       <body className="flex min-h-screen flex-col bg-background text-foreground">
+        {isDraftModeEnabled ? <DraftModeBanner /> : null}
         <a
           href="#main-content"
           className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-2 focus-visible:left-2 focus-visible:z-50 focus-visible:rounded-md focus-visible:bg-[var(--brand-red-500)] focus-visible:px-4 focus-visible:py-2 focus-visible:text-[var(--paper-50)]"
