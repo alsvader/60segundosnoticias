@@ -1,0 +1,95 @@
+# Target de verificación production-like / referencia self-hosted
+# (openspec/changes/production-hardening, capacidad `production-deployment`).
+#
+# NO es un compromiso de auto-hospedar PostgreSQL: `DATABASE_URI` SHALL
+# seguir soportando un PostgreSQL administrado externo sin requerir el
+# servicio `db` de este archivo (ver design.md, Decisión 2). El servicio
+# `db` solo se levanta si se activa explícitamente el profile
+# `self-hosted` (`docker compose -f compose.prod.yaml --profile
+# self-hosted up`); de lo contrario, `DATABASE_URI` debe apuntar a un
+# PostgreSQL ya migrado y alcanzable por otro medio.
+#
+# `compose.yaml` (desarrollo) no se modifica ni se relaciona con este
+# archivo: siguen siendo dos targets completamente separados.
+#
+# Variables sin default: no existe un valor seguro para un secreto de
+# producción, a diferencia de `compose.yaml`. Usar `--env-file` con un
+# archivo de entorno de producción real, nunca `.env` de desarrollo.
+
+services:
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
+    environment:
+      DATABASE_URI: ${DATABASE_URI:?DATABASE_URI es requerido}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:?PAYLOAD_SECRET es requerido}
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false
+    # Job de un solo uso: aplica la cadena de migraciones y termina. No
+    # debe reiniciarse en bucle ni comportarse como un servicio de larga
+    # duración (AC-DB-004).
+    restart: 'no'
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        # Únicas variables que `next build` necesita (ver Dockerfile,
+        # stage `builder`): `NEXT_PUBLIC_SITE_URL` se incrusta en el
+        # bundle de cliente; `DATABASE_URI`/`PAYLOAD_SECRET` los exige
+        # `payload.config.ts` incluso en build time (comportamiento
+        # previo a esta fase). Ninguno de los tres es un secreto de
+        # runtime real en este contexto - los secretos genuinos
+        # (`PREVIEW_SECRET`, `S3_*`) NO se pasan aquí a propósito.
+        DATABASE_URI: ${DATABASE_URI:?DATABASE_URI es requerido}
+        PAYLOAD_SECRET: ${PAYLOAD_SECRET:?PAYLOAD_SECRET es requerido}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL es requerido}
+    environment:
+      DATABASE_URI: ${DATABASE_URI:?DATABASE_URI es requerido}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:?PAYLOAD_SECRET es requerido}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL es requerido}
+      PREVIEW_SECRET: ${PREVIEW_SECRET:?PREVIEW_SECRET es requerido}
+      S3_ENDPOINT: ${S3_ENDPOINT:?S3_ENDPOINT es requerido}
+      S3_REGION: ${S3_REGION:?S3_REGION es requerido}
+      S3_BUCKET: ${S3_BUCKET:?S3_BUCKET es requerido}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:?S3_ACCESS_KEY_ID es requerido}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?S3_SECRET_ACCESS_KEY es requerido}
+      S3_PUBLIC_URL: ${S3_PUBLIC_URL:?S3_PUBLIC_URL es requerido}
+    ports:
+      - '3000:3000'
+    # Las migraciones deben completarse exitosamente antes de que esta
+    # release empiece a servir tráfico (design.md, Decisión 1). El
+    # HEALTHCHECK del propio container (definido en el Dockerfile, stage
+    # `runner`) se hereda automáticamente; no se redeclara aquí.
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  # Solo para la referencia self-hosted (profile `self-hosted`). No se
+  # publica el puerto al host: solo `app`/`migrate`, dentro de la red de
+  # Compose, lo alcanzan.
+  db:
+    image: postgres:17-alpine
+    profiles: ['self-hosted']
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-60segundos}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD es requerido para el perfil self-hosted}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-60segundos}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

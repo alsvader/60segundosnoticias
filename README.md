@@ -4,7 +4,7 @@ Portal editorial y multimedia construido con Next.js + Payload CMS + PostgreSQL.
 
 ## Estado del proyecto
 
-El repositorio completó **Phase 0 (Bootstrap)** a **Phase 9 (Search)** de `docs/60-segundos-spec.md`: existe una aplicación Next.js + Payload funcional, conectada a PostgreSQL, con validación de entorno, endpoint de salud, entorno de desarrollo reproducible vía Docker Compose, las 7 Collections de V1 (`Users`, `Media`, `Categories`, `Tags`, `Posts`, `Pages`, `Redirects`) con su schema, relaciones y control de acceso base, y el ciclo de vida editorial completo sobre Posts (Phase 3): generación de slug desde el título (sin regeneración automática), ownership de Writer aplicado server-side (un Writer solo lee/edita/publica sus propios Posts, más los publicados de otros autores), validación de campos obligatorios al publicar, `publishedAt` estable a través de ediciones/unpublish-republish/restauración de versiones, cálculo automático de `readingTimeMinutes`, protecciones de eliminación (Categories/Users/Media referenciados) y los scripts `seed:initial`/`seed:dev`. El Design System (Phase 4: `docs/DESIGN-SYSTEM.md`), el frontend público con los Globals `Navigation`/`Footer`/`SiteSettings` (Phase 5), el Home Global dinámico con sus 8 Home Blocks V1 (Phase 6), las rutas públicas de Category/Article/Page genérica con sus 6 Article Content Blocks y 8 Page Blocks (Phase 7), Draft Mode/Preview, metadata/JSON-LD, sitemap/robots, `/llms.txt` (LLM / Agent Discoverability), cache por tags y redirects automáticos (Phase 8: `docs/FRONTEND-ARCHITECTURE.md`, `docs/SEO-AND-CACHING.md`), y `/buscar` sobre un índice dedicado de `@payloadcms/plugin-search` para Posts y Pages publicados (Phase 9: `docs/SEARCH.md`) también están implementados.
+El repositorio completó **Phase 0 (Bootstrap)** a **Phase 10 (Docker + Production Hardening)** de `docs/60-segundos-spec.md`: existe una aplicación Next.js + Payload funcional, conectada a PostgreSQL, con validación de entorno, endpoint de salud, entorno de desarrollo reproducible vía Docker Compose, las 7 Collections de V1 (`Users`, `Media`, `Categories`, `Tags`, `Posts`, `Pages`, `Redirects`) con su schema, relaciones y control de acceso base, y el ciclo de vida editorial completo sobre Posts (Phase 3): generación de slug desde el título (sin regeneración automática), ownership de Writer aplicado server-side (un Writer solo lee/edita/publica sus propios Posts, más los publicados de otros autores), validación de campos obligatorios al publicar, `publishedAt` estable a través de ediciones/unpublish-republish/restauración de versiones, cálculo automático de `readingTimeMinutes`, protecciones de eliminación (Categories/Users/Media referenciados) y los scripts `seed:initial`/`seed:dev`. El Design System (Phase 4: `docs/DESIGN-SYSTEM.md`), el frontend público con los Globals `Navigation`/`Footer`/`SiteSettings` (Phase 5), el Home Global dinámico con sus 8 Home Blocks V1 (Phase 6), las rutas públicas de Category/Article/Page genérica con sus 6 Article Content Blocks y 8 Page Blocks (Phase 7), Draft Mode/Preview, metadata/JSON-LD, sitemap/robots, `/llms.txt` (LLM / Agent Discoverability), cache por tags y redirects automáticos (Phase 8: `docs/FRONTEND-ARCHITECTURE.md`, `docs/SEO-AND-CACHING.md`), `/buscar` sobre un índice dedicado de `@payloadcms/plugin-search` para Posts y Pages publicados (Phase 9: `docs/SEARCH.md`), y una imagen Docker de producción (stages `runner`/`migrator`), Object Storage S3-compatible para Media, headers de seguridad y el flujo de despliegue con migraciones-only (Phase 10: `docs/DEPLOYMENT.md`) también están implementados.
 
 ## Stack técnico
 
@@ -41,9 +41,9 @@ Variables definidas en `.env.example`:
 | `NEXT_PUBLIC_SITE_URL` | Origen absoluto del sitio (única variable pensada para el cliente) — usado por canonical/OpenGraph/JSON-LD/sitemap/robots/`llms.txt`/compartir. En producción, si falta o es inválido, cualquier solicitud que necesite construir una URL absoluta falla explícitamente en vez de asumir `localhost` (`getSiteOrigin()`, `src/lib/url/canonical.ts`). |
 | `PREVIEW_SECRET` | Requerida para que el botón "Preview" del Admin de Payload funcione (`/api/preview`) — sin ella, Preview queda deshabilitado (no rompe el resto de la app). |
 | `REVALIDATION_SECRET` | Reservada — solo sería necesaria si se agrega un webhook de revalidación externo; los hooks de invalidación de cache actuales llaman `revalidateTag` in-process y no la usan. |
-| `S3_*` | Reservadas para almacenamiento de objetos en producción (aún no implementado). |
+| `S3_*` (`S3_ENDPOINT`/`S3_REGION`/`S3_BUCKET`/`S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY`/`S3_PUBLIC_URL`) | Object Storage S3-compatible para `Media` en producción. Si faltan, `Media` sigue usando almacenamiento local (desarrollo sin cambios). |
 
-La validación de entorno (`src/lib/env/`) exige como mínimo `DATABASE_URI` y `PAYLOAD_SECRET` para arrancar; `NEXT_PUBLIC_SITE_URL`/`PREVIEW_SECRET` son opcionales a nivel de arranque pero cada una es requerida en tiempo de uso para su propia funcionalidad (URLs absolutas en producción / Preview), no para que la app inicie.
+En desarrollo, la validación de entorno (`src/lib/env/`) exige como mínimo `DATABASE_URI` y `PAYLOAD_SECRET`; el resto son opcionales. **En producción** (`NODE_ENV=production`) el contrato es más estricto: `NEXT_PUBLIC_SITE_URL`, `PREVIEW_SECRET` y las seis variables `S3_*` pasan a ser requeridas — ver `docs/DEPLOYMENT.md` para el detalle completo, incluida la distinción entre lo que se exige en build time y en runtime.
 
 ## Desarrollo con Docker (recomendado)
 
@@ -127,7 +127,7 @@ Payload PostgreSQL soporta push mode y `migrate` como flujos deliberadamente dis
 1. **Base de datos de desarrollo local** (`docker compose up`, el volumen `postgres_data`): sandbox gestionado por push mode. Payload sincroniza el schema automáticamente contra ella; nunca se le corre `pnpm migrate` directamente, porque ya no coincide con el ledger de migraciones (`payload_migrations` solo tiene la fila marcadora `dev`). Iterar aquí no requiere migraciones.
 2. **Migraciones en `src/payload/migrations/`**: artefactos generados por `pnpm migrate:create`, revisados a mano y versionados en git junto con el cambio de código que los origina. Describen el schema que debe existir en cualquier base gestionada por `migrate` — no se ejecutan contra la base de desarrollo local.
 3. **Verificación de la cadena de migraciones**: antes de confiar en una migración nueva, se aplica contra una base PostgreSQL limpia y desechable (por ejemplo, `CREATE DATABASE` temporal en el mismo servidor, o un contenedor Postgres aparte), corriendo la cadena completa desde cero (`pnpm migrate` contra esa base con su propio `DATABASE_URI`) y confirmando con `payload migrate:status` que todas las migraciones quedan `Ran: Yes`. La base desechable se destruye después; la de desarrollo nunca se toca en este proceso.
-4. **Orquestación de migraciones en producción/CI**: automatizar `migrate` como parte de un pipeline de despliegue es una decisión de infraestructura de Fase 10 (Docker + Production Hardening), no de fases anteriores.
+4. **Orquestación de migraciones en producción/CI**: el job de migración corre como un paso de despliegue separado (imagen `migrator`, un solo uso) antes de que la nueva release del App Container empiece a servir tráfico — nunca automáticamente en cada arranque. Ver `docs/DEPLOYMENT.md` para el flujo completo.
 
 Para regenerar los tipos de TypeScript después de cambiar cualquier Collection:
 
@@ -155,14 +155,24 @@ docker compose exec app pnpm seed:dev
 
 ## Build y arranque en producción
 
+La imagen de producción se construye y despliega vía Docker — ver **`docs/DEPLOYMENT.md`** para el flujo completo (contrato de entorno por variable, secuencia de despliegue, `compose.prod.yaml`, Object Storage, headers de seguridad, bootstrap del primer Admin, troubleshooting). Resumen:
+
 ```bash
-pnpm build
-pnpm start
+# 1. job de migración (una vez, antes de servir tráfico)
+docker build --target migrator -t 60segundos-app:migrator .
+docker run --rm -e DATABASE_URI=... -e PAYLOAD_SECRET=... 60segundos-app:migrator
+
+# 2. imagen de la aplicación (requiere red hacia una base ya migrada - ver docs/DEPLOYMENT.md)
+docker build --target runner \
+  --build-arg DATABASE_URI=... --build-arg PAYLOAD_SECRET=... --build-arg NEXT_PUBLIC_SITE_URL=... \
+  -t 60segundos-app:runner .
+docker run -d -p 3000:3000 -e DATABASE_URI=... -e PAYLOAD_SECRET=... -e NEXT_PUBLIC_SITE_URL=... \
+  -e PREVIEW_SECRET=... -e S3_ENDPOINT=... -e S3_REGION=... -e S3_BUCKET=... \
+  -e S3_ACCESS_KEY_ID=... -e S3_SECRET_ACCESS_KEY=... -e S3_PUBLIC_URL=... \
+  60segundos-app:runner
 ```
 
-Requiere que `.env` (o las variables de entorno equivalentes) esté disponible, ya que el build valida `DATABASE_URI`/`PAYLOAD_SECRET` al recolectar datos de página.
-
-El `Dockerfile` define una etapa `builder` que ejecuta `pnpm build`, pero **no está pensada para invocarse de forma aislada** (`docker build --target builder .` falla porque `.env` está excluido del build context vía `.dockerignore` y el Dockerfile no declara `ARG`/`ENV` para pasar las variables críticas en build time). El flujo de Docker verificado y soportado hoy es el de desarrollo (`docker compose up`, etapa `development`). Una etapa `runner` de producción endurecida, junto con el wiring de variables de build, corresponde a una fase posterior del roadmap.
+`pnpm build && pnpm start` (sin Docker) también funciona para probar un build de producción localmente, con la misma validación de entorno estricta — pero el flujo soportado y verificado para desplegar es el de Docker.
 
 ## Health check
 
@@ -181,6 +191,8 @@ curl http://localhost:3000/api/health
 Este mismo endpoint es el que usa el healthcheck del servicio `app` en `compose.yaml`.
 
 ## Comandos Docker relevantes
+
+Estos comandos usan `compose.yaml` (desarrollo). Para producción existe un archivo separado, `compose.prod.yaml` — ver `docs/DEPLOYMENT.md`.
 
 ```bash
 docker compose build           # reconstruye la imagen de desarrollo
@@ -213,8 +225,10 @@ Para comprobar/preparar ese entorno opcional:
 ## Referencias de documentación
 
 - `docs/60-segundos-spec.md` — Master Specification (estado objetivo de V1).
+- `docs/DEPLOYMENT.md` — despliegue en producción: Docker, contrato de entorno, migraciones, Object Storage, headers de seguridad (Phase 10).
 - `docs/DESIGN-SYSTEM.md` — referencia de implementación del Design System (Phase 4).
 - `docs/FRONTEND-ARCHITECTURE.md` — referencia de arquitectura del frontend (DAL, View Models, resolvers, Home Block Pipeline — Phases 5-6).
+- `docs/SEARCH.md` — arquitectura de búsqueda, reindex, limitaciones (Phase 9).
 - `docs/AI-WORKFLOW.md` — workflow de desarrollo asistido por IA / SDD.
 - `docs/AI-SKILLS.md` — registro humano de project skills.
 - `docs/ASSETS.md` — inventario y reglas de assets visuales.

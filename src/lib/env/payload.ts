@@ -14,6 +14,15 @@ import { z } from 'zod'
 const payloadEnvSchema = z.object({
   DATABASE_URI: z.string().min(1, 'DATABASE_URI es requerido'),
   PAYLOAD_SECRET: z.string().min(1, 'PAYLOAD_SECRET es requerido'),
+  // Object Storage S3-compatible para Media en producción. Opcionales aquí
+  // (igual que en src/lib/env/index.ts): si faltan, Media SHALL seguir
+  // usando almacenamiento local - ver src/payload/plugins/media-storage.ts.
+  S3_ENDPOINT: z.string().optional(),
+  S3_REGION: z.string().optional(),
+  S3_BUCKET: z.string().optional(),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  S3_PUBLIC_URL: z.string().optional(),
 })
 
 function loadPayloadEnv() {

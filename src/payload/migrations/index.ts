@@ -10,6 +10,7 @@ import * as migration_20260910_214200_page_cta_link_fields_remove_old from './20
 import * as migration_20260911_185333_page_video_block_portrait_field from './20260911_185333_page_video_block_portrait_field';
 import * as migration_20260911_185449_article_sidebar_global from './20260911_185449_article_sidebar_global';
 import * as migration_20260913_193302_search_collection from './20260913_193302_search_collection';
+import * as migration_20260914_060935_add_navigation_footer_site_settings_globals from './20260914_060935_add_navigation_footer_site_settings_globals';
 
 export const migrations = [
   {
@@ -70,6 +71,11 @@ export const migrations = [
   {
     up: migration_20260913_193302_search_collection.up,
     down: migration_20260913_193302_search_collection.down,
-    name: '20260913_193302_search_collection'
+    name: '20260913_193302_search_collection',
+  },
+  {
+    up: migration_20260914_060935_add_navigation_footer_site_settings_globals.up,
+    down: migration_20260914_060935_add_navigation_footer_site_settings_globals.down,
+    name: '20260914_060935_add_navigation_footer_site_settings_globals'
   },
 ];
