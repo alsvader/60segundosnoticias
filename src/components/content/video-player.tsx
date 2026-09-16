@@ -45,7 +45,14 @@ export function VideoPlayer({ src, title, poster, className, aspectRatio }: Vide
       <MediaProvider>
         {poster ? (
           <Poster asChild alt={poster.alt}>
-            <Image src={poster.url} fill sizes="(min-width: 1024px) 60vw, 100vw" className="object-cover" alt={poster.alt} />
+            <Image
+              src={poster.url}
+              fill
+              sizes="(min-width: 1024px) 60vw, 100vw"
+              unoptimized
+              className="object-cover"
+              alt={poster.alt}
+            />
           </Poster>
         ) : null}
       </MediaProvider>

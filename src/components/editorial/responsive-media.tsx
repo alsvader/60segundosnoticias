@@ -27,6 +27,13 @@ type ResponsiveMediaProps = {
  * natural ratio with no crop (single editorial images). Missing both
  * `aspectRatio` and dimensions falls back to the cropped 16:9 box so this
  * never renders broken.
+ *
+ * `unoptimized` on both branches: `src` can be an S3-compatible Object
+ * Storage URL configured only at runtime (`S3_PUBLIC_URL`), never known
+ * at build time — Next's optimizer would need `images.remotePatterns`
+ * frozen into the `output: standalone` build, which can't reflect a
+ * runtime-only host. The browser fetches the object directly instead
+ * (same pattern already used by `header.tsx`/`footer.tsx` for logos).
  */
 export function ResponsiveMedia({
   src,
@@ -47,6 +54,7 @@ export function ResponsiveMedia({
         height={height}
         sizes={sizes}
         priority={priority}
+        unoptimized
         className={cn('h-auto w-full', className)}
       />
     )
@@ -57,7 +65,7 @@ export function ResponsiveMedia({
       className={cn('relative w-full overflow-hidden bg-[var(--paper-200)]', className)}
       style={{ aspectRatio: aspectRatio ?? '16/9' }}
     >
-      <Image src={src} alt={alt} fill sizes={sizes} priority={priority} className="object-cover" />
+      <Image src={src} alt={alt} fill sizes={sizes} priority={priority} unoptimized className="object-cover" />
     </div>
   )
 }

@@ -42,6 +42,7 @@ export function VideoFeatureSection({ block }: VideoFeatureSectionProps) {
                   alt={thumbnail.alt}
                   fill
                   sizes="(min-width: 1024px) 60vw, 100vw"
+                  unoptimized
                   className="object-cover"
                 />
               ) : null}

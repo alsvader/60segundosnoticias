@@ -44,6 +44,7 @@ export function ArticleMetadata({ data, categorySlot, variant = 'inline', classN
             alt={data.authorAvatar.alt}
             width={40}
             height={40}
+            unoptimized
             className="size-10 shrink-0 rounded-full object-cover"
           />
         ) : (

@@ -135,12 +135,44 @@ Sin cambios respecto a `docs/SEARCH.md`: el índice vive en PostgreSQL (Collecti
 
 ## Headers de seguridad
 
-`next.config.ts` aplica, vía `src/lib/security/headers.ts`:
+Dos puntos de entrada, según si el header depende de configuración de
+runtime (openspec/changes/s3-next-image-compatibility):
 
-- A **todas** las rutas (incluido `/admin`, incluidas las de API): `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`.
-- Solo a rutas públicas (todo excepto `/admin` y `/api`): `Content-Security-Policy` derivada de los proveedores de embed reales del código (YouTube, Vimeo, Instagram, X/Twitter, TikTok, Facebook, LinkedIn) más el origen de `S3_PUBLIC_URL`, y `Strict-Transport-Security` — emitido solo si `NEXT_PUBLIC_SITE_URL` es `https://` (señal de que el tráfico llega por TLS; no se fuerza en una verificación local sin TLS).
+- **`next.config.ts` (build time, vía `src/lib/security/headers.ts`)** —
+  headers que no dependen de ninguna variable de entorno de solo-runtime:
+  - A **todas** las rutas (incluido `/admin`, incluidas las de API):
+    `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`.
+  - Solo a rutas públicas (todo excepto `/admin` y `/api`):
+    `Strict-Transport-Security` — emitido solo si `NEXT_PUBLIC_SITE_URL`
+    es `https://` (señal de que el tráfico llega por TLS; no se fuerza en
+    una verificación local sin TLS). `NEXT_PUBLIC_SITE_URL` ya es un
+    build `ARG`, así que su valor resuelto en build time es el correcto
+    para ese despliegue.
+- **`src/proxy.ts` (runtime, en cada petición a una ruta pública)** —
+  `Content-Security-Policy`, derivada de los proveedores de embed reales
+  del código (YouTube, Vimeo, Instagram, X/Twitter, TikTok, Facebook,
+  LinkedIn) más el origen de `S3_PUBLIC_URL`. Esta directiva SHALL NOT
+  vivir en `next.config.ts`: `output: standalone` congela el `images`/
+  `headers()` resuelto de `next.config.ts` en el `server.js` generado, y
+  `S3_PUBLIC_URL` es, deliberadamente, una variable exclusivamente de
+  runtime (nunca un build `ARG` — ver más abajo), así que un valor
+  derivado de ella nunca sería correcto para todos los despliegues si se
+  calculara en build time. `src/proxy.ts` usa el mismo patrón de rutas
+  públicas (`/((?!admin|api).*)`) que ya excluye Admin/API arriba.
+  **Importante**: en un proyecto con directorio `src/` (como este), Next
+  ignora silenciosamente un `proxy.ts` puesto en la raíz del repo — debe
+  vivir junto a `src/app`.
 
-`/admin`/`/api` quedan deliberadamente fuera de la CSP: no se auditó el bundle de Payload Admin lo suficiente como para garantizar que una CSP estricta no lo rompa, y los headers base (los tres de arriba) ya aplican ahí también. `script-src`/`style-src` incluyen `'unsafe-inline'` — una concesión deliberada (el App Router incrusta datos de hidratación inline, y un componente de embeds de terceros inserta un `<style>` propio) documentada en `src/lib/security/headers.ts`; una CSP estricta por nonce requeriría `middleware.ts`, decisión explícitamente fuera de esta fase.
+`/admin`/`/api` quedan deliberadamente fuera de la CSP: no se auditó el bundle de Payload Admin lo suficiente como para garantizar que una CSP estricta no lo rompa, y los headers base (los tres de arriba) ya aplican ahí también. `script-src`/`style-src` incluyen `'unsafe-inline'` — una concesión deliberada (el App Router incrusta datos de hidratación inline, y un componente de embeds de terceros inserta un `<style>` propio) documentada en `src/lib/security/headers.ts`; una CSP estricta por nonce requeriría más superficie en `src/proxy.ts`, decisión explícitamente fuera de esta fase.
+
+Los mismos componentes que renderizan Media de Payload vía `next/image`
+(`ResponsiveMedia`, `ArticleMetadata`, `AuthorCard`, `VideoFeatureSection`,
+`VideoPlayer`) usan `unoptimized`: el optimizador de imágenes de Next
+necesitaría `images.remotePatterns` — también congelado en build time —
+para servir Media desde un host S3-compatible conocido solo en runtime.
+El navegador solicita el objeto directo al Object Storage/CDN
+configurado, consistente con que el App Container nunca actúa como proxy
+de lectura de archivos.
 
 ## TLS / proxy
 

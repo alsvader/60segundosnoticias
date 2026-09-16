@@ -41,6 +41,7 @@ export function AuthorCard({ author, className }: AuthorCardProps) {
           alt={author.avatar.alt}
           width={56}
           height={56}
+          unoptimized
           className="size-14 shrink-0 rounded-full object-cover"
         />
       ) : (

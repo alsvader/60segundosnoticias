@@ -2,10 +2,19 @@
  * Producción (openspec/changes/production-hardening, capacidad
  * `production-security-headers`, AC-SEC-009): headers de seguridad HTTP
  * derivados del uso real de embeds de terceros en el sitio, no de una
- * lista genérica. Cargado desde `next.config.ts`, que corre en Node plano
- * fuera del bundler de Next - no puede importar `src/lib/env` (guardado
- * con `server-only`), así que lee `process.env` directamente, igual que
- * `src/lib/env/payload.ts` hace para `payload.config.ts`.
+ * lista genérica.
+ *
+ * `BASE_SECURITY_HEADERS`/`buildSecurityHeaders()` se consumen desde
+ * `next.config.ts` (build time, headers estáticos que no dependen de
+ * ninguna variable de runtime). `buildContentSecurityPolicy()`/
+ * `getMediaOrigin()` se exportan aparte porque, además, los consume
+ * `proxy.ts` en cada petición: `next.config.ts` congela su valor
+ * resuelto en el build de `output: standalone` (openspec/changes/
+ * s3-next-image-compatibility, design.md), lo cual es incorrecto para
+ * una directiva que depende de `S3_PUBLIC_URL`, una variable
+ * exclusivamente de runtime. Ambos puntos de entrada leen `process.env`
+ * directamente en vez de `src/lib/env` (guardado con `server-only`)
+ * porque `next.config.ts` corre en Node plano fuera del bundler de Next.
  *
  * Fuentes verificadas contra el código real, no supuestas:
  * - `src/lib/editorial/video-provider.ts` (YouTube/Vimeo, vía Vidstack)
@@ -43,7 +52,7 @@ const EMBED_FRAME_SOURCES = [
 
 const EMBED_SCRIPT_SOURCES = [INSTAGRAM_SCRIPT_SOURCE, TWITTER_SCRIPT_SOURCE, FACEBOOK_SCRIPT_SOURCE]
 
-function getMediaOrigin(): string | undefined {
+export function getMediaOrigin(): string | undefined {
   const publicUrl = process.env.S3_PUBLIC_URL
   if (!publicUrl) return undefined
   try {
@@ -73,7 +82,7 @@ function isSiteConfiguredForHttps(): boolean {
  * design.md, decisión 5). Ningún origen de script queda con wildcard, y
  * la lista de orígenes permitidos sí es estricta.
  */
-function buildContentSecurityPolicy(): string {
+export function buildContentSecurityPolicy(): string {
   const mediaOrigin = getMediaOrigin()
 
   const directives: Record<string, string[]> = {
@@ -102,16 +111,21 @@ const BASE_SECURITY_HEADERS = [
 
 /**
  * Excluye `/admin` y `/api` (Payload Admin y todas las rutas API,
- * incluidas las propias de Next) de la CSP pública: el Admin no se
- * audita aquí y una CSP pensada para el sitio público no debe arriesgar
- * romperlo (ver design.md, decisión 5). Los headers base sí aplican a
- * todo el sitio, incluido el Admin.
+ * incluidas las propias de Next) de los headers públicos: el Admin no se
+ * audita aquí y una política pensada para el sitio público no debe
+ * arriesgar romperlo (ver design.md, decisión 5). Los headers base sí
+ * aplican a todo el sitio, incluido el Admin.
+ *
+ * `Content-Security-Policy` deliberadamente NO está aquí: se establece
+ * en `proxy.ts` en cada petición, con el mismo patrón de rutas públicas
+ * de abajo, porque depende de `S3_PUBLIC_URL` (solo-runtime) - ver el
+ * comentario de arriba y openspec/changes/s3-next-image-compatibility.
  */
 export function buildSecurityHeaders(): Array<{
   headers: Array<{ key: string; value: string }>
   source: string
 }> {
-  const publicPageHeaders = [{ key: 'Content-Security-Policy', value: buildContentSecurityPolicy() }]
+  const publicPageHeaders: Array<{ key: string; value: string }> = []
 
   if (isSiteConfiguredForHttps()) {
     publicPageHeaders.push({
@@ -120,8 +134,17 @@ export function buildSecurityHeaders(): Array<{
     })
   }
 
-  return [
-    { headers: BASE_SECURITY_HEADERS, source: '/:path*' },
-    { headers: publicPageHeaders, source: '/((?!admin|api).*)' },
-  ]
+  const groups = [{ headers: BASE_SECURITY_HEADERS, source: '/:path*' }]
+
+  // Next rechaza en build time una entrada de `headers()` con un
+  // arreglo `headers` vacío ("headers field cannot be empty for
+  // route") - confirmado empíricamente. `publicPageHeaders` puede
+  // quedar vacío ahora que la CSP vive en `proxy.ts`, si además no hay
+  // HTTPS configurado (sin HSTS). Omitir la entrada por completo en ese
+  // caso, en vez de emitir un `headers()` inválido.
+  if (publicPageHeaders.length > 0) {
+    groups.push({ headers: publicPageHeaders, source: '/((?!admin|api).*)' })
+  }
+
+  return groups
 }
