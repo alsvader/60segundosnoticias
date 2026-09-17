@@ -1,0 +1,16 @@
+# Stack mínimo y desechable usado únicamente por
+# scripts/verify-docker-isolation.sh - nunca por compose.yaml/
+# compose.prod.yaml/compose.test.yml reales. Deliberadamente reutiliza el
+# nombre de servicio `marker` bajo dos nombres de proyecto de Compose
+# distintos en la prueba, para reproducir con seguridad la misma forma
+# del incidente real (mismo nombre de servicio, sin namespace de proyecto
+# separado) sin tocar ningún recurso real.
+services:
+  marker:
+    image: alpine:3.20
+    command: ['sleep', 'infinity']
+    volumes:
+      - marker_data:/data
+
+volumes:
+  marker_data:

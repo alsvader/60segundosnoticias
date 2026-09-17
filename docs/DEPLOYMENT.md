@@ -119,6 +119,23 @@ docker compose -f compose.prod.yaml --env-file .env.production --profile self-ho
 - `db`: **solo existe si se activa el profile `self-hosted`** (`postgres:17-alpine`, puerto no publicado al host, volumen nombrado). Sin ese profile, `DATABASE_URI` debe apuntar a un PostgreSQL ya alcanzable por otro medio (administrado o self-hosted fuera de este compose).
 - Ninguna variable tiene un default inseguro (a diferencia de `compose.yaml`, que sí los tiene para desarrollo) — usar un archivo de entorno de producción real vía `--env-file`, nunca el `.env` de desarrollo.
 
+### Aislamiento de proyecto de Compose (regla obligatoria)
+
+**Desarrollo (`compose.yaml`), pruebas (`compose.test.yml`), producción-como-referencia (`compose.prod.yaml`) y el smoke desechable de Fase 11 (`scripts/docker-smoke.sh`) SHALL correr bajo nombres de proyecto de Compose explícitos y distintos entre sí, siempre.** Nunca depender del nombre de proyecto por defecto derivado del directorio de trabajo.
+
+Esto no es una preferencia de estilo: un incidente real durante Fase 11 (`openspec/changes/testing-qa-performance/design.md`, sección Risks) destruyó la base de datos Postgres de desarrollo porque `compose.prod.yaml` no declaraba `name:`, heredó el mismo namespace de proyecto que `compose.yaml` (ambos derivándolo del directorio), y ambos archivos además reutilizan los mismos nombres de servicio (`app`, `db`). Un `docker compose -f compose.prod.yaml --profile self-hosted up` bajo ese namespace compartido reemplazó los contenedores de desarrollo en ejecución, y la limpieza `down -v` posterior de ese mismo comando eliminó el volumen Postgres de desarrollo real.
+
+Namespaces actuales de este repositorio:
+
+| Compose file | Nombre de proyecto | Origen |
+|---|---|---|
+| `compose.yaml` (desarrollo) | por defecto (derivado del directorio) | intencional — es el único que debe quedarse así, para no huerfanar volúmenes ya creados en otras máquinas de desarrollo |
+| `compose.test.yml` | `60segundosnoticias-test` | `name:` explícito en el archivo |
+| `compose.prod.yaml` | `60segundosnoticias-prod` | `name:` explícito en el archivo |
+| `scripts/docker-smoke.sh` | `60segundosnoticias-smoke` | `-p` explícito en el propio script, deliberadamente distinto incluso del `name:` de `compose.prod.yaml` |
+
+Un nombre de servicio (`app`, `db`) o un nombre de volumen compartido entre archivos **nunca es suficiente aislamiento por sí solo** — el límite de seguridad real es el namespace de proyecto de Compose. `scripts/verify-docker-isolation.sh` (`pnpm test:docker-isolation`) es la prueba de regresión que reproduce esta misma forma de colisión con recursos completamente desechables y prueba que una limpieza `down -v` bajo un proyecto explícito nunca toca otro proyecto.
+
 ## Base de datos
 
 Producción sigue siendo **migrations-only** — nunca push mode (ver README.md, "Los cuatro roles de la base de datos"). PostgreSQL administrado (recomendado: backups, recovery, upgrades, monitoring gestionados por el proveedor) y self-hosted vía Docker siguen siendo compatibles; la aplicación solo necesita `DATABASE_URI`.

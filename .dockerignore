@@ -13,3 +13,8 @@ tmp
 .DS_Store
 .vscode
 .idea
+# Ni el build ni el runtime lo necesitan - hallazgo real durante
+# tests/docker-smoke.sh (Fase 11): sin esta línea, el contexto de build
+# incluye varios cientos de MB de caché de grafo (graphify-out/cache/),
+# alargando cada build de Docker sin ningún beneficio.
+graphify-out

@@ -10,11 +10,25 @@
 # PostgreSQL ya migrado y alcanzable por otro medio.
 #
 # `compose.yaml` (desarrollo) no se modifica ni se relaciona con este
-# archivo: siguen siendo dos targets completamente separados.
+# archivo.
+#
+# `name:` explícito abajo: sin él, Compose deriva el nombre de proyecto
+# del directorio - el mismo que usa `compose.yaml` por defecto - y ambos
+# archivos además reutilizan los mismos nombres de servicio (`app`, `db`).
+# Confirmado en vivo durante Fase 11 (testing-qa-performance, design.md,
+# sección Risks): sin este `name:`, `docker compose -f compose.prod.yaml
+# --profile self-hosted up` bajo el mismo namespace de proyecto reemplazó
+# los contenedores de desarrollo en ejecución en vez de crear unos
+# separados, y una limpieza `down -v` posterior eliminó el volumen
+# Postgres de desarrollo. `scripts/docker-smoke.sh` además pasa su propio
+# `-p` explícito, aislado incluso de este nombre por defecto - ver ese
+# script y docs/TESTING.md.
 #
 # Variables sin default: no existe un valor seguro para un secreto de
 # producción, a diferencia de `compose.yaml`. Usar `--env-file` con un
 # archivo de entorno de producción real, nunca `.env` de desarrollo.
+
+name: 60segundosnoticias-prod
 
 services:
   migrate:
