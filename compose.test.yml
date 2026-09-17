@@ -1,0 +1,87 @@
+# Postgres desechable para pruebas de integración/E2E (Fase 11 —
+# testing-qa-performance, capacidad `test-infrastructure`).
+#
+# NUNCA es un objetivo válido para desarrollo ni producción: el puerto
+# 5433 y el nombre de base `60segundos_test` son, junto con
+# tests/setup/assert-test-database.ts, el marcador que impide que un
+# reset/drop de pruebas alcance por accidente la base de datos de
+# desarrollo (compose.yaml, puerto 5432) o de producción.
+#
+# `name:` explícito es OBLIGATORIO: sin él, Docker Compose deriva el
+# nombre de proyecto del nombre del directorio, que es el MISMO que usa
+# `compose.yaml` (desarrollo) por defecto. Sin este `name:`, el servicio
+# `db` de este archivo colisiona con el contenedor `db` de desarrollo
+# (mismo nombre de contenedor derivado) y `up`/`down` puede reemplazar o
+# destruir el `db` de desarrollo en ejecución. Nunca invocar este archivo
+# con `docker compose -f compose.test.yml ...` sin verificar que este
+# `name:` sigue presente.
+#
+# Sin volumen nombrado a propósito: el estado no debe sobrevivir entre
+# corridas de la suite de pruebas.
+#
+# `minio`/`minio-init`: object storage S3-compatible desechable, solo
+# para el nivel E2E/smoke de producción (`scripts/run-e2e-server.mjs`).
+# Necesario porque cualquier build de producción real de Next.js
+# (`output: standalone`) fuerza `NODE_ENV=production` de forma
+# irreversible en el `server.js` generado - src/lib/env/index.ts exige
+# entonces las seis variables `S3_*` reales, sin excepción para pruebas.
+# Las pruebas de integración (Local API, nunca `NODE_ENV=production`)
+# NO usan MinIO - siguen con el fallback a almacenamiento local. MinIO
+# es infraestructura de prueba, no la decisión de proveedor real de
+# producción (eso permanece en Fase 12).
+
+name: 60segundosnoticias-test
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: 60segundos_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5433:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d 60segundos_test']
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  minio:
+    # MinIO ya no publica en Docker Hub (`minio/minio`/`minio/mc` están
+    # descontinuados ahí) - confirmado empíricamente durante la
+    # implementación; el registro vigente es quay.io.
+    image: quay.io/minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: e2eminioadmin
+      MINIO_ROOT_PASSWORD: e2eminioadmin
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    tmpfs:
+      - /data
+
+  # Job de un solo uso (mismo patrón que `migrate` en compose.prod.yaml):
+  # crea el bucket de pruebas y lo hace públicamente legible (necesario
+  # para que el navegador cargue imágenes servidas por `generateFileURL`
+  # en src/payload/plugins/media-storage.ts).
+  minio-init:
+    image: quay.io/minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set e2e http://minio:9000 e2eminioadmin e2eminioadmin &&
+      (mc mb e2e/e2e-test-media || true) &&
+      mc anonymous set download e2e/e2e-test-media
+      "
+    restart: 'no'

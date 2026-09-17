@@ -17,7 +17,18 @@
     "migrate:create": "payload migrate:create",
     "migrate": "payload migrate",
     "seed:initial": "payload run src/payload/seed/initial.ts",
-    "seed:dev": "payload run src/payload/seed/dev.ts"
+    "seed:dev": "payload run src/payload/seed/dev.ts",
+    "test": "pnpm typecheck && pnpm lint && pnpm test:importmap && pnpm test:unit",
+    "test:unit": "vitest --run --project=node --project=happy-dom tests/setup tests/fixtures src",
+    "test:importmap": "bash scripts/verify-importmap.sh",
+    "test:migrations": "node --env-file=.env.test scripts/run-migration-chain.ts",
+    "test:integration": "node --env-file=.env.test scripts/run-migration-chain.ts && vitest --run --project=integration",
+    "test:e2e": "playwright test",
+    "test:e2e:server": "node scripts/run-e2e-server.mjs",
+    "test:a11y": "playwright test tests/e2e/a11y.spec.ts",
+    "test:visual": "playwright test tests/e2e/visual.spec.ts",
+    "test:smoke": "bash scripts/docker-smoke.sh",
+    "test:docker-isolation": "bash scripts/verify-docker-isolation.sh"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.87.1",
@@ -44,17 +55,27 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.1.18",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@types/node": "^26.5.0",
     "@types/pg": "8.20.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.4",
+    "happy-dom": "^20.14.5",
+    "lighthouse": "^13.4.1",
     "postcss": "^8.5.28",
     "sass": "^1.104.0",
     "tailwindcss": "4.1.18",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.1"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

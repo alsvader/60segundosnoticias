@@ -19,14 +19,14 @@ const RECENT_POSTS_LIMIT = 25
  * corromper la estructura de encabezados/listas/enlaces del documento
  * (AC-LLM: "caracteres especiales no corrompen el documento").
  */
-function escapeMarkdownInline(text: string): string {
+export function escapeMarkdownInline(text: string): string {
   return text
     .replace(/\r\n|\r|\n/g, ' ')
     .replace(/([[\]()])/g, '\\$1')
     .trim()
 }
 
-function formatLink(label: string, url: string, note?: string): string {
+export function formatLink(label: string, url: string, note?: string): string {
   const safeLabel = escapeMarkdownInline(label)
   const safeNote = note ? escapeMarkdownInline(note) : undefined
   return safeNote ? `- [${safeLabel}](${url}): ${safeNote}` : `- [${safeLabel}](${url})`

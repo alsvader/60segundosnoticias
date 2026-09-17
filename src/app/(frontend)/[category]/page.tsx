@@ -159,11 +159,20 @@ export default async function RootSlugPage({ params, searchParams }: RootSlugPag
       <Breadcrumbs items={[{ label: 'Inicio', href: '/' }, { label: category.name }]} />
       <CategoryHeader category={category} />
       {posts.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
-            <ArticleCard key={post.href} article={post} />
-          ))}
-        </div>
+        <>
+          {/* `ArticleCard` siempre usa <h3> (asume un <h2> de sección ya
+              presente, como el que aportan las Home sections vía
+              `SectionHeader`) - esta grilla no tiene una sección visible
+              propia, así que necesita su propio <h2>, oculto visualmente,
+              para no saltar de <h1> a <h3> (hallazgo real de
+              tests/e2e/a11y.spec.ts, Fase 11). */}
+          <h2 className="sr-only">Noticias de {category.name}</h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {posts.map((post) => (
+              <ArticleCard key={post.href} article={post} />
+            ))}
+          </div>
+        </>
       ) : (
         <p className="type-body text-center text-[var(--ink-700)]">Todavía no hay contenido publicado en esta categoría.</p>
       )}

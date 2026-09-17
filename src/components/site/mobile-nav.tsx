@@ -35,7 +35,7 @@ export function MobileNav({ navItems, cta }: MobileNavProps) {
           <SheetTitle>Navegación</SheetTitle>
         </SheetHeader>
         <nav aria-label="Navegación móvil" className="flex flex-col gap-1 px-4 pb-4">
-          <SearchForm idPrefix="mobile-nav" className="mb-3 flex gap-2" />
+          <SearchForm idPrefix="mobile-nav" landmarkLabel="Búsqueda en el menú de navegación" className="mb-3 flex gap-2" />
           {navItems.map((item) => (
             <div key={item.href}>
               <Link

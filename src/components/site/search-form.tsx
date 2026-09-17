@@ -1,6 +1,14 @@
 type SearchFormProps = {
   /** Distinguishes this form's `id` when more than one instance renders on the same page (Header + `/buscar` itself). */
   idPrefix: string
+  /**
+   * Accessible name for this form's `role="search"` landmark - required
+   * whenever more than one `role="search"` region can be visible at once
+   * (MobileNav's own form + HeaderSearch, both present when the mobile
+   * menu is open) so assistive tech can tell them apart (hallazgo real de
+   * tests/e2e/a11y.spec.ts, Fase 11: axe `landmark-unique`).
+   */
+  landmarkLabel: string
   defaultValue?: string
   autoFocus?: boolean
   className?: string
@@ -12,11 +20,11 @@ type SearchFormProps = {
  * MobileNav and the `/buscar` page itself all render this same component
  * instead of duplicating the markup.
  */
-export function SearchForm({ idPrefix, defaultValue = '', autoFocus, className }: SearchFormProps) {
+export function SearchForm({ idPrefix, landmarkLabel, defaultValue = '', autoFocus, className }: SearchFormProps) {
   const inputId = `${idPrefix}-search-q`
 
   return (
-    <form action="/buscar" method="get" role="search" className={className ?? 'flex gap-2'}>
+    <form action="/buscar" method="get" role="search" aria-label={landmarkLabel} className={className ?? 'flex gap-2'}>
       <label htmlFor={inputId} className="sr-only">
         Buscar en el sitio
       </label>

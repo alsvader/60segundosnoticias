@@ -50,7 +50,7 @@ export default async function BuscarPage({ searchParams }: BuscarPageProps) {
     page = parsed
   }
 
-  const searchForm = <SearchForm idPrefix="buscar-page" defaultValue={query} />
+  const searchForm = <SearchForm idPrefix="buscar-page" landmarkLabel="Búsqueda en la página de resultados" defaultValue={query} />
 
   if (!query) {
     return (
@@ -77,11 +77,17 @@ export default async function BuscarPage({ searchParams }: BuscarPageProps) {
         Resultados para &quot;{query}&quot; — {totalDocs} {totalDocs === 1 ? 'resultado' : 'resultados'}
       </p>
       {results.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {results.map((result) => (
-            <ArticleCard key={result.href} article={result} />
-          ))}
-        </div>
+        <>
+          {/* Mismo hallazgo/patrón que la grilla de Category (Fase 11,
+              tests/e2e/a11y.spec.ts): `ArticleCard` usa <h3> asumiendo un
+              <h2> de sección ya presente. */}
+          <h2 className="sr-only">Resultados de búsqueda</h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {results.map((result) => (
+              <ArticleCard key={result.href} article={result} />
+            ))}
+          </div>
+        </>
       ) : (
         <div className="flex flex-col items-start gap-3">
           <p className="type-body text-[var(--ink-700)]">

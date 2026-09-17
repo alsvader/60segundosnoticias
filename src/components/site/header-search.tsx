@@ -65,6 +65,7 @@ export function HeaderSearch() {
       action="/buscar"
       method="get"
       role="search"
+      aria-label="Búsqueda en el encabezado"
       className="flex items-center justify-end"
       onSubmit={handleSubmit}
       onKeyDown={handleKeyDown}
