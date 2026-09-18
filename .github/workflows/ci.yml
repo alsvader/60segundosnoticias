@@ -142,17 +142,25 @@ jobs:
             -e MINIO_ROOT_PASSWORD=e2eminioadmin \
             quay.io/minio/minio:latest server /data --console-address ":9001"
 
+      # `dl.min.io` (descarga directa del binario `mc`) fue archivado por
+      # MinIO y responde 410 Gone para cualquier release, community o
+      # hotfix - confirmado en vivo (mismo patrón que la descontinuación de
+      # las imágenes en Docker Hub, ver compose.test.yml). Se usa el mismo
+      # container `quay.io/minio/mc` que compose.test.yml (`minio-init`) en
+      # vez de un binario descargado - `--network host` (runners de GitHub
+      # Actions son Linux) le da acceso directo al MinIO recién levantado en
+      # localhost:9000.
       - name: Wait for MinIO and create the disposable test bucket
         run: |
           for i in $(seq 1 30); do
             if curl -sf http://localhost:9000/minio/health/live >/dev/null; then break; fi
             sleep 2
           done
-          curl -sSL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc
-          chmod +x /usr/local/bin/mc
-          mc alias set e2e http://localhost:9000 e2eminioadmin e2eminioadmin
-          mc mb e2e/e2e-test-media || true
-          mc anonymous set download e2e/e2e-test-media
+          docker run --rm --network host --entrypoint /bin/sh quay.io/minio/mc:latest -c "
+            mc alias set e2e http://localhost:9000 e2eminioadmin e2eminioadmin &&
+            (mc mb e2e/e2e-test-media || true) &&
+            mc anonymous set download e2e/e2e-test-media
+          "
 
       # scripts/run-e2e-server.mjs fija sus propias variables S3_*/puerto
       # (apuntando a este mismo MinIO desechable) - no se necesitan aquí.
