@@ -131,11 +131,21 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       # Tarea 9.6: SHALL cachearse el store de pnpm (`cache: pnpm` arriba)
-      # y los binarios de Playwright - nunca datos de Postgres/MinIO.
+      # y los binarios de Playwright - nunca datos de Postgres/MinIO. La
+      # clave SHALL incluir el conjunto exacto de navegadores instalados
+      # ("chromium" aquí) - confirmado en vivo en un release real: este job
+      # y `e2e-full`/`release.yml` (firefox+webkit) compartían la misma
+      # clave sin el sufijo de navegador, así que la primera vez que
+      # `ci-gates` corría dentro de un release, este job guardaba una
+      # cache "solo chromium" bajo esa clave, y `e2e-full` la restauraba
+      # bajo la MISMA clave - GitHub Actions documenta explícitamente que
+      # compartir una clave entre jobs con contenido distinto no es seguro.
+      # Nunca reutilizar esta clave para un conjunto de navegadores
+      # distinto.
       - uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          key: playwright-${{ runner.os }}-chromium-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm exec playwright install --with-deps chromium
 
       # MinIO no se declara como `services:` porque la imagen oficial

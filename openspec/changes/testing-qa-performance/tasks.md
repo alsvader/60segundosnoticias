@@ -352,13 +352,25 @@ en un change separado (`production-deployment-dokploy`).
   que corra normal en el runner Linux de GitHub Actions).
   **Pendiente**: disparar `workflow_dispatch` real para verificar de
   punta a punta - no se puede simular sin una corrida real.
+  **Corrida real #1 (push a `main`)**: `e2e-full` falló las 16 pruebas
+  Firefox/WebKit con "Executable doesn't exist" - diagnosticado como una
+  colisión de clave de `actions/cache@v4` con `e2e-pr` (ver 9.6 y
+  design.md, Risks). Corregido escopando la clave por conjunto de
+  navegadores; **pendiente**: una corrida real posterior que confirme que
+  Firefox/WebKit pasan.
 - [x] 9.6 Cachés: `actions/setup-node@v4` con `cache: pnpm` (store de
   pnpm) + `actions/cache@v4` sobre `~/.cache/ms-playwright` (keyed por
-  hash de `pnpm-lock.yaml`) en cada job que instala navegadores de
-  Playwright (`e2e-pr` de `ci.yml`, `e2e-full`/`visual` de `release.yml`).
-  Nunca se cachea Postgres/MinIO/estado de base de datos de pruebas, ni
-  `.next` en `docker-build` (el build en frío es justamente lo que esa
-  tarea prueba - documentado en el comentario del propio job).
+  hash de `pnpm-lock.yaml` **y por el conjunto exacto de navegadores
+  instalados** - `chromium` en `e2e-pr`/`visual`, `firefox-webkit` en
+  `e2e-full`) en cada job que instala navegadores de Playwright.
+  El sufijo por navegador se agregó tras una corrida real de `release.yml`
+  (ver 9.5): sin él, `e2e-full` restauraba la cache "solo chromium" que
+  `e2e-pr` guarda bajo la misma clave dentro de `ci-gates`, y
+  Firefox/WebKit fallaban con "Executable doesn't exist" a pesar de
+  correr `playwright install --with-deps firefox webkit`. Nunca se
+  cachea Postgres/MinIO/estado de base de datos de pruebas, ni `.next` en
+  `docker-build` (el build en frío es justamente lo que esa tarea prueba -
+  documentado en el comentario del propio job).
 - [x] 9.7 Revisado el YAML de ambos workflows: ningún secreto real de
   producción en ningún job - solo Postgres/MinIO desechables y valores
   fijos no-productivos. `release.yml`'s `publish` usa

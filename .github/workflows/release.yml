@@ -67,11 +67,23 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       # Tarea 9.6: SHALL cachearse el store de pnpm (`cache: pnpm` arriba)
-      # y los binarios de Playwright - nunca datos de Postgres/MinIO.
+      # y los binarios de Playwright - nunca datos de Postgres/MinIO. La
+      # clave SHALL incluir el conjunto exacto de navegadores instalados
+      # ("firefox-webkit" aquí, distinto de "chromium" en ci.yml/`visual`)
+      # - confirmado en vivo: sin este sufijo, este job compartía la
+      # misma clave que `e2e-pr` (ci.yml, solo chromium), que siempre
+      # termina primero dentro de `ci-gates` y guarda su cache "solo
+      # chromium" bajo esa clave; este job la restauraba tal cual y los
+      # tests de Firefox/WebKit fallaban con "Executable doesn't exist" a
+      # pesar de correr `playwright install --with-deps firefox webkit`
+      # justo después. GitHub Actions documenta explícitamente que
+      # compartir una clave entre jobs con contenido distinto no es
+      # seguro. Nunca reutilizar esta clave para un conjunto de
+      # navegadores distinto.
       - uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          key: playwright-${{ runner.os }}-firefox-webkit-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm exec playwright install --with-deps firefox webkit
 
       - name: Start disposable MinIO
@@ -143,11 +155,17 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       # Tarea 9.6: SHALL cachearse el store de pnpm (`cache: pnpm` arriba)
-      # y los binarios de Playwright - nunca datos de Postgres/MinIO.
+      # y los binarios de Playwright - nunca datos de Postgres/MinIO. La
+      # clave SHALL incluir el conjunto exacto de navegadores instalados
+      # ("chromium", igual que `e2e-pr` en ci.yml - no hay colisión porque
+      # ambos jobs instalan exactamente el mismo conjunto, y `visual` solo
+      # corre después de que `ci-gates` termina, nunca en paralelo con
+      # `e2e-pr`). Ver el comentario equivalente en `e2e-full` arriba
+      # sobre el incidente real que motivó este sufijo.
       - uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          key: playwright-${{ runner.os }}-chromium-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm exec playwright install --with-deps chromium
 
       - name: Start disposable MinIO

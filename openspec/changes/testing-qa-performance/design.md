@@ -314,6 +314,29 @@ verifica la navegación real a `/buscar`.
   `.dockerignore` ya excluye `.next` del contexto de build - mismo patrón
   ya documentado para el hallazgo de `openspec/changes/
   runtime-public-rendering`).
+- **[Incidente real, resuelto] Primera corrida real de `release.yml`: el
+  job `e2e-full` falló las 16 pruebas `@smoke-cross-browser` en
+  Firefox/WebKit con "Executable doesn't exist at
+  .../firefox-1543/firefox/firefox" (y equivalente para WebKit) a pesar
+  de correr `pnpm exec playwright install --with-deps firefox webkit`
+  justo antes.** Causa raíz: la clave de `actions/cache@v4` para el
+  directorio `~/.cache/ms-playwright` (`playwright-${{ runner.os }}-${{
+  hashFiles('pnpm-lock.yaml') }}`) era idéntica en tres jobs que instalan
+  conjuntos de navegadores distintos - `e2e-pr` (ci.yml, solo chromium),
+  `e2e-full` (firefox+webkit) y `visual` (solo chromium) - sin ningún
+  sufijo por navegador. Dentro de un release real, `ci-gates` (que
+  incluye `e2e-pr`) siempre termina y guarda su cache "solo chromium"
+  bajo esa clave antes de que `e2e-full`/`visual` empiecen; `e2e-full`
+  restauraba esa misma cache incompleta bajo la clave compartida. GitHub
+  Actions documenta explícitamente que compartir una clave de cache entre
+  jobs con contenido distinto no es seguro. → Corregido: cada clave
+  ahora incluye el conjunto exacto de navegadores instalados
+  (`playwright-${{ runner.os }}-chromium-...` en ci.yml/`visual`,
+  `playwright-${{ runner.os }}-firefox-webkit-...` en `e2e-full`) - ver
+  comentarios en `.github/workflows/ci.yml` y `.github/workflows/
+  release.yml`. `visual` conserva intencionalmente la misma clave
+  "chromium" que `e2e-pr` (ambos instalan exactamente el mismo conjunto y
+  nunca corren en paralelo con él, ya que dependen de `ci-gates`).
 - **[Riesgo] `docker compose -f compose.test.yml` sin un `name:` de
   proyecto explícito deriva su nombre de proyecto del directorio —el
   mismo que usa `compose.yaml` de desarrollo por defecto—, lo que hace
