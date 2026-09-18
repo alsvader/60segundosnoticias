@@ -180,6 +180,61 @@ Se elige *dos* workflows (no uno con `if` condicionales por job) para que el
 árbol de checks de un PR sea corto y legible; el desglose exacto de nombres
 de job puede ajustarse en tasks.md sin afectar este enfoque.
 
+`release.yml` se extiende más allá de lo descrito arriba - ver Decisión 13:
+tras la calificación FULL, también construye y publica las imágenes
+`runner`/`migrator` en GHCR y define (sin ejecutar contra infraestructura
+real) el contrato de entrega a Dokploy.
+
+### 13. Dirección de despliegue de producción: VPS + Dokploy + GHCR, con Fase 11 deteniéndose en el límite de entrega
+
+Decisión del usuario, reemplaza cualquier suposición previa de hosting
+administrado/serverless (Vercel, Supabase/Neon) para producción:
+
+1. **Objetivo de hosting**: Hostinger VPS ejecutando Dokploy sobre Docker
+   Compose (Next.js/Payload + Postgres 17 + migrator de un solo uso).
+   Object Storage S3-compatible para Media sigue siendo externo (sin
+   cambios respecto a Fase 10). Cloudflare está planeado frente al VPS
+   (aprovisionamiento real fuera de Fase 11).
+2. **GitHub Actions sigue siendo el gate de release autoritativo** - la
+   calificación FULL (E2E cross-browser, visual, smoke de Docker,
+   Lighthouse) SHALL pasar antes de que exista cualquier artefacto
+   publicable.
+3. **Dokploy Auto Deploy sobre `push` a `main` se descarta a propósito** -
+   nunca es la ruta de producción. El flujo obligatorio es: PR → CI →
+   merge → calificación FULL → build de imágenes inmutables → push a GHCR
+   → entrega de despliegue → Dokploy.
+4. **Las imágenes de producción se construyen en GitHub Actions y se
+   publican en GHCR**, taggeadas por el SHA de Git inmutable - el VPS
+   nunca construye imágenes de producción.
+5. **El VPS solo hace pull/despliega imágenes ya construidas** - nunca
+   `build:` en el compose de Dokploy.
+6. **Postgres de producción vive privado dentro de la red Docker/Dokploy
+   del VPS** - los runners hospedados por GitHub SHALL NOT conectarse
+   directamente a él, y SHALL NOT exponerse a Internet para CI/CD.
+7. **Las migraciones de producción corren a través del `migrator` de un
+   solo uso, dentro del entorno VPS/Dokploy** - nunca desde un runner de
+   GitHub Actions contra una base remota expuesta.
+8. **Los secretos de runtime permanecen en Dokploy**, no en jobs
+   ordinarios de CI - ver tarea 9.7 (GitHub Environment `production`
+   reservado a la responsabilidad de despliegue/publicación posterior a
+   la calificación).
+9. **`compose.prod.yaml` conserva su rol actual** (artefacto local de
+   producción-smoke / referencia self-hosted, ver su propio encabezado) -
+   no se le agrega ninguna responsabilidad de despliegue real a Dokploy.
+10. **Un contrato de Compose dedicado para Dokploy** (p. ej.
+    `compose.dokploy.yaml`) se define en vez de acoplar el despliegue real
+    al mismo artefacto de producción-smoke - ver tarea 9.9.
+11. **Límite de alcance de Fase 11**: posee CI, calificación FULL,
+    validación de artefactos Docker, build/publicación en GHCR, metadata/
+    provenance del release, y la definición del contrato de entrega a
+    Dokploy. Fase 11 NO posee: aprovisionar el VPS real, instalar/
+    configurar Dokploy real, DNS de producción, configuración de
+    Cloudflare, secretos reales de producción, aprovisionamiento real de
+    Postgres de producción, calendarios de backup reales, pruebas de
+    recuperación ante desastres, ni la invocación real del API de Dokploy
+    salvo que exista una instancia no-productiva segura disponible. Todo
+    eso queda en el change futuro `production-deployment-dokploy`.
+
 ### 11. Secretos de prueba
 Se commitea un `.env.test` con valores obviamente falsos (mismo patrón que
 `DevOnlyPass123!` de `seed:dev`) para `PAYLOAD_SECRET`, `PREVIEW_SECRET` y
@@ -318,6 +373,45 @@ verifica la navegación real a `/buscar`.
   `HEALTHCHECK` en cada PR.** → Aceptado explícitamente: esas propiedades
   solo cambian cuando se toca el Dockerfile/compose, así que verificarlas
   únicamente en el nivel FULL es proporcional al riesgo.
+- **[Hallazgo, tarea 8.4] El presupuesto SEO ≥95 ratificado es
+  estructuralmente irrealizable para `/buscar?q=fixture` (score real:
+  0.63).** Causa raíz: `generateMetadata` de `/buscar`
+  (`src/app/(frontend)/buscar/page.tsx`) fija `robots: { index: false,
+  follow: false }` a propósito - §36 del Master Spec, "`/buscar` nunca es
+  un destino indexable, cada resultado ya está representado por su
+  Article/Page canónico". El audit `is-crawlable` de Lighthouse penaliza
+  cualquier página `noindex` sin excepción; no existe una optimización
+  genuina que suba ese score sin remover el `noindex` (lo que violaría el
+  Master Spec). Reportado al usuario con evidencia (score real, causa)
+  antes de tocar la configuración, según la política de fallos de
+  presupuesto ya ratificada arriba. Decisión del usuario: NO remover el
+  `noindex`, NO relajar el resto de los presupuestos de `/buscar`, ni
+  tratarla como puramente diagnóstica (a diferencia del Article con
+  embeds - ahí son varias métricas no deterministas por depender de una
+  red externa real; aquí es exactamente una categoría, por una razón de
+  producto permanente). Fix: `lighthouserc.json` usa `assert.assertMatrix`
+  con `matchingUrlPattern` en vez de `assertions` planas - una entrada para
+  las 4 URLs de contenido (SEO en `error`, sin cambios), una para
+  `/buscar` (SEO en `warn`, el resto en `error`, sin cambios), y una
+  tercera para el Article con embeds (las 7 aserciones en `warn` - tarea
+  8.5). `warn` sigue reportando el score en la salida de `lhci autorun`;
+  solo `error` puede hacer fallar el comando (verificado contra el código
+  fuente instalado de `@lhci/utils`, `src/assertions.js`).
+- **[Hallazgo no relacionado con el producto, tarea 8.3] El Postgres
+  desechable de `compose.test.yml` es `tmpfs` (no persiste si el
+  contenedor se recrea), pero SÍ persiste mientras el contenedor sigue
+  corriendo - y `scripts/seed-e2e.ts`/`tests/fixtures/builders.ts` son
+  deliberadamente idempotentes ("buscar antes de crear", nunca
+  sobreescriben un documento ya existente).** Esto significa que ampliar
+  la FORMA de un fixture ya sembrado en una corrida anterior (p. ej.
+  agregar `layout` a la Page de fixture) no tiene efecto hasta que el
+  contenedor de `compose.test.yml` se recree desde cero
+  (`docker compose -f compose.test.yml down && up -d`) - confirmado
+  reproduciendo el falso negativo (Page sin bloques `RichText`
+  visibles) y resolviéndolo así. No es un bug de la aplicación ni de los
+  fixtures - es una propiedad del entorno de pruebas local que vale la
+  pena conocer antes de depurar un fixture que en realidad ya es
+  correcto. Documentado también en `docs/TESTING.md` (tarea 10.1).
 
 ## Migration Plan
 

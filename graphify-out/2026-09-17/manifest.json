@@ -1230,9 +1230,9 @@
     "semantic_hash": ""
   },
   "docs/FRONTEND-ARCHITECTURE.md": {
-    "mtime": 1789683222.5448904,
-    "seen": 1789683292.349119,
-    "ast_hash": "80cf26359672b5e16d4e71ccac92606a",
+    "mtime": 1789328822.5921535,
+    "seen": 1789329860.530446,
+    "ast_hash": "c828144522839e938ce02ed672f12b14",
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-09-10-public-frontend-core/.openspec.yaml": {
@@ -2028,9 +2028,9 @@
     "semantic_hash": ""
   },
   "docs/SEO-AND-CACHING.md": {
-    "mtime": 1789683197.533647,
-    "seen": 1789683292.349121,
-    "ast_hash": "d82ea2a359dad323c210dd6ab17a161c",
+    "mtime": 1789323029.1612585,
+    "seen": 1789328801.521374,
+    "ast_hash": "dccb848cf5115e85170a31425fdc8859",
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-09-11-category-article-pages/.openspec.yaml": {
@@ -2238,9 +2238,9 @@
     "semantic_hash": ""
   },
   "openspec/specs/cache-revalidation/spec.md": {
-    "mtime": 1789683255.0759318,
-    "seen": 1789683292.349271,
-    "ast_hash": "534df374460dbace3d36b761affdab17",
+    "mtime": 1789167885.0134802,
+    "seen": 1789167941.336705,
+    "ast_hash": "ecbe4d7ca42d96923dd6405c61e455cb",
     "semantic_hash": ""
   },
   "openspec/specs/llm-discoverability/spec.md": {
@@ -2670,9 +2670,9 @@
     "semantic_hash": ""
   },
   "openspec/specs/production-docker-image/spec.md": {
-    "mtime": 1789683263.0669808,
-    "seen": 1789683292.349298,
-    "ast_hash": "fdccef6a32aea5b9e01a7b606c69e998",
+    "mtime": 1789368414.5977244,
+    "seen": 1789521202.990728,
+    "ast_hash": "f8374dca8861863c34e7dd864affc2f0",
     "semantic_hash": ""
   },
   "openspec/specs/production-security-headers/spec.md": {
@@ -2963,6 +2963,42 @@
     "ast_hash": "d864e8a034ca638f846d36d1e2af2308",
     "semantic_hash": ""
   },
+  "openspec/changes/runtime-public-rendering/.openspec.yaml": {
+    "mtime": 1789682088.808834,
+    "seen": 1789683139.064088,
+    "ast_hash": "e623e909adeced8e3fe2530dd50fa79b",
+    "semantic_hash": ""
+  },
+  "openspec/changes/runtime-public-rendering/design.md": {
+    "mtime": 1789683131.241448,
+    "seen": 1789683139.064088,
+    "ast_hash": "2278b91a2727b2685c7e820bffae73ab",
+    "semantic_hash": ""
+  },
+  "openspec/changes/runtime-public-rendering/proposal.md": {
+    "mtime": 1789683122.1268408,
+    "seen": 1789683139.064089,
+    "ast_hash": "f2b7b6053cd8eb4179f1231feab533b4",
+    "semantic_hash": ""
+  },
+  "openspec/changes/runtime-public-rendering/specs/cache-revalidation/spec.md": {
+    "mtime": 1789682261.973448,
+    "seen": 1789683139.06409,
+    "ast_hash": "6634581afcad0ea45c5f3cf08100908e",
+    "semantic_hash": ""
+  },
+  "openspec/changes/runtime-public-rendering/specs/production-docker-image/spec.md": {
+    "mtime": 1789682172.6522985,
+    "seen": 1789683139.06409,
+    "ast_hash": "5820e9e413cbe45119d532ad4090260e",
+    "semantic_hash": ""
+  },
+  "openspec/changes/runtime-public-rendering/tasks.md": {
+    "mtime": 1789683114.356751,
+    "seen": 1789683139.064091,
+    "ast_hash": "80d8d2303d73f633cfc314b2ff474f29",
+    "semantic_hash": ""
+  },
   "tests/fixtures/docker-isolation/marker-compose.yml": {
     "mtime": 1789677022.1741724,
     "seen": 1789683139.064151,
@@ -2997,42 +3033,6 @@
     "mtime": 1789675153.322466,
     "seen": 1789683139.0641558,
     "ast_hash": "2e4c0c98404ade6f68bfcd83e3edf6a3",
-    "semantic_hash": ""
-  },
-  "openspec/changes/archive/2026-09-17-runtime-public-rendering/.openspec.yaml": {
-    "mtime": 1789682088.808834,
-    "seen": 1789683292.349246,
-    "ast_hash": "e623e909adeced8e3fe2530dd50fa79b",
-    "semantic_hash": ""
-  },
-  "openspec/changes/archive/2026-09-17-runtime-public-rendering/design.md": {
-    "mtime": 1789683131.241448,
-    "seen": 1789683292.349247,
-    "ast_hash": "2278b91a2727b2685c7e820bffae73ab",
-    "semantic_hash": ""
-  },
-  "openspec/changes/archive/2026-09-17-runtime-public-rendering/proposal.md": {
-    "mtime": 1789683122.1268408,
-    "seen": 1789683292.349248,
-    "ast_hash": "f2b7b6053cd8eb4179f1231feab533b4",
-    "semantic_hash": ""
-  },
-  "openspec/changes/archive/2026-09-17-runtime-public-rendering/specs/cache-revalidation/spec.md": {
-    "mtime": 1789682261.973448,
-    "seen": 1789683292.3492491,
-    "ast_hash": "6634581afcad0ea45c5f3cf08100908e",
-    "semantic_hash": ""
-  },
-  "openspec/changes/archive/2026-09-17-runtime-public-rendering/specs/production-docker-image/spec.md": {
-    "mtime": 1789682172.6522985,
-    "seen": 1789683292.34925,
-    "ast_hash": "5820e9e413cbe45119d532ad4090260e",
-    "semantic_hash": ""
-  },
-  "openspec/changes/archive/2026-09-17-runtime-public-rendering/tasks.md": {
-    "mtime": 1789683114.356751,
-    "seen": 1789683292.349251,
-    "ast_hash": "80d8d2303d73f633cfc314b2ff474f29",
     "semantic_hash": ""
   }
 }

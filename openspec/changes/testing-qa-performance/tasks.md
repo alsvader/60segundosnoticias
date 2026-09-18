@@ -218,60 +218,206 @@
 
 ## 8. Smoke de Docker de producción y Lighthouse
 
-- [ ] 8.1 `scripts/docker-smoke.sh` (o equivalente TS): levanta Postgres
+- [x] 8.1 `scripts/docker-smoke.sh` (o equivalente TS): levanta Postgres
   desechable, corre el servicio `migrate` de `compose.prod.yaml` hasta éxito,
   levanta `app` (runner), y verifica `/api/health`, `/`, una Category
   conocida, un Article conocido, `/buscar`, y que la página de login de Admin
-  responde. Verificar ejecutándolo localmente end-to-end.
-- [ ] 8.2 Añadir al mismo script una aserción de que el proceso del
+  responde. Verificado ejecutándolo localmente end-to-end - **OK** en todas
+  las rutas.
+
+  Bloqueado inicialmente por un bug de producción real, resuelto por separado
+  en `openspec/changes/runtime-public-rendering`: `next build` intentaba
+  generar `/`, `/buscar` y `/sitemap.xml` de forma estática por defecto, y
+  esa generación ejecutaba consultas a Payload que fallan sin una base de
+  datos alcanzable en build time - exactamente la situación de este script
+  (construye la imagen antes de que exista el Postgres desechable). Fix:
+  `export const dynamic = 'force-dynamic'` en `src/app/(frontend)/layout.tsx`
+  y `src/app/sitemap.ts`. Ver ese change para el análisis completo y la
+  verificación de que el Data Cache (`unstable_cache`) sobrevive intacto.
+- [x] 8.2 Añadir al mismo script una aserción de que el proceso del
   contenedor `runner` corre como usuario no-root (`docker exec ... whoami` o
-  inspección de `docker inspect`). Verificar en la misma corrida de 8.1.
-- [ ] 8.3 Poblar contenido determinista representativo para Lighthouse (Home
+  inspección de `docker inspect`). Verificado en la misma corrida de 8.1 -
+  usuario del proceso: `node`.
+- [x] 8.3 Poblar contenido determinista representativo para Lighthouse (Home
   con bloques poblados, Category con tarjetas, Article con hero/body/media,
   un Article adicional con un embed soportado, Page con bloques típicos,
   Search con resultados) reutilizando los fixtures de la sección 2.
-  Verificar listando el contenido creado vía Local API.
-- [ ] 8.4 Ejecutar `pnpm lhci autorun` contra el build de producción sobre las
-  5 URLs no-embed y confirmar que los presupuestos ratificados
-  (Performance ≥85, Accessibility ≥95, Best Practices ≥95, SEO ≥95, LCP
-  ≤2.5s, CLS ≤0.10, TBT ≤200ms) se cumplen o, si no, documentar la causa antes
-  de continuar (política de fallos de presupuesto). Verificar revisando el
-  reporte HTML/JSON generado.
-- [ ] 8.5 Ejecutar Lighthouse por separado sobre el Article con embed y
+  Extendido `tests/fixtures/builders.ts`: `createEmbedPost` (Article con
+  `EmbedBlock` de TikTok), `createPage` ahora agrega `layout` (Hero +
+  RichText), `configureHomeBlocks` (EditorialIntro/HeroNews/LatestPosts/
+  PostsByCategory, mismo patrón idempotente que `seed/dev.ts`), y
+  `configureShellGlobals` agrega `seo.defaultMetaDescription`. Verificado
+  listando el contenido creado vía Local API y renderizado real contra una
+  base de datos de pruebas recién creada (una corrida anterior contra el
+  Postgres desechable ya usado, con datos viejos de sesiones previas,
+  produjo un falso negativo en el bloque RichText de Page - documentado en
+  design.md).
+- [x] 8.4 Ejecutar `pnpm lhci autorun` contra el build de producción sobre las
+  5 URLs no-embed. Los presupuestos ratificados se cumplen en las 4 rutas de
+  contenido (Home/Category/Article/Page: Performance 0.99-1.0, Accessibility
+  0.96-1.0, Best Practices 0.96, SEO 1.0, LCP 583-1016ms, CLS 0, TBT 0ms -
+  muy por debajo de los límites). `/buscar?q=fixture` reveló un presupuesto
+  aprobado estructuralmente irreal para su categoría SEO (score 0.63,
+  `is-crawlable` falla porque la página SHALL ser `noindex` por diseño -
+  §36 del Master Spec, `generateMetadata` de `/buscar`) - reportado al
+  usuario con evidencia antes de tocar nada (política de fallos de
+  presupuesto ya ratificada). Decisión del usuario: mantener `/buscar` en
+  el gate estricto para Performance/Accessibility/Best Practices/LCP/CLS/
+  TBT, y bajar únicamente su aserción de `categories:seo` a nivel `warn`
+  (se sigue reportando, nunca bloquea) vía `assertMatrix` de
+  `lighthouserc.json` con `matchingUrlPattern` - las otras 4 URLs
+  mantienen SEO en `error`/`minScore: 0.95` sin cambios. Verificado:
+  `pnpm exec lhci autorun` termina con éxito, `/buscar` sigue fallando si
+  cualquier otro presupuesto (no-SEO) regresara. Ver design.md.
+- [x] 8.5 Ejecutar Lighthouse por separado sobre el Article con embed y
   confirmar que su resultado se reporta como diagnóstico, no como gate.
-  Verificar revisando la configuración de `lighthouserc.json` (URL en lista
-  separada sin `assertions` bloqueantes).
+  `/fixture-noticias/fixture-post-embed` agregado a `collect.url` con su
+  propia entrada de `assertMatrix`, las 7 aserciones en nivel `warn` (nunca
+  `error`) - a diferencia de `/buscar` (solo su SEO es diagnóstica, el
+  resto sigue siendo gate real). Verificado: la corrida real mostró
+  `categories:best-practices` en 0.74 (tráfico real de TikTok, sin bloquear
+  - design.md, Decisión 9) como advertencia, y `pnpm exec lhci autorun`
+  terminó exitosamente pese a eso.
 
-## 9. CI en GitHub Actions
+## 9. CI en GitHub Actions y calificación de release
+
+Alcance revisado (ver design.md, Decisión 13): la dirección de producción
+elegida es Hostinger VPS + Dokploy + Docker Compose, con GitHub Actions
+como orquestador de release y GHCR como registro de imágenes - nunca
+Vercel/Supabase/Neon, y nunca Dokploy Auto Deploy directo sobre `main`.
+Fase 11 llega hasta el punto exacto de entrega a Dokploy (contrato de
+despliegue, imágenes publicadas, provenance) y se detiene ahí a propósito;
+aprovisionar el VPS real, Dokploy real, DNS/Cloudflare, secretos de
+producción reales y Postgres de producción real quedan fuera de Fase 11,
+en un change separado (`production-deployment-dokploy`).
 
 - [ ] 9.1 Crear `.github/workflows/ci.yml` con el job `quality`
   (install/typecheck/lint/`test:unit`) disparado en `pull_request` y `push` a
-  `main`. Verificar abriendo un PR de prueba y confirmando que el check
-  aparece y pasa.
-- [ ] 9.2 Añadir el job `integration` a `ci.yml` (servicio Postgres
-  17-alpine, `test:migrations`, `test:integration`), dependiente de
-  `quality`. Verificar en el mismo PR de prueba.
-- [ ] 9.3 Añadir el job `e2e-pr` a `ci.yml` (build de producción, Chromium,
-  `test:e2e`, `test:a11y`), dependiente de `integration`. Verificar en el
-  mismo PR de prueba.
+  `main`. Implementado y verificado localmente (`pnpm typecheck`/`pnpm
+  lint`/`pnpm test:unit` pasan); **pendiente**: abrir un PR de prueba real
+  y confirmar que el check aparece y pasa (no se puede simular sin push).
+- [ ] 9.2 Añadir el job `integration` a `ci.yml`, dependiente de `quality`.
+  Postgres 17-alpine desechable únicamente - nunca la base de datos de
+  desarrollo ni de producción. Ejecuta la regresión de la cadena de
+  migraciones desde cero (`test:migrations`) y `test:integration`.
+  Implementado y verificado ejecutando ambos comandos localmente contra el
+  Postgres desechable de `compose.test.yml` (mismo `DATABASE_URI`
+  `_test`/`5433` que exige `assert-test-database.ts`); **pendiente**:
+  verificar en un PR de prueba real.
+- [ ] 9.3 Añadir el job `e2e-pr` a `ci.yml`, dependiente de `integration`.
+  Postgres y MinIO/almacenamiento S3-compatible desechables (el servidor
+  real de producción/standalone los exige - ver design.md, Decisión 3/7).
+  Build de producción real, Playwright solo Chromium, `test:e2e` +
+  `test:a11y`. Preserva íntegros los invariantes ya establecidos (S3 en
+  runtime, estabilidad del import map, guards de seguridad de base de
+  datos, aislamiento de proyectos de Docker). MinIO se levanta con
+  `docker run` manual (no `services:` de GitHub Actions - la imagen oficial
+  no trae un CMD ejecutable por defecto, a diferencia de
+  `compose.test.yml`). **Pendiente**: verificar en un PR de prueba real -
+  no se puede ejecutar el runner exacto de GitHub Actions localmente.
 - [ ] 9.4 Añadir verificación de build de Docker (`docker build --target
-  runner` y `--target migrator`) como parte de `ci.yml` cuando el diff toca
-  `Dockerfile`, `compose*.yml` o dependencias — cumple el requirement "CI
-  verifica el build de Docker". Verificar modificando el `Dockerfile` en el PR
-  de prueba y confirmando que el paso se ejecuta.
+  runner` y `--target migrator`) a `ci.yml`, dependiente de `e2e-pr`. El
+  build en frío SHALL completarse sin un Postgres de runtime alcanzable
+  (invariante de `openspec/changes/runtime-public-rendering`) - verificado
+  localmente con `docker build --target runner`/`--target migrator` y
+  `DATABASE_URI` sintácticamente válido pero inalcanzable: ambos targets
+  completan, la tabla de rutas del build confirma `/`/`/buscar`/
+  `/sitemap.xml` como `ƒ` (Dynamic). Filtrado por path
+  (`dorny/paths-filter@v3`) en PRs para `Dockerfile`/`compose*.y*ml`/
+  `package.json`/`pnpm-lock.yaml`/`.dockerignore`; siempre se ejecuta en
+  `push` a `main`, sin excepción. **Pendiente**: verificar en un PR de
+  prueba real modificando un archivo relacionado con Docker.
 - [ ] 9.5 Crear `.github/workflows/release.yml` (`push` a `main`,
-  `workflow_dispatch`) con los jobs `e2e-full` (matriz Firefox/WebKit sobre
-  los 8 journeys críticos + `test:visual`), `docker-smoke` (script de 8.1) y
-  `lighthouse` (script de 8.4). Verificar disparándolo manualmente
-  (`workflow_dispatch`) una vez mergeado.
+  `workflow_dispatch`) con la calificación FULL completa antes de publicar
+  cualquier artefacto: journeys críticos E2E en Firefox/WebKit, regresión
+  visual seleccionada, smoke de Docker de producción (script de 8.1),
+  Lighthouse (script de 8.4), y cualquier otro gate ya aprobado por el
+  diseño activo. Ningún gate puede fallar sin bloquear la publicación de
+  imágenes ni la entrega a despliegue. Concurrencia de release: dos
+  releases de producción SHALL NOT correr en simultáneo. Verificar
+  disparándolo manualmente (`workflow_dispatch`) una vez mergeado.
 - [ ] 9.6 Configurar cachés de CI para el store de pnpm y los binarios de
-  navegador de Playwright; confirmar que no se cachea ningún dato mutable de
-  Postgres. Verificar revisando los tiempos de ejecución antes/después del
-  caché en dos corridas consecutivas.
-- [ ] 9.7 Confirmar que ningún paso de CI requiere un secreto real de
-  producción (`PAYLOAD_SECRET`, `PREVIEW_SECRET`, credenciales S3/R2 reales)
-  — solo los valores de `.env.test`. Verificar por revisión del YAML de ambos
+  navegador de Playwright. SHALL NOT cachearse: datos de Postgres, datos
+  mutables de MinIO, cualquier estado de base de datos de pruebas, ni
+  `.next` en las pruebas cuyo propósito es validar un build genuinamente en
+  frío (documentar la excepción explícitamente). Verificar comparando los
+  tiempos de ejecución entre dos corridas consecutivas.
+- [ ] 9.7 Aislamiento de secretos. `ci.yml`: SHALL NOT requerir ningún
+  secreto real de producción — solo secretos de prueba deterministas
+  (equivalentes a `.env.test`), Postgres y MinIO desechables. `release.yml`:
+  los jobs de calificación/prueba tampoco usan secretos de aplicación de
+  producción; crear/usar un GitHub Environment `production` reservado
+  exclusivamente para las responsabilidades de despliegue/publicación
+  posteriores a la calificación que requieran credenciales privilegiadas
+  (metadata futura esperada: `DOKPLOY_URL`, `DOKPLOY_API_KEY`,
+  `DOKPLOY_COMPOSE_ID`, `PRODUCTION_URL`). `DATABASE_URI`/contraseña de
+  Postgres/`PAYLOAD_SECRET`/credenciales S3/R2 de producción SHALL NOT
+  colocarse directamente en jobs de CI ordinarios cuando Dokploy puede
+  poseer esos valores en runtime. Verificar por revisión del YAML de ambos
   workflows.
+- [ ] 9.8 Publicación de imágenes en GHCR. Tras pasar la calificación FULL
+  de 9.5: construir imágenes Docker inmutables para `runner` y `migrator`,
+  publicarlas en GHCR con tags basados en el SHA de Git inmutable (p. ej.
+  `ghcr.io/<owner>/60-segundos:runner-<git-sha>`), alias legibles como
+  `main` opcionales pero el contrato de despliegue SHALL usar el SHA
+  inmutable. Usar permisos de GitHub Actions (`contents: read`,
+  `packages: write`) en vez de un PAT innecesario. Verificar que ambas
+  imágenes existen en GHCR y corresponden exactamente al commit validado.
+- [ ] 9.9 Contrato de Compose de producción para Dokploy. Definir el
+  artefacto de despliegue esperado - preferir un archivo dedicado
+  (`compose.dokploy.yaml`) en vez de reutilizar directamente
+  `compose.prod.yaml` (que permanece como el artefacto local de
+  producción-smoke, sin otro rol). El contrato conceptual usa `image:`
+  apuntando a GHCR (nunca `build:` en el VPS), Postgres 17 con volumen
+  nombrado persistente, sin publicar el puerto 5432 al host, servicio de
+  migración de un solo uso, servicio de aplicación, secretos/entorno de
+  runtime provistos por Dokploy - la app SHALL arrancar solo después de
+  una migración exitosa. No se aprovisiona ni se despliega a un VPS real en
+  Fase 11. Verificar el contrato de forma local/estática y documentar su
+  comportamiento de runtime esperado.
+- [ ] 9.10 Documentar el modelo de migración de producción esperado: los
+  runners hospedados por GitHub SHALL NOT conectarse directamente al
+  container de Postgres del VPS; Postgres SHALL NOT exponerse a Internet
+  para CI/CD. Las migraciones de producción se ejecutan dentro de la red
+  Docker/Dokploy del VPS a través del `migrator` dedicado. Flujo requerido:
+  Postgres disponible → imagen `migrator` del release → migraciones de
+  Payload → exit 0 → arranca el `runner` del mismo release. Si la
+  migración falla, el despliegue de la app SHALL NOT proceder. Preserva la
+  regla expand/contract / migraciones retrocompatibles (el rollback de la
+  aplicación no revierte automáticamente el esquema de Postgres). Verificar
+  documentando y validando el contrato de orquestación.
+- [ ] 9.11 Definir cómo `release.yml` entregará eventualmente el release
+  calificado a Dokploy: GitHub Actions → API de Dokploy → desplegar/
+  actualizar Compose → pull de las imágenes GHCR inmutables → correr
+  migración → arrancar app. Dokploy Auto Deploy sobre `push` a `main`
+  SHALL NOT ser la ruta de producción. No se requieren credenciales reales
+  de Dokploy en Fase 11 salvo que exista una instancia no-productiva
+  segura disponible; si no existe, esta tarea valida el contrato de la
+  API/payload y defiere la invocación real a
+  `production-deployment-dokploy`.
+- [ ] 9.12 Definir el contrato de smoke post-despliegue que el despliegue
+  Dokploy posterior deberá ejecutar, como mínimo: `/api/health`, `/`, una
+  Category, un Article, `/buscar`, `/admin/login`. El release SHALL
+  considerarse no exitoso si health/readiness no converge. No afirmar
+  rollback automático salvo que esté realmente configurado y verificado en
+  Dokploy.
+- [ ] 9.13 El workflow de release SHALL registrar: SHA de Git, tag GHCR de
+  `runner`, tag GHCR de `migrator`, la corrida del workflow, timestamp del
+  release, y el identificador de despliegue de Dokploy cuando exista.
+  Rollback SHALL seleccionar una imagen `runner` inmutable ya construida,
+  sin reconstruir desde código fuente. Documentar explícitamente: rollback
+  de aplicación ≠ rollback de base de datos - la seguridad del esquema
+  sigue dependiendo de migraciones retrocompatibles.
+- [ ] 9.14 Verificación de punta a punta con corridas reales de GitHub
+  Actions: (1) PR de prueba - `quality`, `integration`, `e2e-pr`,
+  validación de build de Docker; (2) merge a `main` o
+  `workflow_dispatch` - calificación FULL, publicación de la imagen
+  `runner` en GHCR, publicación de la imagen `migrator` en GHCR, salida de
+  provenance del release. Si no existe todavía infraestructura Dokploy real
+  aprovisionada, el workflow automatizado se detiene en el límite de
+  entrega a Dokploy ya definido - no fabricar credenciales de producción
+  falsas solo para marcar la tarea como completa. La verificación real
+  contra VPS/Dokploy pertenece a `production-deployment-dokploy`.
 
 ## 10. Documentación y cierre
 
