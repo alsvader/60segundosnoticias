@@ -364,6 +364,85 @@ jobs:
             ${{ steps.tags.outputs.migrator }}
             ${{ env.IMAGE_BASE }}:migrator-main
 
+  # openspec/changes/production-deployment-dokploy - Etapas 4/5 del plan,
+  # design.md Decisiones 1/3/4. Entre `publish` y `provenance` a propósito
+  # (`provenance` SHALL seguir con `needs: publish`, nunca `needs: deploy`,
+  # para que el registro de la corrida no quede bloqueado detrás del clic
+  # de aprobación humana de este job).
+  #
+  # `environment: production` es lo que produce la pausa de aprobación -
+  # el Environment de GitHub (prerrequisito manual del operador, plan
+  # Etapa 7) tiene *required reviewers* configurados. `environment.url`
+  # SHALL ser una URL literal o de `vars`, nunca de `secrets` - por eso
+  # `PRODUCTION_URL` vive como variable del Environment y no como secret,
+  # a diferencia de las credenciales de Dokploy.
+  deploy:
+    name: deploy
+    needs: publish
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Tolera falla a propósito (`|| true`): el primer despliegue real
+      # nunca tuvo una release previa que responder. Este valor es solo
+      # informativo para el resumen final del job - `dokploy-deploy.ts`
+      # hace su propia lectura independiente para clasificar fallas.
+      - name: Capturar el SHA actualmente vivo (tolera falla, p. ej. primer despliegue)
+        id: previous-sha
+        run: |
+          sha="$(curl -sf "${{ vars.PRODUCTION_URL }}/api/health" 2>/dev/null | jq -r '.sha // empty' || true)"
+          echo "sha=${sha:-desconocido}" >> "$GITHUB_OUTPUT"
+
+      # scripts/dokploy-deploy.ts: compose.one -> reescribir env ->
+      # compose.update -> re-leer y verificar byte a byte -> compose.deploy
+      # -> esperar transición de estado + SHA vivo (design.md Decisión 3).
+      # Los tags SHALL consumirse verbatim desde `needs.publish.outputs` -
+      # nunca reconstruidos desde `IMAGE_BASE`, para que el alias mutable
+      # `-main` no pueda filtrarse aquí.
+      - name: Desplegar a Dokploy
+        env:
+          DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
+          DOKPLOY_TOKEN: ${{ secrets.DOKPLOY_TOKEN }}
+          DOKPLOY_COMPOSE_ID: ${{ secrets.DOKPLOY_COMPOSE_ID }}
+          RUNNER_IMAGE: ${{ needs.publish.outputs.runner-tag }}
+          MIGRATOR_IMAGE: ${{ needs.publish.outputs.migrator-tag }}
+          GIT_SHA: ${{ github.sha }}
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+        run: node scripts/dokploy-deploy.ts
+
+      # Señal 3 (design.md Decisión 3): corre solo si el paso anterior ya
+      # confirmó las señales 1 y 2 - un smoke que pasara antes de eso
+      # podría estar viendo la release anterior.
+      - name: Smoke de producción
+        env:
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+        run: node scripts/smoke-production.ts
+
+      # `if: always()`: corre incluso si los pasos anteriores fallaron, y
+      # complementa (no reemplaza) el resumen detallado que
+      # `dokploy-deploy.ts` ya escribe por su cuenta en éxito y en falla -
+      # esto es una red de seguridad para el caso de un crash que impida a
+      # ese script escribir el suyo.
+      - name: Resumen del job deploy
+        if: always()
+        run: |
+          {
+            echo "## Job \`deploy\` - resumen"
+            echo ""
+            echo "- **Resultado del job**: \`${{ job.status }}\`"
+            echo "- **SHA capturado como vivo antes del intento**: \`${{ steps.previous-sha.outputs.sha }}\`"
+            echo "- **Corrida**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   provenance:
     name: provenance
     needs: publish
@@ -371,13 +450,14 @@ jobs:
     steps:
       # Tarea 9.13: SHA de Git, tags GHCR de runner/migrator, la corrida
       # del workflow y el timestamp del release quedan registrados en el
-      # step summary de esta corrida - el identificador de despliegue de
-      # Dokploy se agrega aquí cuando ese handoff (tareas 9.9-9.11) exista
-      # de verdad. Rollback SHALL seleccionar una imagen runner inmutable
-      # ya construida (por SHA), nunca reconstruir desde código fuente -
-      # rollback de aplicación != rollback de base de datos, la seguridad
-      # del esquema sigue dependiendo de migraciones retrocompatibles
-      # (tarea 9.10).
+      # step summary de esta corrida. `needs: publish` (nunca
+      # `needs: deploy`) a propósito: la provenance de qué se publicó no
+      # SHALL quedar bloqueada detrás del clic de aprobación humana del
+      # job `deploy`. Rollback SHALL seleccionar una imagen runner
+      # inmutable ya construida (por SHA), nunca reconstruir desde código
+      # fuente - rollback de aplicación != rollback de base de datos, la
+      # seguridad del esquema sigue dependiendo de migraciones
+      # retrocompatibles (tarea 9.10).
       - name: Record release provenance
         run: |
           {
@@ -388,5 +468,5 @@ jobs:
             echo "- **Timestamp**: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo "- **runner image**: \`${{ needs.publish.outputs.runner-tag }}\`"
             echo "- **migrator image**: \`${{ needs.publish.outputs.migrator-tag }}\`"
-            echo "- **Dokploy deployment**: no aplicado todavía en esta fase (ver tareas 9.9-9.11 y \`production-deployment-dokploy\`)"
+            echo "- **Dokploy deployment**: ver el resumen del job \`deploy\` de esta misma corrida (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           } >> "$GITHUB_STEP_SUMMARY"

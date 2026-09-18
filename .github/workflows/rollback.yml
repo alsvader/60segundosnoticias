@@ -1,0 +1,138 @@
+name: Rollback
+
+# openspec/changes/production-deployment-dokploy - Etapa 5 del plan
+# (`~/.claude/plans/lucky-stargazing-pony.md`), design.md Decisión 1 y
+# 4/6. Reutiliza `scripts/dokploy-deploy.ts` y `scripts/smoke-production.ts`
+# tal cual - NUNCA reconstruye: el `sha` de entrada SHALL corresponder a
+# un tag `runner-<sha>`/`migrator-<sha>` que ya existe en GHCR (verificado
+# abajo antes de tocar Dokploy). Rollback de aplicación != rollback de
+# base de datos - las migraciones de Payload son forward-only
+# (design.md, Decisión 6); este workflow nunca ejecuta
+# `payload migrate:down` ni ninguna operación de esquema.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'SHA de Git completo (40 hex) de la imagen ya publicada a la que revertir'
+        required: true
+        type: string
+      reason:
+        description: 'Por qué se hace este rollback (queda en el resumen del job)'
+        required: true
+        type: string
+
+# Mismo grupo que release.yml a propósito (design.md, Decisión 1): un
+# rollback y un release nunca SHALL correr en simultáneo contra el mismo
+# servicio Compose.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '24'
+  IMAGE_BASE: ghcr.io/${{ github.repository_owner }}/60segundosnoticias
+
+permissions:
+  contents: read
+
+jobs:
+  rollback:
+    name: rollback
+    runs-on: ubuntu-latest
+    # Mismo Environment que `deploy` en release.yml - un rollback SHALL
+    # pasar por la misma aprobación humana que un release normal.
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Tarea previa a tocar Dokploy: las imágenes de GHCR son públicas y
+      # descargables anónimamente (verificado en el contexto de esta fase,
+      # ver design.md Context) - un token anónimo del propio registro
+      # basta para consultar sus manifests, sin credencial alguna.
+      - name: Verificar que ambos manifests existen en GHCR para ese SHA
+        id: verify-images
+        run: |
+          set -euo pipefail
+
+          sha="${{ inputs.sha }}"
+          if ! [[ "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Error: \"sha\" debe ser un SHA de Git completo (40 hex), se recibió: $sha" >&2
+            exit 1
+          fi
+
+          repo="${{ github.repository_owner }}/60segundosnoticias"
+          token="$(curl -sf "https://ghcr.io/token?scope=repository:${repo}:pull&service=ghcr.io" | jq -r '.token')"
+
+          check_manifest() {
+            local tag="$1"
+            local status
+            status="$(curl -s -o /dev/null -w '%{http_code}' \
+              -H "Authorization: Bearer ${token}" \
+              -H 'Accept: application/vnd.oci.image.index.v1+json,application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json,application/vnd.docker.distribution.manifest.list.v2+json' \
+              "https://ghcr.io/v2/${repo}/manifests/${tag}")"
+            if [ "$status" != "200" ]; then
+              echo "Error: no existe el manifest de \"${tag}\" en GHCR (HTTP ${status}). Nunca se reconstruye - abortando antes de tocar Dokploy." >&2
+              exit 1
+            fi
+            echo "OK: manifest de \"${tag}\" existe en GHCR."
+          }
+
+          check_manifest "runner-${sha}"
+          check_manifest "migrator-${sha}"
+
+          echo "runner-image=${{ env.IMAGE_BASE }}:runner-${sha}" >> "$GITHUB_OUTPUT"
+          echo "migrator-image=${{ env.IMAGE_BASE }}:migrator-${sha}" >> "$GITHUB_OUTPUT"
+
+      - name: Capturar el SHA actualmente vivo (tolera falla)
+        id: previous-sha
+        run: |
+          sha="$(curl -sf "${{ vars.PRODUCTION_URL }}/api/health" 2>/dev/null | jq -r '.sha // empty' || true)"
+          echo "sha=${sha:-desconocido}" >> "$GITHUB_OUTPUT"
+
+      # Mismo script que un release normal - un rollback es, para
+      # Dokploy, simplemente desplegar un tag inmutable distinto
+      # (design.md, Decisión 1).
+      - name: Revertir vía Dokploy
+        env:
+          DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
+          DOKPLOY_TOKEN: ${{ secrets.DOKPLOY_TOKEN }}
+          DOKPLOY_COMPOSE_ID: ${{ secrets.DOKPLOY_COMPOSE_ID }}
+          RUNNER_IMAGE: ${{ steps.verify-images.outputs.runner-image }}
+          MIGRATOR_IMAGE: ${{ steps.verify-images.outputs.migrator-image }}
+          GIT_SHA: ${{ inputs.sha }}
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+        run: node scripts/dokploy-deploy.ts
+
+      - name: Smoke de producción
+        env:
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+        run: node scripts/smoke-production.ts
+
+      - name: Resumen del rollback
+        if: always()
+        run: |
+          {
+            echo "## Rollback - resumen"
+            echo ""
+            echo "- **Resultado del job**: \`${{ job.status }}\`"
+            echo "- **SHA objetivo del rollback**: \`${{ inputs.sha }}\`"
+            echo "- **Motivo**: ${{ inputs.reason }}"
+            echo "- **Solicitado por**: ${{ github.actor }}"
+            echo "- **SHA que estaba vivo antes de este rollback**: \`${{ steps.previous-sha.outputs.sha }}\`"
+            echo "- **runner image**: \`${{ steps.verify-images.outputs.runner-image }}\`"
+            echo "- **migrator image**: \`${{ steps.verify-images.outputs.migrator-image }}\`"
+            echo "- **Corrida**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo ""
+            echo "> **Advertencia**: este rollback revierte solo la aplicación (imágenes runner/migrator)."
+            echo "> Rollback de aplicación != rollback de base de datos - las migraciones de Payload son"
+            echo "> forward-only. Si el SHA objetivo requiere revertir un esquema (DROP/RENAME/NOT NULL sobre"
+            echo "> algo que el código viejo lee), este workflow NO lo hace y NO SHALL usarse para eso: la vía"
+            echo "> correcta es dump + fix-forward (docs/OPERATIONS.md, regla de decisión de rollback)."
+          } >> "$GITHUB_STEP_SUMMARY"
