@@ -1,8 +1,12 @@
 # Contrato de despliegue de producción para Dokploy (openspec/changes/
 # testing-qa-performance, tarea 9.9; design.md, Decisión 13). Define el
-# artefacto que Dokploy despliega en el VPS de Hostinger - NUNCA se
-# aprovisiona ni se ejecuta contra un VPS real durante Fase 11 (eso
-# pertenece al change futuro `production-deployment-dokploy`).
+# artefacto que Dokploy despliega en el VPS de Hostinger.
+#
+# Invocado de verdad desde `.github/workflows/release.yml` (job `deploy`,
+# vía `scripts/dokploy-deploy.ts`) y desde `.github/workflows/rollback.yml`
+# (openspec/changes/production-deployment-dokploy) - nunca a mano, y nunca
+# antes de la aprobación humana del GitHub Environment `production`. Ver
+# `docs/OPERATIONS.md` para el runbook operativo completo.
 #
 # Diferencia deliberada con `compose.prod.yaml` (que sigue siendo solo el
 # artefacto local de producción-smoke / referencia self-hosted, sin
