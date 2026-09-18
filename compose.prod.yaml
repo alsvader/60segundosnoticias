@@ -77,6 +77,14 @@ services:
       S3_PUBLIC_URL: ${S3_PUBLIC_URL:?S3_PUBLIC_URL es requerido}
     ports:
       - '3000:3000'
+    # `host.docker.internal` (usado por scripts/docker-smoke.sh para
+    # alcanzar el MinIO desechable de compose.test.yml) se resuelve
+    # automáticamente en Docker Desktop (macOS/Windows), pero NO en Docker
+    # Engine puro (Linux - incluidos los runners de GitHub Actions) sin
+    # este mapeo explícito. `host-gateway` es soportado desde Docker
+    # 20.10+; sin cambio de comportamiento en macOS/Windows.
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     # Las migraciones deben completarse exitosamente antes de que esta
     # release empiece a servir tráfico (design.md, Decisión 1). El
     # HEALTHCHECK del propio container (definido en el Dockerfile, stage

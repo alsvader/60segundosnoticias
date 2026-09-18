@@ -3,7 +3,7 @@ import { expect, test } from './base-test'
 import { FIXTURE } from './fixture-data'
 
 /** Journey crítico: Home -> Category -> Article. */
-test('Home -> Category -> Article', async ({ page }) => {
+test('Home -> Category -> Article @smoke-cross-browser', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('header')).toBeVisible()
 

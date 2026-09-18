@@ -1,0 +1,369 @@
+name: Release
+
+# openspec/changes/testing-qa-performance, tareas 9.5-9.13 (design.md,
+# Decisión 10/13). Calificación FULL completa - reutiliza los 4 jobs de
+# ci.yml (workflow reusable) y agrega Firefox/WebKit sobre los 8 journeys
+# críticos, regresión visual, smoke real de Docker de producción
+# (compose.prod.yaml) y Lighthouse - antes de publicar ninguna imagen.
+# Ningún gate puede fallar sin bloquear la publicación. GitHub Actions
+# sigue siendo el gate de release autoritativo; el VPS/Dokploy solo hace
+# pull de imágenes ya construidas y validadas aquí - nunca construye
+# nada (Decisión 13). No se invoca ninguna infraestructura Dokploy real
+# en esta fase - ver tareas 9.9-9.11 y `production-deployment-dokploy`.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Dos releases de producción SHALL NOT correr en simultáneo (tarea 9.5) -
+# nunca se cancela un release ya en curso, solo se encolan.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  PNPM_VERSION: '10.28.2'
+  NODE_VERSION: '24'
+  IMAGE_BASE: ghcr.io/${{ github.repository_owner }}/60segundosnoticias
+
+jobs:
+  ci-gates:
+    name: ci-gates
+    uses: ./.github/workflows/ci.yml
+
+  e2e-full:
+    name: e2e-full
+    needs: ci-gates
+    runs-on: ubuntu-latest
+    # Mismos servicios desechables que el `e2e-pr` de ci.yml - nunca
+    # secretos ni infraestructura de producción real (tarea 9.7).
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: 60segundos_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d 60segundos_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Tarea 9.6: SHALL cachearse el store de pnpm (`cache: pnpm` arriba)
+      # y los binarios de Playwright - nunca datos de Postgres/MinIO.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm exec playwright install --with-deps firefox webkit
+
+      - name: Start disposable MinIO
+        run: |
+          docker run -d --name minio \
+            -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=e2eminioadmin \
+            -e MINIO_ROOT_PASSWORD=e2eminioadmin \
+            quay.io/minio/minio:latest server /data --console-address ":9001"
+
+      - name: Wait for MinIO and create the disposable test bucket
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:9000/minio/health/live >/dev/null; then break; fi
+            sleep 2
+          done
+          docker run --rm --network host --entrypoint /bin/sh quay.io/minio/mc:latest -c "
+            mc alias set e2e http://localhost:9000 e2eminioadmin e2eminioadmin &&
+            (mc mb e2e/e2e-test-media || true) &&
+            mc anonymous set download e2e/e2e-test-media
+          "
+
+      # Solo los 8 journeys críticos etiquetados @smoke-cross-browser
+      # (design.md, Decisión 10) - Firefox y WebKit no corren la suite
+      # completa, solo este subconjunto crítico.
+      - run: pnpm exec playwright test --project=firefox --project=webkit
+
+      - name: Stop disposable MinIO
+        if: always()
+        run: docker rm -f minio || true
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-full-report
+          path: playwright-report/
+          retention-days: 14
+
+  visual:
+    name: visual
+    needs: ci-gates
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: 60segundos_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d 60segundos_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Tarea 9.6: SHALL cachearse el store de pnpm (`cache: pnpm` arriba)
+      # y los binarios de Playwright - nunca datos de Postgres/MinIO.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - name: Start disposable MinIO
+        run: |
+          docker run -d --name minio \
+            -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=e2eminioadmin \
+            -e MINIO_ROOT_PASSWORD=e2eminioadmin \
+            quay.io/minio/minio:latest server /data --console-address ":9001"
+
+      - name: Wait for MinIO and create the disposable test bucket
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:9000/minio/health/live >/dev/null; then break; fi
+            sleep 2
+          done
+          docker run --rm --network host --entrypoint /bin/sh quay.io/minio/mc:latest -c "
+            mc alias set e2e http://localhost:9000 e2eminioadmin e2eminioadmin &&
+            (mc mb e2e/e2e-test-media || true) &&
+            mc anonymous set download e2e/e2e-test-media
+          "
+
+      # Sin --update-snapshots: compara contra las baselines *-linux.png
+      # committeadas. La primera vez que este job corre no existen -
+      # falla a propósito (design.md), sube las capturas "actual" como
+      # artifact para revisión humana y commit deliberado, nunca
+      # auto-aprobado desde CI.
+      - run: pnpm test:visual -- --project=chromium
+
+      - name: Stop disposable MinIO
+        if: always()
+        run: docker rm -f minio || true
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-actual-screenshots
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
+
+  docker-smoke:
+    name: docker-smoke
+    needs: ci-gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # scripts/docker-smoke.sh reutiliza el MinIO desechable de
+      # compose.test.yml (vía host.docker.internal - extra_hosts en
+      # compose.prod.yaml lo hace resoluble en Docker Engine de Linux).
+      - name: Start disposable MinIO (compose.test.yml)
+        run: docker compose -f compose.test.yml up -d minio minio-init
+
+      - run: bash scripts/docker-smoke.sh
+
+      - if: always()
+        run: docker compose -f compose.test.yml down --remove-orphans
+
+  lighthouse:
+    name: lighthouse
+    needs: ci-gates
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: 60segundos_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d 60segundos_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Start disposable MinIO
+        run: |
+          docker run -d --name minio \
+            -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=e2eminioadmin \
+            -e MINIO_ROOT_PASSWORD=e2eminioadmin \
+            quay.io/minio/minio:latest server /data --console-address ":9001"
+
+      - name: Wait for MinIO and create the disposable test bucket
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:9000/minio/health/live >/dev/null; then break; fi
+            sleep 2
+          done
+          docker run --rm --network host --entrypoint /bin/sh quay.io/minio/mc:latest -c "
+            mc alias set e2e http://localhost:9000 e2eminioadmin e2eminioadmin &&
+            (mc mb e2e/e2e-test-media || true) &&
+            mc anonymous set download e2e/e2e-test-media
+          "
+
+      # test:e2e:server ya hace build de producción + migrate + seed -
+      # lo dejamos arrancado en segundo plano para que lhci le pegue.
+      - name: Build and start the production server
+        run: |
+          nohup pnpm test:e2e:server > server.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:3100/api/health >/dev/null; then break; fi
+            sleep 5
+          done
+
+      - run: pnpm exec lhci autorun
+
+      - if: always()
+        run: cat server.log
+
+      - name: Stop disposable MinIO
+        if: always()
+        run: docker rm -f minio || true
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: .lighthouseci/
+          retention-days: 30
+
+  publish:
+    name: publish
+    needs: [e2e-full, visual, docker-smoke, lighthouse]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      runner-tag: ${{ steps.tags.outputs.runner }}
+      migrator-tag: ${{ steps.tags.outputs.migrator }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: tags
+        run: |
+          echo "runner=${{ env.IMAGE_BASE }}:runner-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          echo "migrator=${{ env.IMAGE_BASE }}:migrator-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Placeholder DATABASE_URI/PAYLOAD_SECRET solo necesitan forma
+      # válida (Dockerfile, stage `builder`) - nunca un secreto real de
+      # producción (tarea 9.7). El invariante de
+      # openspec/changes/runtime-public-rendering (build sin Postgres
+      # alcanzable) es precisamente lo que hace esto seguro.
+      - name: Build and push runner
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: runner
+          push: true
+          tags: |
+            ${{ steps.tags.outputs.runner }}
+            ${{ env.IMAGE_BASE }}:runner-main
+          build-args: |
+            DATABASE_URI=postgres://release-placeholder-unreachable:5432/release-placeholder
+            PAYLOAD_SECRET=release-placeholder-secret
+            NEXT_PUBLIC_SITE_URL=https://60segundosnoticias.com
+
+      - name: Build and push migrator
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: migrator
+          push: true
+          tags: |
+            ${{ steps.tags.outputs.migrator }}
+            ${{ env.IMAGE_BASE }}:migrator-main
+
+  provenance:
+    name: provenance
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      # Tarea 9.13: SHA de Git, tags GHCR de runner/migrator, la corrida
+      # del workflow y el timestamp del release quedan registrados en el
+      # step summary de esta corrida - el identificador de despliegue de
+      # Dokploy se agrega aquí cuando ese handoff (tareas 9.9-9.11) exista
+      # de verdad. Rollback SHALL seleccionar una imagen runner inmutable
+      # ya construida (por SHA), nunca reconstruir desde código fuente -
+      # rollback de aplicación != rollback de base de datos, la seguridad
+      # del esquema sigue dependiendo de migraciones retrocompatibles
+      # (tarea 9.10).
+      - name: Record release provenance
+        run: |
+          {
+            echo "## Release provenance"
+            echo ""
+            echo "- **Git SHA**: \`${{ github.sha }}\`"
+            echo "- **Workflow run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "- **Timestamp**: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "- **runner image**: \`${{ needs.publish.outputs.runner-tag }}\`"
+            echo "- **migrator image**: \`${{ needs.publish.outputs.migrator-tag }}\`"
+            echo "- **Dokploy deployment**: no aplicado todavía en esta fase (ver tareas 9.9-9.11 y \`production-deployment-dokploy\`)"
+          } >> "$GITHUB_STEP_SUMMARY"

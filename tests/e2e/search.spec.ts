@@ -3,7 +3,7 @@ import { expect, test } from './base-test'
 import { FIXTURE } from './fixture-data'
 
 /** Journey crítico: expandir HeaderSearch, enviar consulta, navegar a /buscar. */
-test('expandir HeaderSearch y buscar navega a resultados en /buscar', async ({ page }) => {
+test('expandir HeaderSearch y buscar navega a resultados en /buscar @smoke-cross-browser', async ({ page }) => {
   await page.goto('/')
 
   const searchButton = page.getByRole('button', { name: 'Buscar' })

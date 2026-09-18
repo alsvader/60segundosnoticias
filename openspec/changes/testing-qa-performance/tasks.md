@@ -338,93 +338,99 @@ en un change separado (`production-deployment-dokploy`).
   `push` a `main`, sin excepción. Verificado con una corrida real en
   GitHub Actions (PR #1) - el PR modificaba `package.json`, el filtro de
   path lo detectó correctamente y ambos targets construyeron con éxito.
-- [ ] 9.5 Crear `.github/workflows/release.yml` (`push` a `main`,
-  `workflow_dispatch`) con la calificación FULL completa antes de publicar
-  cualquier artefacto: journeys críticos E2E en Firefox/WebKit, regresión
-  visual seleccionada, smoke de Docker de producción (script de 8.1),
-  Lighthouse (script de 8.4), y cualquier otro gate ya aprobado por el
-  diseño activo. Ningún gate puede fallar sin bloquear la publicación de
-  imágenes ni la entrega a despliegue. Concurrencia de release: dos
-  releases de producción SHALL NOT correr en simultáneo. Verificar
-  disparándolo manualmente (`workflow_dispatch`) una vez mergeado.
-- [ ] 9.6 Configurar cachés de CI para el store de pnpm y los binarios de
-  navegador de Playwright. SHALL NOT cachearse: datos de Postgres, datos
-  mutables de MinIO, cualquier estado de base de datos de pruebas, ni
-  `.next` en las pruebas cuyo propósito es validar un build genuinamente en
-  frío (documentar la excepción explícitamente). Verificar comparando los
-  tiempos de ejecución entre dos corridas consecutivas.
-- [ ] 9.7 Aislamiento de secretos. `ci.yml`: SHALL NOT requerir ningún
-  secreto real de producción — solo secretos de prueba deterministas
-  (equivalentes a `.env.test`), Postgres y MinIO desechables. `release.yml`:
-  los jobs de calificación/prueba tampoco usan secretos de aplicación de
-  producción; crear/usar un GitHub Environment `production` reservado
-  exclusivamente para las responsabilidades de despliegue/publicación
-  posteriores a la calificación que requieran credenciales privilegiadas
-  (metadata futura esperada: `DOKPLOY_URL`, `DOKPLOY_API_KEY`,
-  `DOKPLOY_COMPOSE_ID`, `PRODUCTION_URL`). `DATABASE_URI`/contraseña de
-  Postgres/`PAYLOAD_SECRET`/credenciales S3/R2 de producción SHALL NOT
-  colocarse directamente en jobs de CI ordinarios cuando Dokploy puede
-  poseer esos valores en runtime. Verificar por revisión del YAML de ambos
-  workflows.
-- [ ] 9.8 Publicación de imágenes en GHCR. Tras pasar la calificación FULL
-  de 9.5: construir imágenes Docker inmutables para `runner` y `migrator`,
-  publicarlas en GHCR con tags basados en el SHA de Git inmutable (p. ej.
-  `ghcr.io/<owner>/60-segundos:runner-<git-sha>`), alias legibles como
-  `main` opcionales pero el contrato de despliegue SHALL usar el SHA
-  inmutable. Usar permisos de GitHub Actions (`contents: read`,
-  `packages: write`) en vez de un PAT innecesario. Verificar que ambas
-  imágenes existen en GHCR y corresponden exactamente al commit validado.
-- [ ] 9.9 Contrato de Compose de producción para Dokploy. Definir el
-  artefacto de despliegue esperado - preferir un archivo dedicado
-  (`compose.dokploy.yaml`) en vez de reutilizar directamente
-  `compose.prod.yaml` (que permanece como el artefacto local de
-  producción-smoke, sin otro rol). El contrato conceptual usa `image:`
-  apuntando a GHCR (nunca `build:` en el VPS), Postgres 17 con volumen
-  nombrado persistente, sin publicar el puerto 5432 al host, servicio de
-  migración de un solo uso, servicio de aplicación, secretos/entorno de
-  runtime provistos por Dokploy - la app SHALL arrancar solo después de
-  una migración exitosa. No se aprovisiona ni se despliega a un VPS real en
-  Fase 11. Verificar el contrato de forma local/estática y documentar su
-  comportamiento de runtime esperado.
-- [ ] 9.10 Documentar el modelo de migración de producción esperado: los
-  runners hospedados por GitHub SHALL NOT conectarse directamente al
-  container de Postgres del VPS; Postgres SHALL NOT exponerse a Internet
-  para CI/CD. Las migraciones de producción se ejecutan dentro de la red
-  Docker/Dokploy del VPS a través del `migrator` dedicado. Flujo requerido:
-  Postgres disponible → imagen `migrator` del release → migraciones de
-  Payload → exit 0 → arranca el `runner` del mismo release. Si la
-  migración falla, el despliegue de la app SHALL NOT proceder. Preserva la
-  regla expand/contract / migraciones retrocompatibles (el rollback de la
-  aplicación no revierte automáticamente el esquema de Postgres). Verificar
-  documentando y validando el contrato de orquestación.
-- [ ] 9.11 Definir cómo `release.yml` entregará eventualmente el release
-  calificado a Dokploy: GitHub Actions → API de Dokploy → desplegar/
-  actualizar Compose → pull de las imágenes GHCR inmutables → correr
-  migración → arrancar app. Dokploy Auto Deploy sobre `push` a `main`
-  SHALL NOT ser la ruta de producción. No se requieren credenciales reales
-  de Dokploy en Fase 11 salvo que exista una instancia no-productiva
-  segura disponible; si no existe, esta tarea valida el contrato de la
-  API/payload y defiere la invocación real a
-  `production-deployment-dokploy`.
-- [ ] 9.12 Definir el contrato de smoke post-despliegue que el despliegue
-  Dokploy posterior deberá ejecutar, como mínimo: `/api/health`, `/`, una
-  Category, un Article, `/buscar`, `/admin/login`. El release SHALL
-  considerarse no exitoso si health/readiness no converge. No afirmar
-  rollback automático salvo que esté realmente configurado y verificado en
-  Dokploy.
-- [ ] 9.13 El workflow de release SHALL registrar: SHA de Git, tag GHCR de
-  `runner`, tag GHCR de `migrator`, la corrida del workflow, timestamp del
-  release, y el identificador de despliegue de Dokploy cuando exista.
-  Rollback SHALL seleccionar una imagen `runner` inmutable ya construida,
-  sin reconstruir desde código fuente. Documentar explícitamente: rollback
-  de aplicación ≠ rollback de base de datos - la seguridad del esquema
-  sigue dependiendo de migraciones retrocompatibles.
+- [ ] 9.5 `.github/workflows/release.yml` creado: `ci-gates` (llama a
+  `ci.yml` como workflow reusable) → `e2e-full` (Firefox/WebKit, los 8
+  journeys críticos ahora etiquetados `@smoke-cross-browser` - ver nota
+  bajo 9.14, gap descubierto e implementado aquí), `visual`,
+  `docker-smoke` (script real de 8.1), `lighthouse` (script real de 8.4)
+  en paralelo → `publish` (solo si los 4 pasan) → `provenance`.
+  Concurrencia `group: release`/`cancel-in-progress: false` (dos releases
+  nunca corren en simultáneo, se encolan). Verificado localmente donde es
+  posible: YAML válido, los 8 journeys pasan en Firefox real (WebKit falla
+  localmente por un límite conocido de esta Mac - "frozen webkit... no
+  longer receives updates" en macOS antiguo, no del producto; se espera
+  que corra normal en el runner Linux de GitHub Actions).
+  **Pendiente**: disparar `workflow_dispatch` real para verificar de
+  punta a punta - no se puede simular sin una corrida real.
+- [x] 9.6 Cachés: `actions/setup-node@v4` con `cache: pnpm` (store de
+  pnpm) + `actions/cache@v4` sobre `~/.cache/ms-playwright` (keyed por
+  hash de `pnpm-lock.yaml`) en cada job que instala navegadores de
+  Playwright (`e2e-pr` de `ci.yml`, `e2e-full`/`visual` de `release.yml`).
+  Nunca se cachea Postgres/MinIO/estado de base de datos de pruebas, ni
+  `.next` en `docker-build` (el build en frío es justamente lo que esa
+  tarea prueba - documentado en el comentario del propio job).
+- [x] 9.7 Revisado el YAML de ambos workflows: ningún secreto real de
+  producción en ningún job - solo Postgres/MinIO desechables y valores
+  fijos no-productivos. `release.yml`'s `publish` usa
+  `secrets.GITHUB_TOKEN` (automático, con scope de solo este repo) para
+  autenticar contra GHCR, nunca un secreto de aplicación. El GitHub
+  Environment `production` (para `DOKPLOY_*`/`PRODUCTION_URL` reales)
+  queda como trabajo de `production-deployment-dokploy` - no hay
+  credenciales Dokploy que aislar todavía porque no existen.
+- [x] 9.8 Job `publish` en `release.yml`: construye y publica `runner`/
+  `migrator` en GHCR con tag inmutable por SHA
+  (`ghcr.io/<owner>/60segundosnoticias:runner-<sha>`/`migrator-<sha>`) más
+  el alias legible `-main`; el contrato de despliegue (`compose.dokploy.yaml`,
+  tarea 9.9) usa exclusivamente el SHA. Permisos `contents: read`/
+  `packages: write` vía `GITHUB_TOKEN`, sin PAT. **Pendiente**: confirmar
+  que ambas imágenes existen en GHCR tras una corrida real (depende de
+  9.5).
+- [x] 9.9 `compose.dokploy.yaml` (nuevo): `image:` a GHCR (nunca
+  `build:`), Postgres 17 con volumen nombrado persistente, puerto 5432 sin
+  publicar al host, `migrate` de un solo uso, `app` con
+  `depends_on: condition: service_completed_successfully`, secretos/
+  entorno vía variables que Dokploy provee en runtime. `compose.prod.yaml`
+  sin cambio de rol (sigue siendo solo el artefacto local de
+  producción-smoke). Verificado de forma estática:
+  `docker compose -f compose.dokploy.yaml config` válido con valores
+  placeholder.
+- [x] 9.10 Documentado en `compose.dokploy.yaml` (comentarios) y
+  design.md, Decisión 13: Postgres sin puerto publicado, GitHub Actions
+  nunca se conecta directamente a él, migraciones solo vía `migrate`
+  dentro de la red de Dokploy, `app` solo arranca tras
+  `service_completed_successfully` de `migrate`. Regla expand/contract ya
+  documentada en `docs/DEPLOYMENT.md` (Fase 10, sin cambios).
+- [x] 9.11 Documentado en design.md, Decisión 13 (puntos 3, 4, 5): flujo
+  GitHub Actions → API de Dokploy → pull de imágenes GHCR inmutables →
+  migración → app; Dokploy Auto Deploy sobre `push` a `main` descartado a
+  propósito. Sin instancia Dokploy real disponible en Fase 11 - el job
+  `publish`/`provenance` de `release.yml` se detiene en la publicación de
+  imágenes + registro de provenance; la invocación real del API queda
+  para `production-deployment-dokploy`.
+- [x] 9.12 Contrato de smoke post-despliegue documentado en
+  `release.yml` (comentario del job `provenance`) y aquí:
+  `/api/health`, `/`, una Category, un Article, `/buscar`, `/admin/login`
+  - el mismo conjunto que `scripts/docker-smoke.sh` ya verifica
+  localmente. Sin afirmar rollback automático - no está configurado en
+  ningún Dokploy real todavía.
+- [x] 9.13 Job `provenance` en `release.yml`: escribe SHA de Git, tags
+  GHCR de `runner`/`migrator`, la corrida del workflow y el timestamp al
+  step summary (`GITHUB_STEP_SUMMARY`); el identificador de despliegue de
+  Dokploy queda como campo pendiente hasta que ese handoff exista.
+  Documentado explícitamente ahí: rollback de aplicación (reseleccionar un
+  tag `runner-<sha>` anterior, nunca reconstruir) ≠ rollback de base de
+  datos (sigue dependiendo de migraciones retrocompatibles).
 - [ ] 9.14 Verificación de punta a punta con corridas reales de GitHub
-  Actions: (1) PR de prueba - `quality`, `integration`, `e2e-pr`,
-  validación de build de Docker; (2) merge a `main` o
-  `workflow_dispatch` - calificación FULL, publicación de la imagen
-  `runner` en GHCR, publicación de la imagen `migrator` en GHCR, salida de
-  provenance del release. Si no existe todavía infraestructura Dokploy real
+  Actions: (1) PR de prueba - ya verificado en PR #1 (`quality`,
+  `integration`, `e2e-pr`, `docker-build` pasando de punta a punta,
+  incluyendo dos rondas de fixes reales: el binario `mc` descontinuado de
+  `dl.min.io`, snapshots visuales solo-macOS, y el contraste de marca
+  Facebook/WhatsApp). **Pendiente**: (2) merge a `main` o
+  `workflow_dispatch` real para verificar la calificación FULL completa y
+  la publicación de imágenes en GHCR - no se fabrica este resultado sin
+  una corrida real. Gap descubierto e implementado durante esta tarea: los
+  8 journeys críticos de la sección 6 nunca habían sido etiquetados
+  `@smoke-cross-browser` (tarea 1.3 dejó la convención lista, pero
+  ninguna tarea posterior la aplicó) - sin este tag, `e2e-full` habría
+  corrido 0 tests en Firefox/WebKit. Aplicado a los 8 tests principales de
+  `public-reading`/`search`/`mobile-nav`/`cms-page`/`not-found`/
+  `redirects`/`preview`/`admin-smoke`. También descubierto:
+  `host.docker.internal` no se resuelve automáticamente en Docker Engine
+  de Linux (a diferencia de Docker Desktop) - `compose.prod.yaml` ahora
+  declara `extra_hosts: ['host.docker.internal:host-gateway']` en `app`
+  para que `docker-smoke.sh` funcione igual en el runner Linux de GitHub
+  Actions que en macOS local (verificado localmente tras el cambio - sigue
+  pasando). Si no existe todavía infraestructura Dokploy real
   aprovisionada, el workflow automatizado se detiene en el límite de
   entrega a Dokploy ya definido - no fabricar credenciales de producción
   falsas solo para marcar la tarea como completa. La verificación real

@@ -11,7 +11,7 @@ import { FIXTURE } from './fixture-data'
 test.use({ viewport: { width: 375, height: 812 } })
 
 /** Journey crítico: abrir MobileNav en viewport móvil, navegar a Category -> Article. */
-test('MobileNav abierto navega a Category -> Article', async ({ page }) => {
+test('MobileNav abierto navega a Category -> Article @smoke-cross-browser', async ({ page }) => {
   await page.goto('/')
 
   await page.getByRole('button', { name: 'Abrir menú de navegación' }).click()

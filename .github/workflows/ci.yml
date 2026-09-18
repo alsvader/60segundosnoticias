@@ -12,6 +12,10 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Permite que release.yml reutilice estos 4 jobs como prerequisito
+  # (workflow reusable, "uses: ./.github/workflows/ci.yml") en vez de
+  # duplicar su definición - design.md, Decisión 10/13.
+  workflow_call:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -126,6 +130,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Tarea 9.6: SHALL cachearse el store de pnpm (`cache: pnpm` arriba)
+      # y los binarios de Playwright - nunca datos de Postgres/MinIO.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm exec playwright install --with-deps chromium
 
       # MinIO no se declara como `services:` porque la imagen oficial

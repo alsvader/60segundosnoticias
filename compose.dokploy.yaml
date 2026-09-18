@@ -1,0 +1,83 @@
+# Contrato de despliegue de producción para Dokploy (openspec/changes/
+# testing-qa-performance, tarea 9.9; design.md, Decisión 13). Define el
+# artefacto que Dokploy despliega en el VPS de Hostinger - NUNCA se
+# aprovisiona ni se ejecuta contra un VPS real durante Fase 11 (eso
+# pertenece al change futuro `production-deployment-dokploy`).
+#
+# Diferencia deliberada con `compose.prod.yaml` (que sigue siendo solo el
+# artefacto local de producción-smoke / referencia self-hosted, sin
+# cambio de rol): este archivo NUNCA usa `build:` - las imágenes ya
+# fueron construidas, calificadas (release.yml, jobs `ci-gates` ->
+# `e2e-full`/`visual`/`docker-smoke`/`lighthouse`) y publicadas en GHCR
+# antes de que Dokploy vea este contrato. El VPS solo hace `pull` y
+# `run`, nunca `docker build` - GitHub Actions es el único lugar donde se
+# construye una imagen de producción.
+#
+# `${RUNNER_IMAGE}`/`${MIGRATOR_IMAGE}` SHALL resolver a un tag GHCR
+# inmutable por SHA de Git (p. ej.
+# ghcr.io/<owner>/60segundosnoticias:runner-<sha>), nunca al alias
+# `runner-main` - el contrato de despliegue vive en el SHA, no en un
+# puntero mutable (tarea 9.8/9.13). Dokploy provee estos valores junto al
+# resto del entorno de runtime en el momento del despliegue - ninguno de
+# ellos vive en este repositorio ni en GitHub Actions (tarea 9.7).
+
+services:
+  migrate:
+    image: ${MIGRATOR_IMAGE}
+    environment:
+      DATABASE_URI: ${DATABASE_URI}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET}
+    depends_on:
+      db:
+        condition: service_healthy
+    # Job de un solo uso - nunca un servicio de larga duración (AC-DB-004).
+    restart: 'no'
+
+  app:
+    image: ${RUNNER_IMAGE}
+    environment:
+      DATABASE_URI: ${DATABASE_URI}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+      PREVIEW_SECRET: ${PREVIEW_SECRET}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION}
+      S3_BUCKET: ${S3_BUCKET}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+      S3_PUBLIC_URL: ${S3_PUBLIC_URL}
+    ports:
+      - '3000:3000'
+    # La app SHALL arrancar solo después de una migración exitosa (tarea
+    # 9.10) - si `migrate` falla, `app` nunca arranca. El HEALTHCHECK del
+    # propio container (Dockerfile, stage `runner`) se hereda
+    # automáticamente.
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  # Postgres 17 con volumen nombrado persistente - a diferencia de
+  # compose.prod.yaml (perfil `self-hosted`, siempre desechable), este es
+  # el Postgres de producción real. Puerto 5432 SHALL NOT publicarse al
+  # host: los runners de GitHub Actions SHALL NOT conectarse directamente
+  # a él, y SHALL NOT exponerse a Internet para CI/CD (tarea 9.10) - solo
+  # `migrate`/`app`, dentro de la red interna de Compose/Dokploy, lo
+  # alcanzan.
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

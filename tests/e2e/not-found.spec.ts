@@ -1,7 +1,7 @@
 import { expect, test } from './base-test'
 
 /** Journey crítico: una URL desconocida renderiza el 404 de marca. */
-test('una URL desconocida renderiza el 404 de marca', async ({ page }) => {
+test('una URL desconocida renderiza el 404 de marca @smoke-cross-browser', async ({ page }) => {
   const response = await page.goto('/esta-url-no-existe-jamas-fixture')
 
   expect(response?.status()).toBe(404)

@@ -5,7 +5,7 @@ import { FIXTURE } from './fixture-data'
 const DRAFT_SLUG = 'fixture-post-borrador'
 
 /** Journey crítico: sesión autenticada de editor -> previsualizar borrador -> salir de preview y confirmar vista pública restaurada. */
-test('previsualizar un borrador y salir restaura la vista pública', async ({ page }) => {
+test('previsualizar un borrador y salir restaura la vista pública @smoke-cross-browser', async ({ page }) => {
   // El borrador nunca es público - confirmado antes de autenticar nada.
   const anonymousResponse = await page.goto(`/${FIXTURE.categorySlug}/${DRAFT_SLUG}`)
   expect(anonymousResponse?.status()).toBe(404)
