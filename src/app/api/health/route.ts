@@ -26,11 +26,22 @@ export async function GET() {
   const databaseHealthy = await checkDatabase()
   const healthy = databaseHealthy
 
+  // `GIT_SHA` se lee directo de `process.env` (igual que
+  // `src/app/api/preview/route.ts`/`src/lib/security/headers.ts`), nunca
+  // vía `src/lib/env`: agregarlo al esquema zod ahí exigiría la variable
+  // también en dev/test, donde no existe (openspec/changes/
+  // production-deployment-dokploy). Sin cache: un despliegue necesita
+  // poder confirmar, sondeando esta ruta, que el SHA nuevo ya está vivo -
+  // una respuesta cacheada por un proxy intermedio invalidaría esa señal.
   return Response.json(
     {
       status: healthy ? 'ok' : 'degraded',
       database: databaseHealthy ? 'ok' : 'unreachable',
+      sha: process.env.GIT_SHA ?? null,
     },
-    { status: healthy ? 200 : 503 },
+    {
+      status: healthy ? 200 : 503,
+      headers: { 'Cache-Control': 'no-store' },
+    },
   )
 }

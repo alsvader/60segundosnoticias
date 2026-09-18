@@ -352,6 +352,7 @@ jobs:
             DATABASE_URI=postgres://release-placeholder-unreachable:5432/release-placeholder
             PAYLOAD_SECRET=release-placeholder-secret
             NEXT_PUBLIC_SITE_URL=https://60segundosnoticias.com
+            GIT_SHA=${{ github.sha }}
 
       - name: Build and push migrator
         uses: docker/build-push-action@v6
