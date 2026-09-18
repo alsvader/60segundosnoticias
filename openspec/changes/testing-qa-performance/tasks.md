@@ -338,7 +338,7 @@ en un change separado (`production-deployment-dokploy`).
   `push` a `main`, sin excepción. Verificado con una corrida real en
   GitHub Actions (PR #1) - el PR modificaba `package.json`, el filtro de
   path lo detectó correctamente y ambos targets construyeron con éxito.
-- [ ] 9.5 `.github/workflows/release.yml` creado: `ci-gates` (llama a
+- [x] 9.5 `.github/workflows/release.yml` creado: `ci-gates` (llama a
   `ci.yml` como workflow reusable) → `e2e-full` (Firefox/WebKit, los 8
   journeys críticos ahora etiquetados `@smoke-cross-browser` - ver nota
   bajo 9.14, gap descubierto e implementado aquí), `visual`,
@@ -388,9 +388,13 @@ en un change separado (`production-deployment-dokploy`).
   se commitearon deliberadamente como
   `tests/e2e/visual.spec.ts-snapshots/*-chromium-linux.png` - nunca
   generadas ni auto-aprobadas por CI, exactamente como se decidió cuando
-  se creó `test:e2e:pr`. **Pendiente**: una corrida real posterior que
-  confirme `visual` en verde con estas baselines y que `publish`/
-  `provenance` corran por primera vez.
+  se creó `test:e2e:pr`.
+  **Corrida real #5** (commit `46156e4`, con las baselines Linux ya
+  committeadas): los 10 jobs de `Release` pasaron de punta a punta -
+  `ci-gates` (4/4), `e2e-full`, `lighthouse`, `docker-smoke`, `visual`,
+  `publish` y `provenance`. Primera vez que `publish` corre y sube
+  imágenes reales a GHCR (`ghcr.io/alsvader/60segundosnoticias:runner-
+  46156e4`/`:runner-main`, `:migrator-46156e4`/`:migrator-main`).
 - [x] 9.6 Cachés: `actions/setup-node@v4` con `cache: pnpm` (store de
   pnpm) + `actions/cache@v4` sobre `~/.cache/ms-playwright` (keyed por
   hash de `pnpm-lock.yaml` **y por el conjunto exacto de navegadores
@@ -417,9 +421,9 @@ en un change separado (`production-deployment-dokploy`).
   (`ghcr.io/<owner>/60segundosnoticias:runner-<sha>`/`migrator-<sha>`) más
   el alias legible `-main`; el contrato de despliegue (`compose.dokploy.yaml`,
   tarea 9.9) usa exclusivamente el SHA. Permisos `contents: read`/
-  `packages: write` vía `GITHUB_TOKEN`, sin PAT. **Pendiente**: confirmar
-  que ambas imágenes existen en GHCR tras una corrida real (depende de
-  9.5).
+  `packages: write` vía `GITHUB_TOKEN`, sin PAT. Confirmado con la corrida
+  real #5 de la tarea 9.5: `publish` completó con éxito, ambas imágenes
+  (`runner`/`migrator`, tags por SHA y alias `-main`) publicadas en GHCR.
 - [x] 9.9 `compose.dokploy.yaml` (nuevo): `image:` a GHCR (nunca
   `build:`), Postgres 17 con volumen nombrado persistente, puerto 5432 sin
   publicar al host, `migrate` de un solo uso, `app` con
@@ -455,31 +459,38 @@ en un change separado (`production-deployment-dokploy`).
   Documentado explícitamente ahí: rollback de aplicación (reseleccionar un
   tag `runner-<sha>` anterior, nunca reconstruir) ≠ rollback de base de
   datos (sigue dependiendo de migraciones retrocompatibles).
-- [ ] 9.14 Verificación de punta a punta con corridas reales de GitHub
-  Actions: (1) PR de prueba - ya verificado en PR #1 (`quality`,
+- [x] 9.14 Verificación de punta a punta con corridas reales de GitHub
+  Actions: (1) PR de prueba - verificado en PR #1 (`quality`,
   `integration`, `e2e-pr`, `docker-build` pasando de punta a punta,
   incluyendo dos rondas de fixes reales: el binario `mc` descontinuado de
   `dl.min.io`, snapshots visuales solo-macOS, y el contraste de marca
-  Facebook/WhatsApp). **Pendiente**: (2) merge a `main` o
-  `workflow_dispatch` real para verificar la calificación FULL completa y
-  la publicación de imágenes en GHCR - no se fabrica este resultado sin
-  una corrida real. Gap descubierto e implementado durante esta tarea: los
-  8 journeys críticos de la sección 6 nunca habían sido etiquetados
-  `@smoke-cross-browser` (tarea 1.3 dejó la convención lista, pero
-  ninguna tarea posterior la aplicó) - sin este tag, `e2e-full` habría
-  corrido 0 tests en Firefox/WebKit. Aplicado a los 8 tests principales de
-  `public-reading`/`search`/`mobile-nav`/`cms-page`/`not-found`/
-  `redirects`/`preview`/`admin-smoke`. También descubierto:
-  `host.docker.internal` no se resuelve automáticamente en Docker Engine
-  de Linux (a diferencia de Docker Desktop) - `compose.prod.yaml` ahora
-  declara `extra_hosts: ['host.docker.internal:host-gateway']` en `app`
-  para que `docker-smoke.sh` funcione igual en el runner Linux de GitHub
-  Actions que en macOS local (verificado localmente tras el cambio - sigue
-  pasando). Si no existe todavía infraestructura Dokploy real
-  aprovisionada, el workflow automatizado se detiene en el límite de
-  entrega a Dokploy ya definido - no fabricar credenciales de producción
-  falsas solo para marcar la tarea como completa. La verificación real
-  contra VPS/Dokploy pertenece a `production-deployment-dokploy`.
+  Facebook/WhatsApp). (2) Merge a `main` (PR #1) + 5 corridas reales de
+  `release.yml` hasta la calificación FULL completa en verde (ver 9.5) -
+  `publish` publicó ambas imágenes en GHCR por primera vez en la corrida
+  #5 (commit `46156e4`). Gaps reales descubiertos e implementados durante
+  esta tarea: los 8 journeys críticos de la sección 6 nunca habían sido
+  etiquetados `@smoke-cross-browser` (tarea 1.3 dejó la convención lista,
+  pero ninguna tarea posterior la aplicó) - sin este tag, `e2e-full`
+  habría corrido 0 tests en Firefox/WebKit. Aplicado a los 8 tests
+  principales de `public-reading`/`search`/`mobile-nav`/`cms-page`/
+  `not-found`/`redirects`/`preview`/`admin-smoke`. `host.docker.internal`
+  no se resuelve automáticamente en Docker Engine de Linux (a diferencia
+  de Docker Desktop) - `compose.prod.yaml` ahora declara `extra_hosts:
+  ['host.docker.internal:host-gateway']` en `app`. Colisión de clave de
+  `actions/cache@v4` entre jobs con distintos navegadores instalados
+  (ver 9.6). El separador `--` de `pnpm run <script> -- <flags>` se
+  reenvía literalmente en vez de consumirse, rompiendo el filtro
+  `--project` de Playwright (ver design.md, Risks). Cookie `Secure`+
+  `SameSite=None` de Draft Mode de Next.js sobre `http://localhost`, que
+  WebKit no acepta - limitación real de entorno de prueba, no de
+  producto (ver design.md, Risks). Ninguno de estos 5 hallazgos se
+  enmascaró debilitando una prueba - cada uno se corrigió en su causa
+  raíz real o se documentó como limitación acotada y verificada. No
+  existe todavía infraestructura Dokploy real aprovisionada - el workflow
+  automatizado se detiene, como estaba planeado, en el límite de entrega
+  a Dokploy (publicación de imágenes + provenance); no se fabricaron
+  credenciales de producción falsas. La verificación real contra
+  VPS/Dokploy pertenece a `production-deployment-dokploy`.
 
 ## 10. Documentación y cierre
 
