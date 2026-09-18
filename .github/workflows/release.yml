@@ -192,8 +192,12 @@ jobs:
       # committeadas. La primera vez que este job corre no existen -
       # falla a propósito (design.md), sube las capturas "actual" como
       # artifact para revisión humana y commit deliberado, nunca
-      # auto-aprobado desde CI.
-      - run: pnpm test:visual -- --project=chromium
+      # auto-aprobado desde CI. `--project=chromium` vive en el propio
+      # script (nunca como `pnpm test:visual -- --project=chromium` en
+      # este step) - ver el comentario equivalente en `e2e-pr`/`ci.yml`
+      # sobre por qué `pnpm run <script> -- <flags>` reenvía el `--`
+      # literal y rompe el parseo de flags de Playwright.
+      - run: pnpm test:visual
 
       - name: Stop disposable MinIO
         if: always()

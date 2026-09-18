@@ -337,6 +337,32 @@ verifica la navegación real a `/buscar`.
   release.yml`. `visual` conserva intencionalmente la misma clave
   "chromium" que `e2e-pr` (ambos instalan exactamente el mismo conjunto y
   nunca corren en paralelo con él, ya que dependen de `ci-gates`).
+- **[Incidente real, resuelto] Tras corregir el incidente anterior,
+  `e2e-pr` (ci.yml) seguía fallando las mismas 16 pruebas
+  `@smoke-cross-browser` en Firefox/WebKit - un job que nunca debería
+  intentar correr esos navegadores (solo instala/usa chromium).** Causa
+  raíz, confirmada en vivo con una réplica mínima fuera de Playwright: el
+  step ejecutaba `pnpm test:e2e:pr -- --project=chromium` (y
+  `release.yml`'s `visual` el equivalente `pnpm test:visual --
+  --project=chromium`) - `pnpm run <script> -- <flags>` reenvía el
+  separador `--` de forma LITERAL al comando subyacente en vez de
+  consumirlo (confirmado con `pnpm echoargs -- --project=chromium
+  --list` → `process.argv` conserva el `--` inicial). Playwright CLI
+  interpreta ese `--` como fin-de-opciones, así que
+  `--project=chromium` (y hasta `--list`) se tratan como argumentos
+  posicionales (patrones de archivo) en vez de flags - la corrida
+  ejecutaba TODOS los proyectos (chromium + firefox + webkit) sin
+  filtro real. Esto nunca se manifestó en la corrida real de PR #1
+  (tarea 9.3) porque en ese momento ningún test tenía todavía la
+  etiqueta `@smoke-cross-browser` (se agregó recién en la tarea 9.5), así
+  que los proyectos firefox/webkit no encontraban ningún test que
+  ejecutar. → Corregido: `--project=chromium` ahora vive dentro de los
+  propios scripts `test:e2e:pr`/`test:visual` en `package.json` (nunca
+  como flag reenviado desde el step de CI); los steps de `ci.yml`/
+  `release.yml` corren `pnpm test:e2e:pr`/`pnpm test:visual` sin
+  argumentos adicionales. Verificado en local: `pnpm test:e2e:pr`
+  ejecuta exactamente 42 tests, todos `[chromium]`, cero intentos en
+  firefox/webkit.
 - **[Riesgo] `docker compose -f compose.test.yml` sin un `name:` de
   proyecto explícito deriva su nombre de proyecto del directorio —el
   mismo que usa `compose.yaml` de desarrollo por defecto—, lo que hace

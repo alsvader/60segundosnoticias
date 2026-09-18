@@ -356,8 +356,19 @@ en un change separado (`production-deployment-dokploy`).
   Firefox/WebKit con "Executable doesn't exist" - diagnosticado como una
   colisión de clave de `actions/cache@v4` con `e2e-pr` (ver 9.6 y
   design.md, Risks). Corregido escopando la clave por conjunto de
-  navegadores; **pendiente**: una corrida real posterior que confirme que
-  Firefox/WebKit pasan.
+  navegadores.
+  **Corrida real #2**: tras el fix anterior, `e2e-pr` (ci.yml) seguía
+  fallando las mismas 16 pruebas Firefox/WebKit - un job que solo debería
+  usar chromium. Causa raíz distinta: `pnpm test:e2e:pr --
+  --project=chromium`/`pnpm test:visual -- --project=chromium` reenvían
+  el `--` de forma literal a Playwright, que lo trata como
+  fin-de-opciones y nunca aplica el filtro de proyecto - ver design.md,
+  Risks, para la réplica mínima que lo confirma. Corregido moviendo
+  `--project=chromium` dentro de los propios scripts `test:e2e:pr`/
+  `test:visual` en `package.json`; verificado en local
+  (`pnpm test:e2e:pr` → 42 tests, todos `[chromium]`).
+  **Pendiente**: una corrida real posterior que confirme `e2e-pr`,
+  `e2e-full` y `visual` en verde de punta a punta.
 - [x] 9.6 Cachés: `actions/setup-node@v4` con `cache: pnpm` (store de
   pnpm) + `actions/cache@v4` sobre `~/.cache/ms-playwright` (keyed por
   hash de `pnpm-lock.yaml` **y por el conjunto exacto de navegadores
