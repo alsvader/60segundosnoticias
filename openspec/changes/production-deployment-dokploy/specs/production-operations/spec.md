@@ -1,6 +1,6 @@
 ## Purpose
 
-Define las garantías operativas que hacen sostenible correr PostgreSQL self-hosted en el VPS de producción — la condición que el Master Spec (§69.1) exige para que esa opción sea válida — más los procedimientos reproducibles de primer arranque y de decisión de rollback que un operador humano ejecuta fuera de la pipeline automatizada.
+Define las garantías operativas que debe cumplir la base de datos de producción — respaldo periódico, almacenamiento externo y capacidad de restauración verificada — con independencia de quién las provea, más los procedimientos reproducibles de primer arranque y de decisión de rollback que un operador humano ejecuta fuera de la pipeline automatizada.
 
 ## ADDED Requirements
 
@@ -15,12 +15,16 @@ La base de datos PostgreSQL de producción SHALL respaldarse de forma automátic
 - **WHEN** un respaldo existente supera el período de retención definido
 - **THEN** ese respaldo SHALL quedar elegible para eliminación conforme a la retención configurada
 
-### Requirement: Los respaldos se almacenan cifrados y fuera del VPS
-Cada respaldo de la base de datos de producción SHALL cifrarse y SHALL almacenarse en un destino externo al VPS, separado del almacenamiento de objetos usado para Media.
+### Requirement: Los respaldos se almacenan cifrados en reposo y fuera del VPS
+Cada respaldo de la base de datos de producción SHALL almacenarse cifrado en reposo, en un destino externo al VPS, separado del almacenamiento de objetos usado para Media, y con credenciales distintas de las que sirven Media.
 
 #### Scenario: Se genera un respaldo
 - **WHEN** se genera un nuevo respaldo de la base de datos de producción
-- **THEN** el respaldo SHALL quedar cifrado y almacenado en un destino externo al VPS distinto del bucket de Media
+- **THEN** el respaldo SHALL quedar almacenado cifrado en reposo, en un destino externo al VPS distinto del bucket de Media
+
+#### Scenario: Una credencial de Media queda comprometida
+- **WHEN** la credencial usada para servir Media queda comprometida
+- **THEN** esa credencial SHALL NOT permitir leer ni eliminar los respaldos de la base de datos
 
 ### Requirement: La capacidad de restauración se verifica periódicamente
 La capacidad de restaurar un respaldo de producción a un entorno desechable SHALL verificarse de forma periódica, y cada verificación SHALL confirmar que el contenido restaurado es utilizable — no solo que el archivo de respaldo existe.

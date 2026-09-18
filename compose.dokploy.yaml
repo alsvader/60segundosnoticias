@@ -20,6 +20,19 @@
 # puntero mutable (tarea 9.8/9.13). Dokploy provee estos valores junto al
 # resto del entorno de runtime en el momento del despliegue - ninguno de
 # ellos vive en este repositorio ni en GitHub Actions (tarea 9.7).
+#
+# PostgreSQL NO vive en este archivo a propósito (openspec/changes/
+# production-deployment-dokploy): es un servicio de base de datos
+# gestionado por Dokploy, con sus respaldos programados a S3 y su restore
+# como función nativa de la plataforma. `DATABASE_URI` apunta a él. Esto
+# ya era una configuración soportada por el spec `production-deployment`
+# ("`DATABASE_URI` es agnóstico del proveedor de PostgreSQL": la app y el
+# job de migración funcionan sin requerir un servicio `db` en este
+# Compose), y es lo que el Master Spec §69.1 prefiere sobre una base
+# self-hosted cuyos respaldos tendría que construir y mantener este
+# repositorio. Consecuencia deliberada: la definición de la base (versión,
+# volumen, calendario de respaldo) vive en Dokploy, no en git - el
+# procedimiento para recrearla está en `docs/OPERATIONS.md`.
 
 services:
   migrate:
@@ -27,9 +40,11 @@ services:
     environment:
       DATABASE_URI: ${DATABASE_URI}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET}
-    depends_on:
-      db:
-        condition: service_healthy
+    # Sin `depends_on: db` - PostgreSQL ya no vive en este stack (ver el
+    # encabezado). `DATABASE_URI` apunta a un servicio de base de datos
+    # gestionado por Dokploy, con su propio ciclo de vida, anterior e
+    # independiente al de este Compose.
+    #
     # Job de un solo uso - nunca un servicio de larga duración (AC-DB-004).
     restart: 'no'
 
@@ -56,103 +71,3 @@ services:
       migrate:
         condition: service_completed_successfully
     restart: unless-stopped
-
-  # Postgres 17 con volumen nombrado persistente - a diferencia de
-  # compose.prod.yaml (perfil `self-hosted`, siempre desechable), este es
-  # el Postgres de producción real. Puerto 5432 SHALL NOT publicarse al
-  # host: los runners de GitHub Actions SHALL NOT conectarse directamente
-  # a él, y SHALL NOT exponerse a Internet para CI/CD (tarea 9.10) - solo
-  # `migrate`/`app`, dentro de la red interna de Compose/Dokploy, lo
-  # alcanzan.
-  db:
-    image: postgres:17-alpine
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-
-  # Backups de `db` (openspec/changes/production-deployment-dokploy,
-  # Etapa 6 "Backups"). El Master Spec §69.1 solo permite Postgres
-  # self-hosted si el operador asume backups y recuperación - este
-  # servicio es esa contrapartida obligatoria, no una mejora opcional.
-  #
-  # Imagen pública fijada por DIGEST (nunca por tag mutable ni `build:` -
-  # mismo invariante que `migrate`/`app`/`db`: el VPS solo hace `pull`).
-  # `dzangolab/postgres-17-backup-s3` se construye sobre `postgres:17`
-  # (Dockerfile.amd64/arm64 del repo `dzangolab/dockerfiles`, carpeta
-  # `postgres-17-backup-s3`, commit más reciente del 2026-09-17) - se
-  # verificó el pg_dump de la imagen coincide con la versión del `db` de
-  # este archivo (Postgres 17), y que el digest de abajo resuelve a un
-  # manifest list real (amd64+arm64) vía `docker manifest inspect`.
-  #
-  # Flujo interno (backup.sh): pg_dump -> gzip -> (si
-  # BACKUP_ENCRYPTION_PASSPHRASE está definida) cifrado simétrico con
-  # OpenSSL AES-256-CBC -> `aws s3 cp` al bucket de backups. Nota para
-  # quien revise esto: la variable de cifrado se documentó en el plan
-  # como "gpg", pero esta imagen (la única con soporte a Postgres 17
-  # verificable y mantenimiento activo que se encontró) usa OpenSSL con
-  # frase de paso en vez de GnuPG - mismo resultado (cifrado simétrico en
-  # reposo con una frase de paso que vive en Dokploy y en el gestor de
-  # contraseñas del operador), mecanismo distinto. Si se requiere GnuPG
-  # literal, es una decisión humana pendiente, no algo que este servicio
-  # decidió por su cuenta.
-  backup:
-    image: dzangolab/postgres-17-backup-s3@sha256:f3fda8a587d547f6031b8dec2c46f063ff132706522af3ce1f7d8c264f3c94a1
-    environment:
-      # Alcanza `db` por la red interna de Compose - 5432 sigue sin
-      # publicarse al host (mismo invariante que el resto del archivo).
-      POSTGRES_HOST: db
-      POSTGRES_PORT: '5432'
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DATABASES: ${POSTGRES_DB}
-      # Bucket y credenciales SEPARADOS del `S3_*` de `app` (ese es para
-      # medios públicos de Payload) - un token de backups nunca debe
-      # poder servir/borrar medios del sitio, y viceversa.
-      # Retención de 30 días: esta imagen no borra objetos viejos por su
-      # cuenta (no tiene una opción `REMOVE_BEFORE`/equivalente) - la
-      # retención SHALL configurarse como una regla de expiración
-      # (lifecycle) de 30 días en el bucket `${BACKUP_S3_BUCKET}` mismo,
-      # del lado del proveedor S3. Es una tarea manual del operador sobre
-      # el bucket, no algo que este `docker-compose.yml` pueda expresar.
-      S3_BUCKET: ${BACKUP_S3_BUCKET}
-      S3_ACCESS_KEY_ID: ${BACKUP_S3_ACCESS_KEY_ID}
-      S3_SECRET_ACCESS_KEY: ${BACKUP_S3_SECRET_ACCESS_KEY}
-      S3_REGION: ${BACKUP_S3_REGION}
-      S3_ENDPOINT: ${BACKUP_S3_ENDPOINT}
-      # R2 (y la mayoría de S3-compatibles fuera de AWS) requiere Signature
-      # v4 explícito - no es un secreto, por eso no es un ${VAR}.
-      S3_S3V4: 'yes'
-      # Frase de paso para el cifrado simétrico de cada dump (ver nota
-      # arriba sobre OpenSSL vs GnuPG). Debe vivir en Dokploy Y en el
-      # gestor de contraseñas del operador - una frase que solo existe en
-      # el VPS no es un backup recuperable.
-      #
-      # El nombre de la variable DENTRO del container SHALL ser
-      # exactamente `ENCRYPTION_PASSWORD`: es el nombre que lee
-      # `backup.sh` de la imagen (`if [ -n "${ENCRYPTION_PASSWORD:-}" ]`),
-      # y el cifrado ahí es OPCIONAL - si la variable no llega con ese
-      # nombre exacto, la imagen no falla: sube el dump en texto plano, en
-      # silencio. Verificado leyendo el `backup.sh` publicado del upstream.
-      ENCRYPTION_PASSWORD: ${BACKUP_ENCRYPTION_PASSPHRASE}
-      # 03:00 America/Mexico_City == 09:00 UTC. México eliminó el horario
-      # de verano en todo el país en 2022 (decreto de reforma), así que
-      # la Ciudad de México permanece en UTC-6 fijo todo el año - esta
-      # expresión no necesita ajustarse por temporada. Formato de 5
-      # campos de `go-cron`/`robfig/cron` (min hora dom mes dow).
-      SCHEDULE: '0 9 * * *'
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
-
-volumes:
-  postgres_data:

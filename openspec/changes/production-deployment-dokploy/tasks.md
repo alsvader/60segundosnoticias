@@ -118,24 +118,28 @@
 
 ## 6. Operación: backups, rollback, primer arranque
 
-- [ ] 6.1 Confirmar si la UI de backups nativa de Dokploy puede
-  respaldar un Postgres que vive dentro de un stack de Compose, o si su
-  flujo solo apunta a *database services* administrados directamente
-  por Dokploy; reportar el resultado en vez de decidirlo unilateralmente.
-  Verificar con evidencia de la documentación/UI de la instancia del
-  operador citada en el reporte.
-- [ ] 6.2 Agregar el servicio `backup` a `compose.dokploy.yaml`: imagen
-  pública `pg_dump`→gzip→gpg→S3 fijada por digest,
-  `depends_on: db: condition: service_healthy`, alcanzando `db` por la
-  red interna sin publicar 5432, corrida diaria 03:00
-  America/Mexico_City, retención 30 días, destino un bucket R2 separado
-  del de Media con token propio. Verificar con
-  `docker compose -f compose.dokploy.yaml config` validando sintaxis y
-  confirmando que el servicio no publica ningún puerto.
-- [ ] 6.3 Documentar que el cifrado combina SSE del bucket más una
-  passphrase gpg que debe vivir tanto en Dokploy como en el gestor de
-  contraseñas del operador. Verificar por revisión manual de
-  `docs/OPERATIONS.md` (sección 8).
+- [x] 6.1 Resuelto durante la implementación: la documentación de Dokploy
+  solo describe respaldo/restauración para *database services* propios de
+  la plataforma, nunca para una base embebida en un stack de Compose.
+  Además, la auditoría de la imagen de respaldo de terceros candidata
+  encontró que su cifrado es opcional y falla en silencio (una variable
+  mal nombrada sube los dumps en texto plano sin error), que no implementa
+  retención, y que su `Dockerfile` descarga un binario de 2015 con la
+  verificación TLS deshabilitada. Ambos hallazgos llevaron a la decisión
+  registrada en design.md, Decisión 5.
+- [x] 6.2 Sacar PostgreSQL de `compose.dokploy.yaml`: eliminados el
+  servicio `db`, el servicio `backup` y el volumen `postgres_data`;
+  `migrate` ya no declara `depends_on: db`. `DATABASE_URI` apunta a un
+  servicio de base de datos gestionado por Dokploy. Verificado con
+  `docker compose -f compose.dokploy.yaml config`: el stack queda en
+  `migrate` + `app`, y los placeholders `POSTGRES_*`/`BACKUP_*`
+  desaparecieron del archivo.
+- [ ] 6.3 Documentar en `docs/OPERATIONS.md` la configuración de los
+  respaldos programados en Dokploy: destino S3 propio (credenciales
+  distintas de las de Media, limitadas a ese bucket), calendario,
+  retención, y el hecho de que el cifrado es en reposo del destino, no
+  del dump del lado del cliente. Verificar por revisión manual de que lo
+  documentado coincide con lo realmente configurado en la instancia.
 - [ ] 6.4 Documentar el procedimiento de drill de restauración: se
   ejecuta en la laptop del operador (nunca en el VPS), con proyecto
   Compose aislado `-p 60segundosnoticias-restore`; aserciones: última
