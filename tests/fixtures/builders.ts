@@ -22,6 +22,8 @@ export type BaseFixtures = {
   categories: Category[]
   publishedPost: Post
   draftPost: Post
+  /** Article adicional con un `EmbedBlock` (TikTok) en su contenido - openspec/changes/testing-qa-performance, tarea 8.3 (Lighthouse necesita un Article representativo con embed, reportado como diagnóstico, no como gate - ver lighthouserc.json). */
+  embedPost: Post
   page: Page
   /** URL legacy (no reescrita a mano) con un redirect 301 real hacia `publishedPost`, para tests/e2e/redirects.spec.ts. */
   legacyRedirectFrom: string
@@ -35,6 +37,44 @@ const richText = (paragraphs: string[]) => ({
       version: 1,
       children: [{ type: 'text', text, version: 1 }],
     })),
+    direction: 'ltr' as const,
+    format: '' as const,
+    indent: 0,
+    version: 1,
+  },
+})
+
+/**
+ * Igual que `richText`, pero inserta un nodo `EmbedBlock` (TikTok, un
+ * provider soportado por `src/components/content/blocks/tiktok-embed.tsx`)
+ * entre los párrafos - forma de nodo verificada contra
+ * `@payloadcms/richtext-lexical`, `features/blocks/server/nodes/
+ * BlocksNode.d.ts` (`SerializedBlockNode`): un nodo `block` hijo directo de
+ * `root`, nunca anidado dentro de un párrafo.
+ */
+const richTextWithEmbed = (paragraphs: string[], embedUrl: string) => ({
+  root: {
+    type: 'root',
+    children: [
+      ...paragraphs.map((text) => ({
+        type: 'paragraph',
+        version: 1,
+        children: [{ type: 'text', text, version: 1 }],
+      })),
+      {
+        type: 'block',
+        format: '',
+        version: 2,
+        fields: {
+          id: 'fixture-embed-block',
+          blockName: '',
+          blockType: 'embedBlock',
+          provider: 'tiktok',
+          url: embedUrl,
+          alignment: 'left',
+        },
+      },
+    ],
     direction: 'ltr' as const,
     format: '' as const,
     indent: 0,
@@ -150,6 +190,34 @@ export async function createPublishedPost(
   })
 }
 
+export async function createEmbedPost(
+  payload: Payload,
+  options: { author: number; category: number; featuredImage: number },
+): Promise<Post> {
+  const existing = await findExistingPost(payload, 'fixture-post-embed')
+  if (existing) {
+    return existing
+  }
+  return payload.create({
+    collection: 'posts',
+    data: {
+      _status: 'published',
+      author: options.author,
+      content: richTextWithEmbed(
+        ['Contenido fijo del fixture de Post con embed, usado por Lighthouse (diagnóstico, no gate) y pruebas E2E.'],
+        'https://www.tiktok.com/@fixture/video/1234567890123456789',
+      ),
+      excerpt: 'Excerpt fijo del fixture de Post con embed.',
+      featuredImage: options.featuredImage,
+      primaryCategory: options.category,
+      publishedAt: '2026-01-01T12:00:00.000Z',
+      slug: 'fixture-post-embed',
+      title: 'Post con embed de fixture',
+    },
+    overrideAccess: true,
+  })
+}
+
 export async function createDraftPost(
   payload: Payload,
   options: { author: number; category: number },
@@ -172,7 +240,12 @@ export async function createDraftPost(
   })
 }
 
-export async function createPage(payload: Payload): Promise<Page> {
+/**
+ * `layout` con un Hero + un RichText - "bloques típicos" para que
+ * Lighthouse (openspec/changes/testing-qa-performance, tarea 8.3) mida una
+ * Page representativa, no una página vacía con solo un título.
+ */
+export async function createPage(payload: Payload, media: Media): Promise<Page> {
   const existing = await payload.find({
     collection: 'pages',
     limit: 1,
@@ -184,7 +257,24 @@ export async function createPage(payload: Payload): Promise<Page> {
   }
   return (await payload.create({
     collection: 'pages',
-    data: { _status: 'published', slug: 'fixture-page', title: 'Página de fixture' },
+    data: {
+      _status: 'published',
+      slug: 'fixture-page',
+      title: 'Página de fixture',
+      layout: [
+        {
+          blockType: 'hero',
+          title: 'Página de fixture',
+          description: 'Página de contenido estático usada por pruebas E2E y Lighthouse.',
+          image: media.id,
+          alignment: 'left',
+        },
+        {
+          blockType: 'richText',
+          content: richText(['Contenido fijo de la Page de fixture, representativo para medir Lighthouse.']),
+        },
+      ],
+    },
     overrideAccess: true,
   })) as Page
 }
@@ -245,7 +335,78 @@ export async function configureShellGlobals(payload: Payload, categories: Catego
   if (!siteSettings.branding?.siteName) {
     await payload.updateGlobal({
       slug: 'siteSettings',
-      data: { branding: { siteName: '60 Segundos Noticias (fixture)' } },
+      data: {
+        branding: { siteName: '60 Segundos Noticias (fixture)' },
+        // Sin esto, Home/Category (sin meta description propia) no tienen
+        // fallback y Lighthouse falla el audit `meta-description` -
+        // openspec/changes/testing-qa-performance, tarea 8.4.
+        seo: { defaultMetaDescription: 'Portal editorial y multimedia 60 Segundos Noticias (fixture de pruebas).' },
+      },
+      overrideAccess: true,
+    })
+  }
+}
+
+/**
+ * Home con bloques poblados (EditorialIntro, HeroNews, LatestPosts,
+ * PostsByCategory) usando únicamente contenido de fixtures - openspec/
+ * changes/testing-qa-performance, tarea 8.3. Mismo patrón idempotente que
+ * `src/payload/seed/dev.ts` (marcador fijo por bloque, nunca sobreescribe
+ * un Home ya configurado por seed:initial o por un Admin real).
+ */
+export async function configureHomeBlocks(
+  payload: Payload,
+  options: { media: Media; categories: Category[]; publishedPost: Post; embedPost: Post },
+): Promise<void> {
+  const home = await payload.findGlobal({ slug: 'home', depth: 0, overrideAccess: true })
+  const existingLayout = home.layout ?? []
+  const newBlocks: NonNullable<typeof home.layout> = []
+
+  const EDITORIAL_INTRO_HEADLINE = 'Fixture'
+  if (!existingLayout.some((block) => block.blockType === 'editorialIntro' && block.headlinePrimary === EDITORIAL_INTRO_HEADLINE)) {
+    newBlocks.push({
+      blockType: 'editorialIntro',
+      headlinePrimary: EDITORIAL_INTRO_HEADLINE,
+      headlineAccent: 'Home',
+      description: 'Home de fixture, usado por Lighthouse y pruebas E2E.',
+      backgroundImage: options.media.id,
+      foregroundImage: options.media.id,
+      cta: { label: 'Ver últimas noticias', type: 'external', url: 'http://localhost:3000/' },
+    })
+  }
+
+  if (!existingLayout.some((block) => block.blockType === 'heroNews')) {
+    newBlocks.push({
+      blockType: 'heroNews',
+      eyebrow: 'Fixture',
+      headline: options.publishedPost.title,
+      contentMode: 'manual',
+      mainPost: options.publishedPost.id,
+      secondaryPosts: [options.embedPost.id],
+    })
+  }
+
+  const LATEST_POSTS_TITLE = 'Últimas noticias (fixture)'
+  if (!existingLayout.some((block) => block.blockType === 'latestPosts' && block.title === LATEST_POSTS_TITLE)) {
+    newBlocks.push({ blockType: 'latestPosts', title: LATEST_POSTS_TITLE, limit: 6, layout: 'grid' })
+  }
+
+  const POSTS_BY_CATEGORY_TITLE = options.categories[0].name
+  if (!existingLayout.some((block) => block.blockType === 'postsByCategory' && block.title === POSTS_BY_CATEGORY_TITLE)) {
+    newBlocks.push({
+      blockType: 'postsByCategory',
+      title: POSTS_BY_CATEGORY_TITLE,
+      category: options.categories[0].id,
+      limit: 6,
+      layout: 'grid',
+      showViewAll: false,
+    })
+  }
+
+  if (newBlocks.length > 0) {
+    await payload.updateGlobal({
+      slug: 'home',
+      data: { layout: [...existingLayout, ...newBlocks], _status: 'published' },
       overrideAccess: true,
     })
   }
@@ -262,9 +423,15 @@ export async function seedBaseFixtures(payload: Payload): Promise<BaseFixtures> 
     category: categories[0].id,
     featuredImage: media.id,
   })
+  const embedPost = await createEmbedPost(payload, {
+    author: writerA.id,
+    category: categories[0].id,
+    featuredImage: media.id,
+  })
   const draftPost = await createDraftPost(payload, { author: writerA.id, category: categories[0].id })
-  const page = await createPage(payload)
+  const page = await createPage(payload, media)
   await configureShellGlobals(payload, categories, page)
+  await configureHomeBlocks(payload, { media, categories, publishedPost, embedPost })
   const legacyRedirect = await createLegacyRedirect(payload, publishedPost, categories[0])
 
   return {
@@ -275,6 +442,7 @@ export async function seedBaseFixtures(payload: Payload): Promise<BaseFixtures> 
     categories,
     publishedPost,
     draftPost,
+    embedPost,
     page,
     legacyRedirectFrom: legacyRedirect.from,
   }
