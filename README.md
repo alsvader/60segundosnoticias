@@ -120,7 +120,7 @@ Esto genera un archivo en `src/payload/migrations/`. Revísalo, y commitéalo ju
 
 **Cuidado al mezclar push mode con `migrate`**: si la base de datos ya fue sincronizada por push mode (por ejemplo, tras usar `docker compose up` normalmente), `payload migrate` puede pedir una confirmación interactiva ("It looks like you've run Payload in dev mode... proceed?") antes de aplicar. Sin una terminal interactiva adjunta (scripts, `docker compose run --rm` sin `-it`, CI) ese prompt se queda esperando input indefinidamente sin mostrar ningún error — si un comando de migración parece colgado sin salida, es casi seguro esta confirmación sin responder. Ejecuta `migrate` contra una base de datos que push mode todavía no haya tocado, o hazlo desde una terminal interactiva donde puedas responder el prompt.
 
-### Los cuatro roles de la base de datos en este proyecto
+### Los cinco roles de la base de datos en este proyecto
 
 Payload PostgreSQL soporta push mode y `migrate` como flujos deliberadamente distintos, y este proyecto los mantiene separados en cuatro roles que nunca se mezclan:
 
@@ -128,6 +128,7 @@ Payload PostgreSQL soporta push mode y `migrate` como flujos deliberadamente dis
 2. **Migraciones en `src/payload/migrations/`**: artefactos generados por `pnpm migrate:create`, revisados a mano y versionados en git junto con el cambio de código que los origina. Describen el schema que debe existir en cualquier base gestionada por `migrate` — no se ejecutan contra la base de desarrollo local.
 3. **Verificación de la cadena de migraciones**: antes de confiar en una migración nueva, se aplica contra una base PostgreSQL limpia y desechable (por ejemplo, `CREATE DATABASE` temporal en el mismo servidor, o un contenedor Postgres aparte), corriendo la cadena completa desde cero (`pnpm migrate` contra esa base con su propio `DATABASE_URI`) y confirmando con `payload migrate:status` que todas las migraciones quedan `Ran: Yes`. La base desechable se destruye después; la de desarrollo nunca se toca en este proceso.
 4. **Orquestación de migraciones en producción/CI**: el job de migración corre como un paso de despliegue separado (imagen `migrator`, un solo uso) antes de que la nueva release del App Container empiece a servir tráfico — nunca automáticamente en cada arranque. Ver `docs/DEPLOYMENT.md` para el flujo completo.
+5. **Base de datos desechable de pruebas** (`compose.test.yml`, puerto `5433`, base `60segundos_test`): Postgres efímero (sin volumen nombrado) para la suite automatizada — regresión de la cadena de migraciones, pruebas de integración y el servidor de producción usado por E2E/accesibilidad/regresión visual/Lighthouse. Nunca push mode: siempre `migrate` desde cero. `tests/setup/assert-test-database.ts` exige que cualquier `DATABASE_URI` usado por pruebas termine en `_test` y apunte a un host/puerto reconocido explícitamente, para que un error de configuración nunca alcance por accidente la base de desarrollo o de producción. Ver `docs/TESTING.md` para el detalle completo de la suite de pruebas.
 
 Para regenerar los tipos de TypeScript después de cambiar cualquier Collection:
 
@@ -229,6 +230,7 @@ Para comprobar/preparar ese entorno opcional:
 - `docs/DESIGN-SYSTEM.md` — referencia de implementación del Design System (Phase 4).
 - `docs/FRONTEND-ARCHITECTURE.md` — referencia de arquitectura del frontend (DAL, View Models, resolvers, Home Block Pipeline — Phases 5-6).
 - `docs/SEARCH.md` — arquitectura de búsqueda, reindex, limitaciones (Phase 9).
+- `docs/TESTING.md` — capas de prueba, comandos, guard de base de datos de pruebas, niveles de CI, checklist manual de QA (Phase 11).
 - `docs/AI-WORKFLOW.md` — workflow de desarrollo asistido por IA / SDD.
 - `docs/AI-SKILLS.md` — registro humano de project skills.
 - `docs/ASSETS.md` — inventario y reglas de assets visuales.

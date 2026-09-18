@@ -494,25 +494,32 @@ en un change separado (`production-deployment-dokploy`).
 
 ## 10. Documentación y cierre
 
-- [ ] 10.1 Crear `docs/TESTING.md` documentando capas de prueba, comandos,
-  el guard de seguridad de la base de datos de pruebas, setup de E2E, smoke
-  de producción, Lighthouse, checklist de QA manual (navegación solo con
-  teclado, foco visible, orden de foco lógico, jerarquía de encabezados, zoom/
-  reflow, sanity de lector de pantalla, `prefers-reduced-motion`), niveles de
-  CI, y las limitaciones de V1 que las pruebas deben preservar (búsqueda
-  insensible a acentos no soportada, sin coincidencia entre campos, sin
-  tolerancia a errores de tipeo). Verificar que cada comando documentado
-  existe realmente en `package.json`.
-- [ ] 10.2 Añadir un párrafo en `README.md` reconociendo el quinto rol de
-  base de datos (desechable para pruebas) junto a los roles ya documentados
-  (dev/migración-manual/producción), con un enlace a `docs/TESTING.md`.
-  Verificar que los comandos mencionados coinciden con los scripts reales.
-- [ ] 10.3 Ejecutar `pnpm typecheck && pnpm lint && pnpm test && pnpm build`
-  en el estado final del cambio y confirmar que los cuatro pasan.
-- [ ] 10.4 Ejecutar `graphify update .` para refrescar el grafo con los
-  nuevos archivos de prueba, configuración y workflows. Verificar que
-  `graphify query "test infrastructure"` devuelve nodos relevantes tras el
-  refresh.
-- [ ] 10.5 Ejecutar `openspec verify testing-qa-performance` y resolver
-  cualquier discrepancia entre lo implementado y los artefactos de la fase
-  antes de proponer el archivado.
+- [x] 10.1 Creado `docs/TESTING.md`: tabla de capas de prueba con su
+  comando exacto, layout de `tests/`, el guard de seguridad de la base de
+  datos de pruebas (`RECOGNIZED_TEST_DB_HOSTS`), `compose.test.yml`,
+  setup de E2E (incluyendo la convención `*-chromium-<os>.png` y el
+  bloqueo de terceros/embeds), smoke de Docker de producción, la matriz
+  `assertMatrix` de Lighthouse explicada por patrón de URL, niveles de CI
+  (`ci.yml` vs `release.yml`), checklist manual de QA (teclado, foco
+  visible, orden de foco, jerarquía de encabezados, zoom/reflow, lector
+  de pantalla, `prefers-reduced-motion`), y las limitaciones de V1 de
+  búsqueda (acentos, matching entre campos, typos - `docs/SEARCH.md`).
+  Cada comando verificado uno por uno contra `package.json`.
+- [x] 10.2 Añadido un quinto punto a "Los cuatro roles..." (renombrado a
+  "Los cinco roles...") en `README.md`, describiendo la base de datos
+  desechable de pruebas (`compose.test.yml`, `60segundos_test`,
+  `assert-test-database.ts`) con enlace a `docs/TESTING.md`; agregada
+  también la entrada correspondiente en "Referencias de documentación".
+- [x] 10.3 Ejecutado `pnpm typecheck && pnpm lint && pnpm test && pnpm build`
+  en el estado final del cambio - los cuatro pasan (`test:unit`: 91/91;
+  `build`: `/`, `/buscar` y `/sitemap.xml` siguen `ƒ` dinámico, invariante
+  de `runtime-public-rendering` preservado).
+- [x] 10.4 Ejecutado `graphify update .` (3357 nodos, 4746 edges, 253
+  comunidades). `graphify query "test infrastructure"` devuelve 34 nodos
+  relevantes (specs, todos los `.spec.ts` de `tests/e2e/`, helpers,
+  fixtures).
+- [x] 10.5 Ejecutado `/opsx:verify testing-qa-performance`: 68/68 tareas,
+  19/19 requirements de los 3 delta specs con implementación/prueba real
+  correspondiente (`test-infrastructure`, `cms-integration-testing`,
+  `quality-and-performance`), sin divergencias de diseño. Sin
+  discrepancias que resolver - listo para archivar.
