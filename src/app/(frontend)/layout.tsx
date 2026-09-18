@@ -26,17 +26,31 @@ export const metadata: Metadata = {
 }
 
 /**
- * Fase 8: `force-dynamic` (Fase 5) se removió. Navigation/Footer/
- * SiteSettings ahora se sirven vía `unstable_cache`, con tags específicos
- * invalidados por hooks `afterChange` en cada Global
+ * Fase 11 (openspec/changes/runtime-public-rendering): `force-dynamic`
+ * (removido en Fase 8) está de vuelta, pero por una razón distinta a la
+ * original de Fase 5 (postura sin-cache) - `next build` intenta generar
+ * `/` y `/buscar` de forma estática por defecto, y esa generación
+ * estática ejecuta las mismas consultas a Payload que fallan sin una base
+ * de datos alcanzable en build time (invariante de Fase 10,
+ * `production-docker-image`: `docker build --target runner` no debe
+ * requerir Postgres). Confirmado en vivo: `docker-smoke.sh` fallaba en
+ * `docker build` mismo, antes de que existiera ningún container.
+ *
+ * Navigation/Footer/SiteSettings/Home siguen serviéndose vía
+ * `unstable_cache`, con tags específicos invalidados por hooks
+ * `afterChange` en cada Global
  * (`src/payload/hooks/shell/cache-invalidation.ts`) - "administrable sin
- * cambio de código" (AC-NAV-004, AC-FOOT-001/002) se cumple mediante
- * invalidación dirigida en vez de deshabilitar toda cache. Verificado en
- * vivo: un cambio de contenido (Post) se refleja en la siguiente request
- * sin rebuild (ver `openspec/changes/preview-seo-cache-redirects/tasks.md`
+ * cambio de código" (AC-NAV-004, AC-FOOT-001/002) sigue cumpliéndose
+ * mediante invalidación dirigida, ahora sirviendo cada request de forma
+ * dinámica en vez de una página estática revalidada por tag. `dynamic`
+ * (modo de render/Full Route Cache) y `unstable_cache` (Data Cache) son
+ * capas independientes en Next.js - este cambio no toca la segunda.
+ * Verificado en vivo: un cambio de contenido (Post) se refleja en la
+ * siguiente request sin rebuild (ver `openspec/changes/preview-seo-cache-redirects/tasks.md`
  * §4.1); Navigation/Footer/SiteSettings específicamente se verifican en
  * la sección 16 (requieren un usuario Admin real).
  */
+export const dynamic = 'force-dynamic'
 
 /**
  * The only place in the site shell that calls the DAL. Header/Footer/

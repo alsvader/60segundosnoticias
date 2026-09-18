@@ -31,8 +31,18 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 SMOKE_PROJECT='60segundosnoticias-smoke'
 COMPOSE=(docker compose -p "$SMOKE_PROJECT" -f compose.prod.yaml --profile self-hosted)
 
+# Nombre terminado en `_test`: requerido por
+# `tests/setup/assert-test-database.ts` (usado por `scripts/seed-e2e.ts`
+# más abajo) - ese guard exige tanto el sufijo `_test` como un host/puerto
+# reconocido antes de permitir cualquier siembra contra una base de
+# datos, precisamente para que un error de configuración no pueda
+# apuntarlo por accidente a una base real. `db:5432` (este servicio
+# desechable de `compose.prod.yaml --profile self-hosted`, dentro de la
+# red de Compose) es el segundo par host/puerto reconocido, junto al
+# `localhost:5433` de `compose.test.yml`.
+export POSTGRES_DB='60segundos_smoke_test'
 export POSTGRES_PASSWORD='docker-smoke-disposable-pw'
-export DATABASE_URI="postgres://postgres:${POSTGRES_PASSWORD}@db:5432/60segundos"
+export DATABASE_URI="postgres://postgres:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}"
 export PAYLOAD_SECRET='docker-smoke-disposable-payload-secret'
 export PREVIEW_SECRET='docker-smoke-disposable-preview-secret'
 export NEXT_PUBLIC_SITE_URL='http://localhost:3000'

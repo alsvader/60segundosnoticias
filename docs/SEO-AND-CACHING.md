@@ -60,7 +60,7 @@ Invalidación (`src/lib/cache/invalidate.ts`): `revalidateTag(tag, { expire: 0 }
 
 Hooks `afterChange`/`afterDelete` por Collection/Global en `src/payload/hooks/*/cache-invalidation.ts`. Posts/Pages/Home branchean draft-vs-published (`previousDoc._status`/`doc._status`) — un guardado que nunca hizo público el documento no invalida nada. `src/lib/cache/references.ts` determina si un Post afecta Home (bloques manuales `HeroNews`/`FeaturedPosts`/`VideoFeature`) o si un Category/Page afecta Navigation/Footer (solo el `slug` de esos documentos se embebe en los enlaces resueltos) antes de invalidar esos tags — nunca incondicionalmente.
 
-`export const dynamic = 'force-dynamic'` (Fase 5) se removió de `(frontend)/layout.tsx` una vez verificada la invalidación.
+`export const dynamic = 'force-dynamic'` (Fase 5) se removió de `(frontend)/layout.tsx` una vez verificada la invalidación, y volvió en Fase 11 (`openspec/changes/runtime-public-rendering`) - también en `src/app/sitemap.ts` - por una razón distinta: `next build` intenta generar `/`, `/buscar` y `/sitemap.xml` de forma estática por defecto, y esa generación ejecuta las mismas consultas a Payload que fallan sin una base de datos alcanzable en build time (invariante de Fase 10, `docker build --target runner` no debe requerir Postgres). Esto no reinstaura la postura sin-cache de Fase 5: es un límite de modo de render (Full Route Cache), independiente del Data Cache que `unstable_cache` sigue gestionando exactamente igual - verificado en vivo (miss → hit → `revalidateTag` → fresh) contra un build de producción real.
 
 ## Matriz de invalidación
 

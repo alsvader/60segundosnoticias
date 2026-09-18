@@ -7,20 +7,32 @@
  * design.md, Decisión 3 y el riesgo de colisión de proyectos de Docker
  * Compose documentado ahí mismo):
  *   1. El nombre de la base de datos termina en el sufijo de prueba.
- *   2. El host y el puerto coinciden con el servicio Postgres de pruebas
- *      declarado (compose.test.yml, puerto 5433).
+ *   2. El host y el puerto coinciden con uno de los servicios Postgres de
+ *      prueba reconocidos explícitamente (nunca un host/puerto genérico
+ *      aceptado por defecto).
+ *
+ * Dos pares host/puerto reconocidos, cada uno atado a un compose file
+ * concreto: `compose.test.yml` (`localhost:5433`, invocado desde el host
+ * para `test:migrations`/`test:integration`/`test:e2e:server`) y
+ * `compose.prod.yaml --profile self-hosted` (`db:5432`, el nombre de
+ * servicio dentro de la red de Compose, usado únicamente por
+ * `scripts/docker-smoke.sh` contra su Postgres desechable) - ver
+ * openspec/changes/runtime-public-rendering, sección Docker.
  */
 
 const TEST_DB_NAME_SUFFIX = '_test'
-const TEST_DB_HOST = 'localhost'
-const TEST_DB_PORT = '5433'
+const RECOGNIZED_TEST_DB_HOSTS: ReadonlyArray<{ host: string; port: string }> = [
+  { host: 'localhost', port: '5433' },
+  { host: 'db', port: '5432' },
+]
 
 export class UnsafeTestDatabaseError extends Error {
   constructor(uri: string, reason: string) {
+    const expected = RECOGNIZED_TEST_DB_HOSTS.map(({ host, port }) => `${host}:${port}`).join(' o ')
     super(
       `Operación destructiva de pruebas rechazada para "${redact(uri)}": ${reason}. ` +
         `Se esperaba una base de datos con nombre terminado en "${TEST_DB_NAME_SUFFIX}" ` +
-        `en ${TEST_DB_HOST}:${TEST_DB_PORT} (ver compose.test.yml).`,
+        `en ${expected} (ver compose.test.yml / compose.prod.yaml --profile self-hosted).`,
     )
     this.name = 'UnsafeTestDatabaseError'
   }
@@ -63,11 +75,12 @@ export function assertTestDatabase(uri: string | undefined): asserts uri is stri
 
   const host = parsed.hostname
   const port = parsed.port || '5432'
-  if (host !== TEST_DB_HOST || port !== TEST_DB_PORT) {
+  const isRecognizedHost = RECOGNIZED_TEST_DB_HOSTS.some((candidate) => candidate.host === host && candidate.port === port)
+  if (!isRecognizedHost) {
+    const expected = RECOGNIZED_TEST_DB_HOSTS.map(({ host, port }) => `${host}:${port}`).join(' o ')
     throw new UnsafeTestDatabaseError(
       uri,
-      `el host/puerto "${host}:${port}" no coincide con el servicio de pruebas ` +
-        `"${TEST_DB_HOST}:${TEST_DB_PORT}"`,
+      `el host/puerto "${host}:${port}" no coincide con ningún servicio de pruebas reconocido ` + `(${expected})`,
     )
   }
 }

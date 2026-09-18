@@ -14,6 +14,17 @@ import { getAbsoluteUrl, getCategoryUrl, getPageUrl, getPostUrl } from '@/lib/ur
  * cada fuente (Post/Category/Page) ya revalida ese tag explícitamente
  * desde sus propios hooks de invalidación.
  */
+/**
+ * Fase 11 (openspec/changes/runtime-public-rendering): sin esto, `next
+ * build` intenta generar `/sitemap.xml` de forma estática por defecto,
+ * ejecutando `getSitemapEntries()` (y por tanto una consulta real a
+ * Payload) en build time - falla si no hay Postgres alcanzable (Fase 10,
+ * `production-docker-image`). `unstable_cache` abajo sigue cacheando el
+ * resultado en el Data Cache entre requests; esto solo cambia que la ruta
+ * se evalúe en tiempo de solicitud en vez de en build time.
+ */
+export const dynamic = 'force-dynamic'
+
 const getSitemapEntries = unstable_cache(
   async (): Promise<MetadataRoute.Sitemap> => {
     const [categories, posts, pages] = await Promise.all([

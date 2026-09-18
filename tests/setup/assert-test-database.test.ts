@@ -34,4 +34,20 @@ describe('assertTestDatabase', () => {
       assertTestDatabase('postgres://postgres:postgres@localhost:5433/60segundos_test'),
     ).not.toThrow()
   })
+
+  /**
+   * `db:5432` (compose.prod.yaml --profile self-hosted, usado solo por
+   * scripts/docker-smoke.sh) - openspec/changes/runtime-public-rendering.
+   */
+  it('permite el host/puerto del Postgres desechable de docker-smoke.sh cuando el nombre termina en el sufijo de prueba', () => {
+    expect(() =>
+      assertTestDatabase('postgres://postgres:postgres@db:5432/60segundos_smoke_test'),
+    ).not.toThrow()
+  })
+
+  it('sigue rechazando el host/puerto de docker-smoke.sh si el nombre de base de datos no termina en el sufijo de prueba', () => {
+    expect(() => assertTestDatabase('postgres://postgres:postgres@db:5432/60segundos')).toThrow(
+      UnsafeTestDatabaseError,
+    )
+  })
 })
