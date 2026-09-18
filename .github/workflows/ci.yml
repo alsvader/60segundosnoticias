@@ -1,0 +1,210 @@
+name: CI
+
+# openspec/changes/testing-qa-performance, tarea 9.1-9.4 (design.md, Decisión
+# 10/13): pipeline de PR - quality -> integration -> e2e-pr -> validación de
+# build de Docker. Nunca toca infraestructura ni secretos de producción -
+# solo Postgres/MinIO desechables y los secretos deterministas ya
+# commiteados en .env.test. La calificación FULL (Firefox/WebKit, visual,
+# docker-smoke.sh, Lighthouse) y la publicación de imágenes viven en
+# release.yml (tareas 9.5+), fuera de este alcance.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: '10.28.2'
+  NODE_VERSION: '24'
+
+jobs:
+  quality:
+    name: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test:unit
+
+  integration:
+    name: integration
+    needs: quality
+    runs-on: ubuntu-latest
+    # Postgres 17-alpine desechable - nunca la base de datos de desarrollo
+    # ni de producción. tests/setup/assert-test-database.ts exige que
+    # DATABASE_URI termine en "_test" y apunte a localhost:5433, coincidiendo
+    # exactamente con compose.test.yml - las migraciones aquí SHALL seguir
+    # siendo migrations-only (nunca push mode), igual que en local.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: 60segundos_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d 60segundos_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Regresión de la cadena de migraciones desde cero, luego la suite de
+      # integración real (que vuelve a aplicar la cadena por su cuenta -
+      # ver package.json, test:integration). Ambos pasos ya cargan
+      # .env.test (--env-file) tal como en local.
+      - run: pnpm test:migrations
+      - run: pnpm test:integration
+
+  e2e-pr:
+    name: e2e-pr
+    needs: integration
+    runs-on: ubuntu-latest
+    # Arquitectura E2E de producción real de Fase 11 (design.md, Decisión
+    # 3/7): scripts/run-e2e-server.mjs hace un build de producción
+    # (`output: standalone`) real, que fuerza NODE_ENV=production y por
+    # tanto exige las seis variables S3_* - de ahí MinIO desechable además
+    # de Postgres. Nunca se debilita la validación de entorno S3, el
+    # import map, el CSP de runtime, ni los guards de seguridad de
+    # Docker/DB para que esto pase.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: 60segundos_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d 60segundos_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec playwright install --with-deps chromium
+
+      # MinIO no se declara como `services:` porque la imagen oficial
+      # (quay.io/minio/minio) no trae un CMD por defecto ejecutable (solo
+      # `minio`, sin `server /data`) - GitHub Actions `services:` no
+      # permite sobreescribir el comando del container, a diferencia de
+      # Docker Compose (ver compose.test.yml). Se levanta manualmente con
+      # el mismo comando/credenciales desechables que compose.test.yml.
+      - name: Start disposable MinIO
+        run: |
+          docker run -d --name minio \
+            -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=e2eminioadmin \
+            -e MINIO_ROOT_PASSWORD=e2eminioadmin \
+            quay.io/minio/minio:latest server /data --console-address ":9001"
+
+      - name: Wait for MinIO and create the disposable test bucket
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:9000/minio/health/live >/dev/null; then break; fi
+            sleep 2
+          done
+          curl -sSL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc
+          chmod +x /usr/local/bin/mc
+          mc alias set e2e http://localhost:9000 e2eminioadmin e2eminioadmin
+          mc mb e2e/e2e-test-media || true
+          mc anonymous set download e2e/e2e-test-media
+
+      # scripts/run-e2e-server.mjs fija sus propias variables S3_*/puerto
+      # (apuntando a este mismo MinIO desechable) - no se necesitan aquí.
+      - run: pnpm test:e2e -- --project=chromium
+      - run: pnpm test:a11y
+
+      - name: Stop disposable MinIO
+        if: always()
+        run: docker rm -f minio || true
+
+  docker-build:
+    name: docker-build
+    needs: e2e-pr
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect Docker-relevant changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            docker:
+              - 'Dockerfile'
+              - 'compose*.yml'
+              - 'compose*.yaml'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - '.dockerignore'
+
+      # Invariante crítico (openspec/changes/runtime-public-rendering):
+      # `docker build` SHALL completarse sin una base de datos Postgres
+      # alcanzable. Nunca se conecta este job a un servicio Postgres real -
+      # eso demostraría lo contrario de lo que se quiere probar. Placeholder
+      # DATABASE_URI/PAYLOAD_SECRET solo necesitan forma válida (ver
+      # Dockerfile, stage `builder`).
+      - name: Build runner (cold, no reachable Postgres)
+        if: steps.filter.outputs.docker == 'true' || github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: runner
+          push: false
+          build-args: |
+            DATABASE_URI=postgres://ci-placeholder-unreachable:5432/ci-placeholder
+            PAYLOAD_SECRET=ci-placeholder-secret
+            NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+      - name: Build migrator (cold, no reachable Postgres)
+        if: steps.filter.outputs.docker == 'true' || github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: migrator
+          push: false
