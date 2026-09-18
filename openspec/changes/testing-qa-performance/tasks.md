@@ -375,11 +375,22 @@ en un change separado (`production-deployment-dokploy`).
   `http://localhost`, WebKit no la acepta, Chromium/Firefox sí). Corregido
   con un `test.skip(browserName === 'webkit', '...')` explícito solo en
   ese test, sin tocar código de producto. `visual` falló como se esperaba
-  (sin baselines Linux committeadas aún - tarea 9.5, sección siguiente).
-  **Pendiente**: una corrida real posterior que confirme `e2e-full` en
-  16/16 (15 ejecutados + 1 skip intencional) y decidir el bootstrap de
-  baselines Linux para `visual` antes de que `publish` corra por primera
-  vez.
+  (sin baselines Linux committeadas aún).
+  **Corrida real #4**: con el skip de WebKit aplicado, `e2e-full` pasó
+  16/16 (15 ejecutados + 1 skip intencional) - `ci-gates`, `docker-smoke`
+  y `lighthouse` también verdes de verdad. `visual` siguió fallando como
+  se esperaba (aún sin baselines Linux). Bootstrap de baselines: se
+  descargó el artifact `visual-actual-screenshots` de esa corrida, se
+  revisaron las 5 capturas "actual" una por una (ninguna regresión visual
+  real - las "cajas grises"/textura de papel visibles son la imagen real
+  de fixture, `public/textures/paper-grain.webp` vía
+  `tests/fixtures/builders.ts`'s `createMedia`, no una carga fallida), y
+  se commitearon deliberadamente como
+  `tests/e2e/visual.spec.ts-snapshots/*-chromium-linux.png` - nunca
+  generadas ni auto-aprobadas por CI, exactamente como se decidió cuando
+  se creó `test:e2e:pr`. **Pendiente**: una corrida real posterior que
+  confirme `visual` en verde con estas baselines y que `publish`/
+  `provenance` corran por primera vez.
 - [x] 9.6 Cachés: `actions/setup-node@v4` con `cache: pnpm` (store de
   pnpm) + `actions/cache@v4` sobre `~/.cache/ms-playwright` (keyed por
   hash de `pnpm-lock.yaml` **y por el conjunto exacto de navegadores
