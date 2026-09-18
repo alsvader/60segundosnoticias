@@ -5,7 +5,19 @@ import { FIXTURE } from './fixture-data'
 const DRAFT_SLUG = 'fixture-post-borrador'
 
 /** Journey crítico: sesión autenticada de editor -> previsualizar borrador -> salir de preview y confirmar vista pública restaurada. */
-test('previsualizar un borrador y salir restaura la vista pública @smoke-cross-browser', async ({ page }) => {
+test('previsualizar un borrador y salir restaura la vista pública @smoke-cross-browser', async ({ page, browserName }) => {
+  // WebKit sobre http://localhost, no un defecto de producción - ver
+  // design.md, Risks. Draft Mode de Next.js fija su cookie con
+  // `Secure: true` + `SameSite: 'none'` en cualquier build de producción
+  // (`draft-mode-provider.js`, no algo que este proyecto controle);
+  // Chromium/Firefox tratan `http://localhost` como origen confiable para
+  // esa cookie, WebKit nunca extendió esa excepción al atributo `Secure`.
+  // En producción real (HTTPS) la cookie es válida en los tres navegadores.
+  test.skip(
+    browserName === 'webkit',
+    'Next.js Draft Mode usa cookies Secure+SameSite=None en producción; WebKit no las acepta sobre HTTP en localhost. Producción corre sobre HTTPS.',
+  )
+
   // El borrador nunca es público - confirmado antes de autenticar nada.
   const anonymousResponse = await page.goto(`/${FIXTURE.categorySlug}/${DRAFT_SLUG}`)
   expect(anonymousResponse?.status()).toBe(404)

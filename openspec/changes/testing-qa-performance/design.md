@@ -363,6 +363,38 @@ verifica la navegación real a `/buscar`.
   argumentos adicionales. Verificado en local: `pnpm test:e2e:pr`
   ejecuta exactamente 42 tests, todos `[chromium]`, cero intentos en
   firefox/webkit.
+- **[Limitación real de entorno de prueba, acotada - no un defecto de
+  producción] Tras corregir los dos incidentes anteriores, `e2e-full`
+  seguía fallando exactamente 1 de 16 pruebas: `[webkit] ›
+  preview.spec.ts` (el journey de Draft Mode autenticado) - Firefox pasa
+  el mismo journey sin cambios.** Causa raíz confirmada en el código
+  fuente de Next.js (`draft-mode-provider.js`): `draftMode().enable()`
+  fija su cookie con `secure: process.env.NODE_ENV !== 'development'` y
+  `sameSite: ... ? 'none' : 'lax'` - en cualquier build de producción
+  (el servidor E2E de esta fase corre uno real, a propósito) la cookie es
+  `Secure` + `SameSite=None`. Chromium y Firefox tratan `http://localhost`
+  como origen confiable también para el atributo `Secure` de cookies;
+  WebKit nunca extendió esa misma excepción a `Secure` (solo a otras APIs
+  web) - confirmado por el comportamiento observado, no por documentación
+  de Next.js/WebKit. Esto NO es un defecto de producto: en producción real
+  el sitio se sirve sobre HTTPS, donde la cookie `Secure` es válida en los
+  tres navegadores por igual; es exclusivamente un artefacto de probar un
+  build de producción sobre `http://localhost` en el servidor E2E. → No se
+  modificó `src/app/api/preview/route.ts`, el manejo de Draft Mode de
+  Next.js, ningún atributo de cookie, `NODE_ENV`, ni la decisión de usar
+  un build de producción real para E2E - eso habría enmascarado el
+  comportamiento real de Draft Mode en vez de acotar una limitación de
+  entorno. Se excluyó únicamente esta prueba para WebKit vía
+  `test.skip(browserName === 'webkit', '...')` en `preview.spec.ts`, con
+  el razonamiento completo en un comentario. Matriz final de navegadores:
+  Chromium (PR gate) corre Preview sin excepción; Firefox (FULL) corre
+  Preview sin excepción; WebKit (FULL) corre los demás 7 journeys críticos
+  sin excepción y omite solo este uno, de forma explícita e intencional -
+  Preview permanece cubierto en dos de los tres navegadores, nunca
+  "sin probar". Si en el futuro se necesita paridad completa de Safari/
+  WebKit para Preview en CI, la opción es levantar HTTPS local para el
+  servidor E2E (certificados vía `mkcert` o similar) - deliberadamente
+  fuera de alcance de esta fase.
 - **[Riesgo] `docker compose -f compose.test.yml` sin un `name:` de
   proyecto explícito deriva su nombre de proyecto del directorio —el
   mismo que usa `compose.yaml` de desarrollo por defecto—, lo que hace
