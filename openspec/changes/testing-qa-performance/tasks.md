@@ -291,31 +291,41 @@ aprovisionar el VPS real, Dokploy real, DNS/Cloudflare, secretos de
 producción reales y Postgres de producción real quedan fuera de Fase 11,
 en un change separado (`production-deployment-dokploy`).
 
-- [ ] 9.1 Crear `.github/workflows/ci.yml` con el job `quality`
+- [x] 9.1 Crear `.github/workflows/ci.yml` con el job `quality`
   (install/typecheck/lint/`test:unit`) disparado en `pull_request` y `push` a
-  `main`. Implementado y verificado localmente (`pnpm typecheck`/`pnpm
-  lint`/`pnpm test:unit` pasan); **pendiente**: abrir un PR de prueba real
-  y confirmar que el check aparece y pasa (no se puede simular sin push).
-- [ ] 9.2 Añadir el job `integration` a `ci.yml`, dependiente de `quality`.
+  `main`. Verificado con una corrida real en GitHub Actions (PR #1,
+  https://github.com/alsvader/60segundosnoticias/pull/1) - el check
+  aparece y pasa.
+- [x] 9.2 Añadir el job `integration` a `ci.yml`, dependiente de `quality`.
   Postgres 17-alpine desechable únicamente - nunca la base de datos de
   desarrollo ni de producción. Ejecuta la regresión de la cadena de
   migraciones desde cero (`test:migrations`) y `test:integration`.
-  Implementado y verificado ejecutando ambos comandos localmente contra el
-  Postgres desechable de `compose.test.yml` (mismo `DATABASE_URI`
-  `_test`/`5433` que exige `assert-test-database.ts`); **pendiente**:
-  verificar en un PR de prueba real.
-- [ ] 9.3 Añadir el job `e2e-pr` a `ci.yml`, dependiente de `integration`.
+  Verificado con una corrida real en GitHub Actions (PR #1) - pasa.
+- [x] 9.3 Añadir el job `e2e-pr` a `ci.yml`, dependiente de `integration`.
   Postgres y MinIO/almacenamiento S3-compatible desechables (el servidor
   real de producción/standalone los exige - ver design.md, Decisión 3/7).
-  Build de producción real, Playwright solo Chromium, `test:e2e` +
-  `test:a11y`. Preserva íntegros los invariantes ya establecidos (S3 en
-  runtime, estabilidad del import map, guards de seguridad de base de
-  datos, aislamiento de proyectos de Docker). MinIO se levanta con
-  `docker run` manual (no `services:` de GitHub Actions - la imagen oficial
-  no trae un CMD ejecutable por defecto, a diferencia de
-  `compose.test.yml`). **Pendiente**: verificar en un PR de prueba real -
-  no se puede ejecutar el runner exacto de GitHub Actions localmente.
-- [ ] 9.4 Añadir verificación de build de Docker (`docker build --target
+  Build de producción real, Playwright solo Chromium, `test:e2e:pr` (todos
+  los journeys funcionales + `test:a11y`, excluyendo deliberadamente
+  `visual.spec.ts` - ver más abajo). Preserva íntegros los invariantes ya
+  establecidos (S3 en runtime, estabilidad del import map, guards de
+  seguridad de base de datos, aislamiento de proyectos de Docker). MinIO
+  se levanta con `docker run` manual (no `services:` de GitHub Actions -
+  la imagen oficial no trae un CMD ejecutable por defecto, a diferencia de
+  `compose.test.yml`) usando el container `quay.io/minio/mc` (el binario
+  de `dl.min.io` está descontinuado - 410 Gone, confirmado en vivo en la
+  primera corrida real). Verificado con una corrida real en GitHub Actions
+  (PR #1) - pasa, incluyendo la violación de contraste de marca (Facebook/
+  WhatsApp) ya resuelta (ver design.md, sección Risks).
+
+  **Alcance corregido tras la primera corrida real**: `test:e2e:pr`
+  (nuevo script, excluye `tests/e2e/visual.spec.ts` vía un regex negativo
+  explícito) reemplaza `test:e2e` en este job - las 5 capturas de
+  referencia committeadas son `*-chromium-darwin.png` (generadas en Mac),
+  el runner de GitHub Actions es Linux, y la regresión visual real (con
+  baselines Linux generadas, revisadas y committeadas ahí) pertenece a la
+  calificación FULL de `release.yml` (tarea 9.5), no al gate rápido de PR
+  - `test:e2e`/`test:visual` sin cambios para uso local/release.
+- [x] 9.4 Añadir verificación de build de Docker (`docker build --target
   runner` y `--target migrator`) a `ci.yml`, dependiente de `e2e-pr`. El
   build en frío SHALL completarse sin un Postgres de runtime alcanzable
   (invariante de `openspec/changes/runtime-public-rendering`) - verificado
@@ -325,8 +335,9 @@ en un change separado (`production-deployment-dokploy`).
   `/sitemap.xml` como `ƒ` (Dynamic). Filtrado por path
   (`dorny/paths-filter@v3`) en PRs para `Dockerfile`/`compose*.y*ml`/
   `package.json`/`pnpm-lock.yaml`/`.dockerignore`; siempre se ejecuta en
-  `push` a `main`, sin excepción. **Pendiente**: verificar en un PR de
-  prueba real modificando un archivo relacionado con Docker.
+  `push` a `main`, sin excepción. Verificado con una corrida real en
+  GitHub Actions (PR #1) - el PR modificaba `package.json`, el filtro de
+  path lo detectó correctamente y ambos targets construyeron con éxito.
 - [ ] 9.5 Crear `.github/workflows/release.yml` (`push` a `main`,
   `workflow_dispatch`) con la calificación FULL completa antes de publicar
   cualquier artefacto: journeys críticos E2E en Firefox/WebKit, regresión
