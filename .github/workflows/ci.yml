@@ -164,7 +164,12 @@ jobs:
 
       # scripts/run-e2e-server.mjs fija sus propias variables S3_*/puerto
       # (apuntando a este mismo MinIO desechable) - no se necesitan aquí.
-      - run: pnpm test:e2e -- --project=chromium
+      # test:e2e:pr excluye tests/e2e/visual.spec.ts a propósito - las
+      # capturas de referencia committeadas son *-chromium-darwin.png (Mac),
+      # y este runner es Linux; la regresión visual real (con baselines
+      # Linux generadas y revisadas ahí) vive en la calificación FULL de
+      # release.yml (tarea 9.5), no en el gate rápido de PR.
+      - run: pnpm test:e2e:pr -- --project=chromium
       - run: pnpm test:a11y
 
       - name: Stop disposable MinIO

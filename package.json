@@ -24,6 +24,7 @@
     "test:migrations": "node --env-file=.env.test scripts/run-migration-chain.ts",
     "test:integration": "node --env-file=.env.test scripts/run-migration-chain.ts && vitest --run --project=integration",
     "test:e2e": "playwright test",
+    "test:e2e:pr": "playwright test 'tests/e2e/(?!visual\\.spec\\.ts)'",
     "test:e2e:server": "node scripts/run-e2e-server.mjs",
     "test:a11y": "playwright test tests/e2e/a11y.spec.ts",
     "test:visual": "playwright test tests/e2e/visual.spec.ts",

@@ -289,21 +289,31 @@ verifica la navegación real a `/buscar`.
   recuperarse (sin backups configurados para la base de datos de
   desarrollo local — explícitamente fuera de alcance hasta Fase 12 por
   `docs/DEPLOYMENT.md`).
-- **[Riesgo, no corregido] `tests/e2e/a11y.spec.ts` detecta dos violaciones
+- **[Riesgo, resuelto] `tests/e2e/a11y.spec.ts` detectó dos violaciones
   reales de contraste AA (WCAG 4.5:1) en el Article: el azul oficial de
   Facebook (`#1877f2`, 4.23:1) y el verde oficial de WhatsApp (`#25d366`,
   1.98:1) en `ShareActions`/`globals.css`, ambos con texto blanco - una
   limitación real de usar el color de marca oficial de terceros tal cual,
   confirmada en vivo, no un defecto de la prueba ni del resto del sistema
-  de colores (el resto de las 8 páginas/estados auditados pasa limpio tras
-  corregir, dentro de esta misma fase, un contraste real de placeholder,
-  dos saltos de nivel de encabezado (`<h1>` a `<h3>`) y dos landmarks
-  `role="search"` sin nombre accesible único).** → Deliberadamente sin
-  corregir aquí: cambiar el azul/verde oficial de una marca de terceros es
-  una decisión de producto/diseño (aceptar el riesgo vs. agrandar/engrosar
-  el texto vs. desviarse del color oficial), no una corrección de
-  infraestructura de prueba. Documentado también junto a la regla CSS
-  correspondiente (`src/app/globals.css`).
+  de colores (el resto de las 8 páginas/estados auditados ya pasaba
+  limpio tras corregir, dentro de esta misma fase, un contraste real de
+  placeholder, dos saltos de nivel de encabezado (`<h1>` a `<h3>`) y dos
+  landmarks `role="search"` sin nombre accesible único).** → Resuelto: se
+  ajustaron ligeramente ambos valores hex de marca - `#0b5fcc` (Facebook,
+  5.96:1) y `#107c41` (WhatsApp, 5.27:1) en `src/app/globals.css` -
+  priorizando el contraste accesible de un control de UI real sobre el
+  hex oficial exacto de cada red; la identidad visual de cada red sigue
+  siendo reconocible (mismo tono de azul/verde). `tests/e2e/a11y.spec.ts`
+  pasa las 8 páginas/estados sin ninguna excepción de axe.
+  Adicionalmente detectado mientras se ejecutaba localmente para verificar
+  este fix: `next build` reutiliza el caché persistente de `.next` entre
+  corridas, y ese caché no siempre detecta un cambio en `globals.css` -
+  `scripts/run-e2e-server.mjs` no borra `.next` antes de construir, así
+  que una verificación local de un cambio de CSS puede necesitar borrar
+  `.next` a mano primero (`docker build`/CI real no tienen este problema,
+  `.dockerignore` ya excluye `.next` del contexto de build - mismo patrón
+  ya documentado para el hallazgo de `openspec/changes/
+  runtime-public-rendering`).
 - **[Riesgo] `docker compose -f compose.test.yml` sin un `name:` de
   proyecto explícito deriva su nombre de proyecto del directorio —el
   mismo que usa `compose.yaml` de desarrollo por defecto—, lo que hace

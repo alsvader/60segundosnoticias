@@ -236,17 +236,17 @@
  * attribute on the shared Button primitive — mirrors the [data-cat-theme]
  * convention above without teaching button.tsx about social networks.
  *
- * Conocido, no corregido aquí (Fase 11, tests/e2e/a11y.spec.ts): el azul
- * oficial de Facebook (#1877f2, 4.23:1) y el verde oficial de WhatsApp
- * (#25d366, 1.98:1) con texto blanco no alcanzan el contraste AA (4.5:1)
- * exigido por WCAG a este tamaño de texto - limitación real y documentada
- * de usar el color de marca oficial de terceros tal cual, no un error de
- * implementación. Requiere una decisión de producto/diseño (aceptar el
- * riesgo, agrandar/engrosar el texto, o desviarse del azul/verde oficial)
- * antes de poder cerrarse.
+ * Resuelto (Fase 11, tests/e2e/a11y.spec.ts): el azul oficial de Facebook
+ * (#1877f2, 4.23:1) y el verde oficial de WhatsApp (#25d366, 1.98:1) con
+ * texto blanco no alcanzaban el contraste AA (4.5:1) exigido por WCAG a
+ * este tamaño de texto. Se ajustaron ligeramente ambos valores hex de
+ * marca - #0B5FCC (Facebook, 5.96:1) y #107C41 (WhatsApp, 5.27:1) - para
+ * priorizar el contraste accesible de un control de UI real sobre el hex
+ * oficial exacto; la identidad visual de cada red sigue siendo reconocible
+ * (mismo tono de azul/verde). Ambos limpian el mínimo AA con margen.
  */
 [data-network="facebook"] {
-  --social-accent: #1877f2;
+  --social-accent: #0b5fcc;
 }
 
 [data-network="x"] {
@@ -254,7 +254,7 @@
 }
 
 [data-network="whatsapp"] {
-  --social-accent: #25d366;
+  --social-accent: #107c41;
 }
 
 [data-network="instagram"] {
