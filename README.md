@@ -127,7 +127,7 @@ Payload PostgreSQL soporta push mode y `migrate` como flujos deliberadamente dis
 1. **Base de datos de desarrollo local** (`docker compose up`, el volumen `postgres_data`): sandbox gestionado por push mode. Payload sincroniza el schema automáticamente contra ella; nunca se le corre `pnpm migrate` directamente, porque ya no coincide con el ledger de migraciones (`payload_migrations` solo tiene la fila marcadora `dev`). Iterar aquí no requiere migraciones.
 2. **Migraciones en `src/payload/migrations/`**: artefactos generados por `pnpm migrate:create`, revisados a mano y versionados en git junto con el cambio de código que los origina. Describen el schema que debe existir en cualquier base gestionada por `migrate` — no se ejecutan contra la base de desarrollo local.
 3. **Verificación de la cadena de migraciones**: antes de confiar en una migración nueva, se aplica contra una base PostgreSQL limpia y desechable (por ejemplo, `CREATE DATABASE` temporal en el mismo servidor, o un contenedor Postgres aparte), corriendo la cadena completa desde cero (`pnpm migrate` contra esa base con su propio `DATABASE_URI`) y confirmando con `payload migrate:status` que todas las migraciones quedan `Ran: Yes`. La base desechable se destruye después; la de desarrollo nunca se toca en este proceso.
-4. **Orquestación de migraciones en producción/CI**: el job de migración corre como un paso de despliegue separado (imagen `migrator`, un solo uso) antes de que la nueva release del App Container empiece a servir tráfico — nunca automáticamente en cada arranque. Ver `docs/DEPLOYMENT.md` para el flujo completo.
+4. **Orquestación de migraciones en producción/CI**: el job de migración corre como un paso de despliegue separado (imagen `migrator`, un solo uso) antes de que la nueva release del App Container empiece a servir tráfico — nunca automáticamente en cada arranque. En producción real, PostgreSQL no vive en ningún Compose file de este repositorio: es un servicio de base de datos gestionado por Dokploy (fuera de `compose.dokploy.yaml`), con `DATABASE_URI` apuntando ahí — ver `docs/DEPLOYMENT.md` para el contrato y `docs/OPERATIONS.md` para el runbook operativo completo (incluye cómo recrear esa base en otro servidor).
 5. **Base de datos desechable de pruebas** (`compose.test.yml`, puerto `5433`, base `60segundos_test`): Postgres efímero (sin volumen nombrado) para la suite automatizada — regresión de la cadena de migraciones, pruebas de integración y el servidor de producción usado por E2E/accesibilidad/regresión visual/Lighthouse. Nunca push mode: siempre `migrate` desde cero. `tests/setup/assert-test-database.ts` exige que cualquier `DATABASE_URI` usado por pruebas termine en `_test` y apunte a un host/puerto reconocido explícitamente, para que un error de configuración nunca alcance por accidente la base de desarrollo o de producción. Ver `docs/TESTING.md` para el detalle completo de la suite de pruebas.
 
 Para regenerar los tipos de TypeScript después de cambiar cualquier Collection:
@@ -156,7 +156,9 @@ docker compose exec app pnpm seed:dev
 
 ## Build y arranque en producción
 
-La imagen de producción se construye y despliega vía Docker — ver **`docs/DEPLOYMENT.md`** para el flujo completo (contrato de entorno por variable, secuencia de despliegue, `compose.prod.yaml`, Object Storage, headers de seguridad, bootstrap del primer Admin, troubleshooting). Resumen:
+**En producción real, nadie corre `docker build`/`docker run` a mano.** GitHub Actions (`release.yml`) construye y califica en FULL cada push a `main`, publica las imágenes `runner-<sha>`/`migrator-<sha>` en GHCR, y — tras aprobación humana en el GitHub Environment `production` — el job `deploy` las entrega a Dokploy, que en el VPS solo hace `pull`/`run`. Ver **`docs/DEPLOYMENT.md`** para el contrato (entorno por variable, imagen, topología) y **`docs/OPERATIONS.md`** para el runbook operativo (cómo se ejecuta un despliegue real, backups, rollback, primer arranque).
+
+Los comandos `docker build`/`docker run` siguen siendo válidos para reproducir o probar el build localmente:
 
 ```bash
 # 1. job de migración (una vez, antes de servir tráfico)
@@ -166,6 +168,7 @@ docker run --rm -e DATABASE_URI=... -e PAYLOAD_SECRET=... 60segundos-app:migrato
 # 2. imagen de la aplicación (requiere red hacia una base ya migrada - ver docs/DEPLOYMENT.md)
 docker build --target runner \
   --build-arg DATABASE_URI=... --build-arg PAYLOAD_SECRET=... --build-arg NEXT_PUBLIC_SITE_URL=... \
+  --build-arg GIT_SHA="$(git rev-parse HEAD)" \
   -t 60segundos-app:runner .
 docker run -d -p 3000:3000 -e DATABASE_URI=... -e PAYLOAD_SECRET=... -e NEXT_PUBLIC_SITE_URL=... \
   -e PREVIEW_SECRET=... -e S3_ENDPOINT=... -e S3_REGION=... -e S3_BUCKET=... \
@@ -173,7 +176,7 @@ docker run -d -p 3000:3000 -e DATABASE_URI=... -e PAYLOAD_SECRET=... -e NEXT_PUB
   60segundos-app:runner
 ```
 
-`pnpm build && pnpm start` (sin Docker) también funciona para probar un build de producción localmente, con la misma validación de entorno estricta — pero el flujo soportado y verificado para desplegar es el de Docker.
+`pnpm build && pnpm start` (sin Docker) también funciona para probar un build de producción localmente, con la misma validación de entorno estricta — pero el flujo real de despliegue es el descrito arriba.
 
 ## Health check
 
@@ -181,7 +184,7 @@ docker run -d -p 3000:3000 -e DATABASE_URI=... -e PAYLOAD_SECRET=... -e NEXT_PUB
 GET /api/health
 ```
 
-Responde `200` con `{"status":"ok","database":"ok"}` cuando la aplicación y la conexión a PostgreSQL están operativas, o `503` con `{"status":"degraded","database":"unreachable"}` si la base de datos no responde. Nunca incluye cadenas de conexión, contraseñas ni el `PAYLOAD_SECRET`.
+Responde `200` con `{"status":"ok","database":"ok","sha":"a1b2c3d4..."}` cuando la aplicación y la conexión a PostgreSQL están operativas, o `503` con `{"status":"degraded","database":"unreachable","sha":"..."}` si la base de datos no responde. `sha` es el `GIT_SHA` horneado en la imagen en build time (`null` si la imagen se construyó sin ese build-arg); en producción es lo que permite confirmar en vivo qué release quedó realmente sirviendo tráfico tras un despliegue — ver `docs/DEPLOYMENT.md` y `docs/OPERATIONS.md`. La respuesta nunca se cachea (`Cache-Control: no-store`) y nunca incluye cadenas de conexión, contraseñas ni el `PAYLOAD_SECRET`.
 
 Verificación rápida:
 
@@ -226,7 +229,8 @@ Para comprobar/preparar ese entorno opcional:
 ## Referencias de documentación
 
 - `docs/60-segundos-spec.md` — Master Specification (estado objetivo de V1).
-- `docs/DEPLOYMENT.md` — despliegue en producción: Docker, contrato de entorno, migraciones, Object Storage, headers de seguridad (Phase 10).
+- `docs/DEPLOYMENT.md` — contrato de despliegue en producción: imagen Docker, contrato de entorno, migraciones, Object Storage, headers de seguridad, topología con Dokploy (Phase 10, extendido por `production-deployment-dokploy`).
+- `docs/OPERATIONS.md` — runbook operativo de producción: despliegue real, backups y drill de restauración, rollback, primer arranque, recrear la base en otro servidor.
 - `docs/DESIGN-SYSTEM.md` — referencia de implementación del Design System (Phase 4).
 - `docs/FRONTEND-ARCHITECTURE.md` — referencia de arquitectura del frontend (DAL, View Models, resolvers, Home Block Pipeline — Phases 5-6).
 - `docs/SEARCH.md` — arquitectura de búsqueda, reindex, limitaciones (Phase 9).
