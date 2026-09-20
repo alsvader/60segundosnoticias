@@ -1,20 +1,37 @@
 name: Rollback
 
-# openspec/changes/production-deployment-dokploy - Etapa 5 del plan
-# (`~/.claude/plans/lucky-stargazing-pony.md`), design.md Decisión 1 y
-# 4/6. Reutiliza `scripts/dokploy-deploy.ts` y `scripts/smoke-production.ts`
-# tal cual - NUNCA reconstruye: el `sha` de entrada SHALL corresponder a
-# un tag `runner-<sha>`/`migrator-<sha>` que ya existe en GHCR (verificado
-# abajo antes de tocar Dokploy). Rollback de aplicación != rollback de
-# base de datos - las migraciones de Payload son forward-only
-# (design.md, Decisión 6); este workflow nunca ejecuta
-# `payload migrate:down` ni ninguna operación de esquema.
+# Rollback de aplicación != rollback de base de datos en ambas estrategias:
+# las migraciones de Payload son forward-only, así que este workflow nunca
+# ejecuta `payload migrate:down` ni ninguna operación de esquema. Si el SHA
+# objetivo requiere revertir un esquema, la vía correcta es dump +
+# fix-forward (docs/OPERATIONS.md).
+#
+# `strategy: git` (default): Dokploy ya no consume imágenes pre-construidas
+# de GHCR (compose.dokploy.yaml usa `build:`, igual que compose.prod.yaml),
+# así que revertir es dejar el árbol de `main` idéntico a un commit bueno
+# anterior y volver a pushear - el Auto Deploy nativo de Dokploy reconstruye
+# solo. Nunca reescribe historia ni hace force-push.
+#
+# `strategy: image` (legado, opcional): el mecanismo original - reutiliza
+# `scripts/dokploy-deploy.ts` y `scripts/smoke-production.ts` tal cual,
+# exige que el `sha` de entrada corresponda a un tag `runner-<sha>`/
+# `migrator-<sha>` que ya exista en GHCR (verificado antes de tocar
+# Dokploy), y NUNCA reconstruye. Se conserva sin cambios por si se vuelve
+# puntualmente al modelo de imágenes publicadas.
 
 on:
   workflow_dispatch:
     inputs:
+      strategy:
+        description: 'git = revertir el árbol de main y dejar que Dokploy reconstruya (default). image = modelo legado, requiere un tag runner-<sha>/migrator-<sha> ya publicado en GHCR.'
+        required: false
+        type: choice
+        default: git
+        options:
+          - git
+          - image
       sha:
-        description: 'SHA de Git completo (40 hex) de la imagen ya publicada a la que revertir'
+        description: 'SHA de Git completo (40 hex) al que revertir (commit bueno para "git", o imagen ya publicada para "image")'
         required: true
         type: string
       reason:
@@ -37,11 +54,151 @@ permissions:
   contents: read
 
 jobs:
-  rollback:
-    name: rollback
+  # Default. Deja el árbol de `main` idéntico al commit bueno y empuja un
+  # nuevo commit - Dokploy reconstruye y despliega solo (Auto Deploy nativo
+  # sobre `main`). Sin aprobación manual: mergear/pushear a main ya es la
+  # decisión de desplegar en este proyecto - por eso este job, a propósito,
+  # NO declara `environment: production` (a diferencia de `rollback-image`
+  # abajo).
+  #
+  # Requisito operativo: `PRODUCTION_URL` (usado abajo como `vars.
+  # PRODUCTION_URL`) SHALL vivir como Repository variable, no como
+  # Environment variable de "production" - un job sin `environment:`
+  # declarado no puede leer variables/secrets scoped a un Environment, y
+  # este job la necesita para el health-check y el smoke post-rollback. No
+  # es información sensible (es la URL pública del sitio), así que vivir a
+  # nivel de repo no relaja ninguna protección real.
+  rollback-git:
+    name: rollback (git)
+    if: inputs.strategy == 'git'
     runs-on: ubuntu-latest
-    # Mismo Environment que `deploy` en release.yml - un rollback SHALL
-    # pasar por la misma aprobación humana que un release normal.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Capturar el SHA actualmente vivo (tolera falla)
+        id: previous-sha
+        run: |
+          sha="$(curl -sf "${{ vars.PRODUCTION_URL }}/api/health" 2>/dev/null | jq -r '.sha // empty' || true)"
+          echo "sha=${sha:-desconocido}" >> "$GITHUB_OUTPUT"
+
+      # `sha` SHALL ser un commit real ya presente en el historial de main -
+      # nunca se acepta una rama, un tag ni un SHA de otro repo/fork.
+      - name: Verificar que el commit existe en el historial de main
+        run: |
+          set -euo pipefail
+          sha="${{ inputs.sha }}"
+          if ! [[ "$sha" =~ ^[0-9a-f]{7,40}$ ]]; then
+            echo "Error: \"sha\" debe ser un SHA de Git (hex), se recibió: $sha" >&2
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$sha" HEAD; then
+            echo "Error: \"$sha\" no es un ancestro de main - no se puede revertir a un commit fuera del historial." >&2
+            exit 1
+          fi
+
+      # Deja el árbol de trabajo idéntico al commit objetivo sin reescribir
+      # historia ni hacer force-push - un `git checkout <sha> -- .` +
+      # commit nuevo, no un `reset --hard` ni un revert commit-por-commit.
+      - name: Revertir el árbol de main al commit objetivo
+        id: revert
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git checkout "${{ inputs.sha }}" -- .
+
+          if git diff --cached --quiet && git diff --quiet; then
+            echo "El árbol de main ya es idéntico a ${{ inputs.sha }} - nada que revertir."
+            echo "new-sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git add -A
+          git commit -m "revert: rollback to ${{ inputs.sha }} (${{ inputs.reason }})"
+          git push origin HEAD:main
+          echo "new-sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+
+      # Ya no se puede confirmar por SHA exacto: compose.dokploy.yaml
+      # construye desde el Dockerfile sin pasar `GIT_SHA` como build-arg (a
+      # diferencia del modelo anterior, donde `release.yml` sí lo pasaba
+      # explícitamente), así que `/api/health` deja de reportar un `sha`
+      # fiable en este modelo. Trade-off aceptado de la simplificación (ver
+      # compose.dokploy.yaml) - la señal que queda es "el sitio volvió a
+      # responder sano", no "es exactamente este commit". Confirmar el
+      # commit realmente desplegado en los logs/dashboard de Dokploy si
+      # hace falta certeza exacta.
+      - name: Esperar a que Dokploy termine de reconstruir y el sitio responda
+        if: steps.revert.outputs.pushed == 'true'
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 60); do
+            if curl -sf "${{ vars.PRODUCTION_URL }}/api/health" >/dev/null 2>&1; then
+              echo "El sitio vuelve a responder tras el rollback."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Error: el sitio no volvió a responder tras 10 minutos de espera." >&2
+          exit 1
+
+      - name: Smoke de producción
+        if: steps.revert.outputs.pushed == 'true'
+        env:
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+        run: node scripts/smoke-production.ts
+
+      - name: Resumen del rollback
+        if: always()
+        run: |
+          {
+            echo "## Rollback (git) - resumen"
+            echo ""
+            echo "- **Resultado del job**: \`${{ job.status }}\`"
+            echo "- **Commit objetivo del rollback**: \`${{ inputs.sha }}\`"
+            echo "- **Nuevo commit en main**: \`${{ steps.revert.outputs.new-sha }}\`"
+            echo "- **Motivo**: ${{ inputs.reason }}"
+            echo "- **Solicitado por**: ${{ github.actor }}"
+            echo "- **SHA que estaba vivo antes de este rollback**: \`${{ steps.previous-sha.outputs.sha }}\`"
+            echo "- **Corrida**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo ""
+            echo "> **Advertencia**: este rollback revierte solo el código de la aplicación."
+            echo "> Rollback de aplicación != rollback de base de datos - las migraciones de Payload son"
+            echo "> forward-only. Si el commit objetivo requiere revertir un esquema (DROP/RENAME/NOT NULL"
+            echo "> sobre algo que el código viejo lee), este workflow NO lo hace y NO SHALL usarse para eso:"
+            echo "> la vía correcta es dump + fix-forward (docs/OPERATIONS.md, regla de decisión de rollback)."
+            echo ">"
+            echo "> **Nota**: a diferencia del modelo anterior, esta corrida NO confirma que el SHA vivo en"
+            echo "> /api/health sea exactamente \`${{ steps.revert.outputs.new-sha }}\` - solo que el sitio"
+            echo "> volvió a responder. Verificar el commit real desplegado en el dashboard/logs de Dokploy"
+            echo "> si hace falta certeza exacta."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Legado, opcional (ver el comentario de cabecera) - modelo original de
+  # imágenes pre-construidas en GHCR. Se conserva sin cambios de
+  # comportamiento, INCLUIDO el Environment de aprobación manual: a
+  # diferencia de `rollback-git`, este job necesita los secrets
+  # `DOKPLOY_*`, que viven scoped al Environment "production" - sin
+  # declarar `environment:` aquí, esos secrets no se resuelven (quedan
+  # vacíos) y el job falla. Como efecto colateral (deseado, no accidental)
+  # esto también reintroduce la pausa de aprobación humana solo para esta
+  # ruta legada - consistente con que sea "el proceso cuidadoso anterior",
+  # no el camino rápido por defecto.
+  rollback-image:
+    name: rollback (image, legado)
+    if: inputs.strategy == 'image'
+    runs-on: ubuntu-latest
     environment:
       name: production
       url: ${{ vars.PRODUCTION_URL }}
@@ -53,8 +210,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       # Tarea previa a tocar Dokploy: las imágenes de GHCR son públicas y
-      # descargables anónimamente (verificado en el contexto de esta fase,
-      # ver design.md Context) - un token anónimo del propio registro
+      # descargables anónimamente - un token anónimo del propio registro
       # basta para consultar sus manifests, sin credencial alguna.
       - name: Verificar que ambos manifests existen en GHCR para ese SHA
         id: verify-images
@@ -97,8 +253,7 @@ jobs:
           echo "sha=${sha:-desconocido}" >> "$GITHUB_OUTPUT"
 
       # Mismo script que un release normal - un rollback es, para
-      # Dokploy, simplemente desplegar un tag inmutable distinto
-      # (design.md, Decisión 1).
+      # Dokploy, simplemente desplegar un tag inmutable distinto.
       - name: Revertir vía Dokploy
         env:
           DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
@@ -119,7 +274,7 @@ jobs:
         if: always()
         run: |
           {
-            echo "## Rollback - resumen"
+            echo "## Rollback (image, legado) - resumen"
             echo ""
             echo "- **Resultado del job**: \`${{ job.status }}\`"
             echo "- **SHA objetivo del rollback**: \`${{ inputs.sha }}\`"

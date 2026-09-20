@@ -1,46 +1,47 @@
-# Contrato de despliegue de producción para Dokploy (openspec/changes/
-# testing-qa-performance, tarea 9.9; design.md, Decisión 13). Define el
-# artefacto que Dokploy despliega en el VPS de Hostinger.
+# Contrato de despliegue de producción para Dokploy.
 #
-# Invocado de verdad desde `.github/workflows/release.yml` (job `deploy`,
-# vía `scripts/dokploy-deploy.ts`) y desde `.github/workflows/rollback.yml`
-# (openspec/changes/production-deployment-dokploy) - nunca a mano, y nunca
-# antes de la aprobación humana del GitHub Environment `production`. Ver
-# `docs/OPERATIONS.md` para el runbook operativo completo.
+# Dokploy lo despliega vía su propio Auto Deploy nativo sobre `push` a
+# `main` - nunca desde un job de GitHub Actions. `.github/workflows/ci.yml`
+# sigue siendo el gate obligatorio de PR/merge (quality/integration/e2e-pr/
+# docker-build); `.github/workflows/release.yml` queda como suite de QA
+# extendida opcional (workflow_dispatch), y ya no publica ni despliega nada
+# por defecto. Ver `docs/OPERATIONS.md` para el runbook operativo completo.
 #
-# Diferencia deliberada con `compose.prod.yaml` (que sigue siendo solo el
-# artefacto local de producción-smoke / referencia self-hosted, sin
-# cambio de rol): este archivo NUNCA usa `build:` - las imágenes ya
-# fueron construidas, calificadas (release.yml, jobs `ci-gates` ->
-# `e2e-full`/`visual`/`docker-smoke`/`lighthouse`) y publicadas en GHCR
-# antes de que Dokploy vea este contrato. El VPS solo hace `pull` y
-# `run`, nunca `docker build` - GitHub Actions es el único lugar donde se
-# construye una imagen de producción.
+# Igual que `compose.prod.yaml`: Dokploy construye la imagen `runner`/
+# `migrator` desde este mismo Dockerfile en cada deploy - ya no hay
+# imágenes pre-construidas en GHCR que consumir (simplificación deliberada
+# para reducir minutos de CI en un proyecto de un solo mantenedor; se
+# renuncia a la trazabilidad "qué se calificó == qué se despliega" vía tag
+# inmutable por SHA a cambio de un pipeline más simple y barato). Diferencia
+# real con `compose.prod.yaml`: sin `ports:` publicado (Traefik enruta por
+# `dokploy-network`), sin servicio `db` propio, y build/runtime toman sus
+# variables directamente del entorno que Dokploy ya tiene configurado para
+# este servicio Compose (nunca viven en este repositorio ni en GitHub
+# Actions).
 #
-# `${RUNNER_IMAGE}`/`${MIGRATOR_IMAGE}` SHALL resolver a un tag GHCR
-# inmutable por SHA de Git (p. ej.
-# ghcr.io/<owner>/60segundosnoticias:runner-<sha>), nunca al alias
-# `runner-main` - el contrato de despliegue vive en el SHA, no en un
-# puntero mutable (tarea 9.8/9.13). Dokploy provee estos valores junto al
-# resto del entorno de runtime en el momento del despliegue - ninguno de
-# ellos vive en este repositorio ni en GitHub Actions (tarea 9.7).
+# Trade-off aceptado: a diferencia del modelo anterior, este build no pasa
+# `GIT_SHA` como build-arg (nadie en este flujo conoce el SHA exacto en
+# build time - `.git` está excluido del build context vía `.dockerignore`,
+# igual que en `compose.prod.yaml`), así que `/api/health` deja de reportar
+# un `sha` fiable. La verificación post-deploy se reduce a "el sitio
+# responde sano", no "es exactamente este commit" - ver
+# `.github/workflows/rollback.yml`.
 #
-# PostgreSQL NO vive en este archivo a propósito (openspec/changes/
-# production-deployment-dokploy): es un servicio de base de datos
-# gestionado por Dokploy, con sus respaldos programados a S3 y su restore
-# como función nativa de la plataforma. `DATABASE_URI` apunta a él. Esto
-# ya era una configuración soportada por el spec `production-deployment`
-# ("`DATABASE_URI` es agnóstico del proveedor de PostgreSQL": la app y el
-# job de migración funcionan sin requerir un servicio `db` en este
-# Compose), y es lo que el Master Spec §69.1 prefiere sobre una base
-# self-hosted cuyos respaldos tendría que construir y mantener este
-# repositorio. Consecuencia deliberada: la definición de la base (versión,
-# volumen, calendario de respaldo) vive en Dokploy, no en git - el
-# procedimiento para recrearla está en `docs/OPERATIONS.md`.
+# PostgreSQL NO vive en este archivo a propósito: es un servicio de base de
+# datos gestionado por Dokploy, con sus respaldos programados a S3 y su
+# restore como función nativa de la plataforma. `DATABASE_URI` apunta a él
+# (`production-deployment`: "DATABASE_URI es agnóstico del proveedor de
+# PostgreSQL" - la app y el job de migración funcionan sin requerir un
+# servicio `db` en este Compose). Consecuencia deliberada: la definición de
+# la base (versión, volumen, calendario de respaldo) vive en Dokploy, no en
+# git - el procedimiento para recrearla está en `docs/OPERATIONS.md`.
 
 services:
   migrate:
-    image: ${MIGRATOR_IMAGE:?MIGRATOR_IMAGE requerida}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
     environment:
       DATABASE_URI: ${DATABASE_URI:?DATABASE_URI requerida}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:?PAYLOAD_SECRET requerido}
@@ -55,7 +56,20 @@ services:
     restart: "no"
 
   app:
-    image: ${RUNNER_IMAGE:?RUNNER_IMAGE requerida}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        # Únicas variables que `next build` necesita (ver Dockerfile, stage
+        # `builder`): `NEXT_PUBLIC_SITE_URL` se incrusta en el bundle de
+        # cliente; `DATABASE_URI`/`PAYLOAD_SECRET` los exige
+        # `payload.config.ts` incluso en build time. Ninguno de los tres es
+        # un secreto de runtime real en este contexto - los secretos
+        # genuinos (`PREVIEW_SECRET`, `S3_*`) no se pasan como build arg.
+        DATABASE_URI: ${DATABASE_URI:?DATABASE_URI requerida}
+        PAYLOAD_SECRET: ${PAYLOAD_SECRET:?PAYLOAD_SECRET requerido}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL requerida}
     environment:
       DATABASE_URI: ${DATABASE_URI:?DATABASE_URI requerida}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:?PAYLOAD_SECRET requerido}
@@ -75,10 +89,9 @@ services:
     # publicado en el host. Publicar `3000:3000` era además la causa de
     # un fallo real de despliegue ("port is already allocated") - EXPOSE
     # 3000 en el Dockerfile ya es suficiente para que Traefik lo alcance.
-    # La app SHALL arrancar solo después de una migración exitosa (tarea
-    # 9.10) - si `migrate` falla, `app` nunca arranca. El HEALTHCHECK del
-    # propio container (Dockerfile, stage `runner`) se hereda
-    # automáticamente.
+    # La app SHALL arrancar solo después de una migración exitosa - si
+    # `migrate` falla, `app` nunca arranca. El HEALTHCHECK del propio
+    # container (Dockerfile, stage `runner`) se hereda automáticamente.
     depends_on:
       migrate:
         condition: service_completed_successfully

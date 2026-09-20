@@ -6,47 +6,59 @@ Convención de esta instancia: donde algo depende de la configuración concreta 
 
 ## Despliegue
 
-### Cómo llega una release a producción
+### Cómo llega una release a producción (modelo actual)
 
 ```
-push a main
-  -> release.yml: ci-gates (reutiliza ci.yml)
-  -> en paralelo: e2e-full (Firefox/WebKit) · visual (regresión visual) ·
-     docker-smoke (imagen runner real) · lighthouse
-       (calificación FULL — cualquier falla bloquea todo lo que sigue)
+PR -> ci.yml: quality -> integration -> e2e-pr -> docker-build (gate
+   obligatorio; cualquier falla bloquea el merge)
+merge a main -> ci.yml corre de nuevo sobre main (mismo gate, informativo -
+   ya no bloquea nada porque el merge ya ocurrió)
+push a main -> Dokploy (Auto Deploy nativo, configurado en su dashboard)
+   detecta el push -> construye `migrate`/`app` desde
+   compose.dokploy.yaml (build: sobre el Dockerfile, sin GitHub Actions
+   de por medio) -> corre `migrate` -> si sale 0, arranca/reemplaza `app`
+```
+
+Sin aprobación manual: mergear a `main` ya es la decisión de desplegar. No hay `deploymentId` ni tag inmutable que registrar desde este repositorio — el estado real del despliegue vive en el dashboard/logs de Dokploy de esta instancia.
+
+**Verificación tras un push a main**:
+
+1. Esperar a que Dokploy termine (revisar el estado del servicio Compose en su dashboard).
+2. `curl $PRODUCTION_URL/api/health` → `200`. El campo `sha` es `null` en este modelo (ver `docs/DEPLOYMENT.md` §"Imagen de producción") — no es un síntoma de falla.
+3. `node scripts/smoke-production.ts` contra `PRODUCTION_URL` a mano (ya no corre automáticamente desde CI): `GET` sobre `/api/health`, `/`, una Category, un Article, `/buscar`, `/admin/login` — las seis SHALL responder `< 400`.
+
+Si `migrate` falla, `app` nunca arranca y la release anterior sigue sirviendo tráfico — sin rollback automático. Revisar los logs del servicio Compose en el dashboard de Dokploy (las migraciones solo se ven ahí).
+
+### Modelo legado (opcional, `release.yml` + `dokploy-deploy.ts`)
+
+El mecanismo anterior (GitHub Actions construye y publica imágenes con tag inmutable por SHA a GHCR, y un job `deploy` las entrega a Dokploy vía API tras aprobación manual) sigue existiendo, completo, pero inactivo por defecto — se dispara manualmente con `release.yml` (`workflow_dispatch`, input `publish_and_deploy: true`). Útil si en algún momento se quiere volver a la trazabilidad "qué se calificó == qué se despliega" vía tag inmutable.
+
+```
+release.yml (workflow_dispatch, publish_and_deploy: true)
+  -> ci-gates (reutiliza ci.yml) -> e2e-full/visual/docker-smoke/lighthouse
   -> publish: build + push a GHCR de
        ghcr.io/<owner>/60segundosnoticias:runner-<sha>
        ghcr.io/<owner>/60segundosnoticias:migrator-<sha>
-     (más los alias mutables -main, que Dokploy NUNCA despliega)
-  -> deploy (needs: publish; environment: production)
-       PAUSA aquí hasta que un reviewer humano apruebe en el
-       GitHub Environment "production" (required reviewers)
-  -> aprobado: scripts/dokploy-deploy.ts
-       compose.one -> reescribir RUNNER_IMAGE/MIGRATOR_IMAGE ->
-       compose.update -> re-leer y verificar byte a byte -> compose.deploy
-  -> scripts/smoke-production.ts (6 rutas, todas < 400)
-  -> provenance (needs: publish, corre en paralelo a deploy — el registro
-     de qué se publicó no queda bloqueado detrás del clic de aprobación)
+  -> deploy (needs: publish; environment: production, required reviewers)
+       -> scripts/dokploy-deploy.ts: compose.one -> reescribir
+          RUNNER_IMAGE/MIGRATOR_IMAGE -> compose.update -> re-leer y
+          verificar byte a byte -> compose.deploy
+       -> scripts/smoke-production.ts
+  -> provenance (needs: publish, en paralelo a deploy)
 ```
 
-`deploy` consume `needs.publish.outputs.runner-tag`/`migrator-tag` verbatim — nunca reconstruye el tag desde `IMAGE_BASE`, así que no hay ninguna ruta por la que el alias mutable `-main` llegue a Dokploy. Ver `docs/DEPLOYMENT.md` §"Imagen de producción" para el contrato de la imagen y §"Secuencia de despliegue" para el detalle del contrato repo↔Dokploy.
+**Las tres señales de "terminó, y terminó bien"** en este camino (`compose.deploy` es asíncrono — Dokploy responde inmediatamente, pero el despliegue real tarda; `scripts/dokploy-deploy.ts` exige las tres antes de declarar éxito):
 
-### Las tres señales de "terminó, y terminó bien"
+1. **Transición de estado en Dokploy** (`compose.one`, sondeado cada 5 s el primer minuto y luego cada 10 s, tope 15 min): se exige que el estado cambie respecto al que había *antes* de llamar a `compose.deploy`.
+2. **SHA vivo**: `GET $PRODUCTION_URL/api/health` hasta 3 lecturas **consecutivas** de HTTP 200 con `body.sha === <sha de esta corrida>`, separadas 5 s, tope 10 min (este camino sí pasa `GIT_SHA` como build-arg, a diferencia del modelo actual).
+3. **Smoke** (`scripts/smoke-production.ts`): mismas seis rutas que arriba.
 
-`compose.deploy` es asíncrono — Dokploy responde inmediatamente, pero el despliegue real tarda. `scripts/dokploy-deploy.ts` exige las tres antes de declarar éxito:
-
-1. **Transición de estado en Dokploy** (`compose.one`, sondeado cada 5 s el primer minuto y luego cada 10 s, tope 15 min): se exige que el estado cambie respecto al que había *antes* de llamar a `compose.deploy` — un `done` que en realidad quedó de un despliegue anterior nunca cuenta como éxito de esta corrida. Estado ausente o no reconocido se trata siempre como "sigue desplegando".
-2. **SHA vivo**: `GET $PRODUCTION_URL/api/health` hasta 3 lecturas **consecutivas** de HTTP 200 con `body.sha === <sha de esta corrida>`, separadas 5 s, tope 10 min. Una sola lectura no basta: durante el reemplazo del container, la release vieja y la nueva pueden contestar alternadamente.
-3. **Smoke** (`scripts/smoke-production.ts`): `GET` sobre `/api/health`, `/`, una Category, un Article (descubiertos desde `/sitemap.xml`, con override vía `SMOKE_CATEGORY_PATH`/`SMOKE_ARTICLE_PATH`), `/buscar`, `/admin/login`. Las seis SHALL responder `< 400`.
-
-### Cómo leer una falla
-
-El job `deploy` nunca hace rollback automático ni `stop`/`restart`. Ante cualquier falla se detiene y escribe un resumen (`$GITHUB_STEP_SUMMARY`, visible en la corrida de Actions) con la clase de falla, ambos tags de imagen, el `deploymentId`, el SHA que estaba vivo antes del intento, y el comando exacto para revertir manualmente. Clases que puede reportar (`scripts/dokploy-deploy.ts`):
+**Cómo leer una falla**: el job `deploy` nunca hace rollback automático ni `stop`/`restart`. Ante cualquier falla se detiene y escribe un resumen (`$GITHUB_STEP_SUMMARY`) con la clase de falla, ambos tags de imagen, el SHA que estaba vivo antes del intento, y el comando exacto para revertir manualmente. Clases que puede reportar (`scripts/dokploy-deploy.ts`):
 
 | Clase de falla | Qué significa | Qué revisar |
 |---|---|---|
 | `ENV_VERIFICATION_MISMATCH` | La relectura de `compose.one` tras `compose.update` no coincidió byte a byte con lo que se intentó escribir. Se abortó **antes** de llamar a `compose.deploy` — no se desplegó nada. | El env de Dokploy puede haber quedado en un estado inesperado; revisar manualmente en el dashboard antes de reintentar. |
-| `MIGRATION_FAILED_OLD_SERVING` | Dokploy nunca confirmó la transición de estado (o reportó error), pero `/api/health` sigue respondiendo — casi siempre el container `migrate` falló y `app` nunca llegó a arrancar. La release anterior sigue sirviendo tráfico. | Logs de Dokploy del servicio Compose (las migraciones solo se ven ahí — revisar en el dashboard de esta instancia). |
+| `MIGRATION_FAILED_OLD_SERVING` | Dokploy nunca confirmó la transición de estado (o reportó error), pero `/api/health` sigue respondiendo — casi siempre el container `migrate` falló y `app` nunca llegó a arrancar. La release anterior sigue sirviendo tráfico. | Logs de Dokploy del servicio Compose. |
 | `SITE_UNREACHABLE` | Ni `/api/health` de la release vieja ni de la nueva responden. | Estado del stack en Dokploy; si el problema es de infraestructura (VPS, red), no de la imagen. |
 | `NEW_SHA_NEVER_LIVE` | Dokploy reportó el despliegue como completado, pero el SHA nuevo nunca alcanzó 3 lecturas consecutivas antes del tope de 10 min. | Logs de arranque de `app`; puede ser un problema de la imagen nueva en vez de las migraciones. |
 
@@ -106,13 +118,27 @@ Esta regla depende de mantener la bitácora de despliegues (abajo) — sin ella,
 
 ### Cómo ejecutar un rollback
 
-`.github/workflows/rollback.yml` (`workflow_dispatch`), inputs `sha` (el SHA de Git completo de 40 hex ya publicado al que revertir) y `reason`. Requiere la misma aprobación humana del Environment `production` que un release normal, y usa el mismo grupo de concurrencia (`release`) que `release.yml`, así que nunca corre en simultáneo con un despliegue normal.
+`.github/workflows/rollback.yml` (`workflow_dispatch`), input `strategy` (`git`, default, o `image`, legado), más `sha` y `reason`. Sin aprobación manual — usa el mismo grupo de concurrencia (`release`) que `release.yml`, así que nunca corre en simultáneo con un release legado.
+
+**`strategy: git` (default)** — `sha` es el commit bueno de `main` al que volver:
 
 ```bash
-gh workflow run rollback.yml -f sha=<sha-de-40-hex> -f reason="descripción de por qué"
+gh workflow run rollback.yml -f strategy=git -f sha=<commit-bueno> -f reason="descripción de por qué"
 ```
 
-El workflow verifica primero que ambos manifests (`runner-<sha>`, `migrator-<sha>`) existen en GHCR — **nunca reconstruye** — y luego reutiliza exactamente `scripts/dokploy-deploy.ts` y `scripts/smoke-production.ts`, con las mismas tres señales de éxito que un despliegue normal. El resumen del job advierte explícitamente que este rollback revierte solo la aplicación, nunca el esquema.
+Deja el árbol de `main` idéntico a ese commit (`git checkout <sha> -- .` + un nuevo commit `revert: rollback to <sha> (...)`, pusheado sin force-push ni reescritura de historia) y espera a que Dokploy reconstruya solo, vía su Auto Deploy nativo. No confirma el SHA exacto servido (ver `docs/DEPLOYMENT.md` §"Imagen de producción") — solo que el sitio vuelve a responder; para certeza exacta, revisar el dashboard/logs de Dokploy.
+
+**Prerrequisito de configuración**: este job no declara `environment: production` (a propósito — no necesita los secrets `DOKPLOY_*`, y así no queda detrás de la aprobación manual del Environment). Por eso `PRODUCTION_URL` SHALL estar configurada como **Repository variable** (Settings → Secrets and variables → Actions → Variables, pestaña de repositorio), no como Environment variable de `production` — un job sin `environment:` declarado no puede leer variables scoped a un Environment. No es información sensible (es la URL pública del sitio).
+
+**`strategy: image` (legado)** — `sha` es el SHA de Git completo (40 hex) de una imagen ya publicada a GHCR:
+
+```bash
+gh workflow run rollback.yml -f strategy=image -f sha=<sha-de-40-hex> -f reason="descripción de por qué"
+```
+
+Verifica primero que ambos manifests (`runner-<sha>`, `migrator-<sha>`) existen en GHCR — **nunca reconstruye** — y reutiliza exactamente `scripts/dokploy-deploy.ts` y `scripts/smoke-production.ts`, con las mismas tres señales de éxito que un despliegue legado. Solo funciona si las imágenes de ese SHA siguen existiendo en GHCR (es decir, si `release.yml` se corrió con `publish_and_deploy: true` para ese SHA en algún momento). Este job sí declara `environment: production` (necesita los secrets `DOKPLOY_*`, scoped a ese Environment), así que sí queda detrás de la misma aprobación manual que el modelo legado de `release.yml`.
+
+Ambas estrategias advierten explícitamente en el resumen del job que el rollback revierte solo la aplicación, nunca el esquema.
 
 ### Bitácora de despliegues
 
@@ -136,7 +162,7 @@ Orden estricto para la primera vez que una base de datos de producción queda en
 5. **`seed:initial`** (`pnpm payload run src/payload/seed/initial.ts` — Categories base, idempotente). **Nunca `seed:dev`** en producción — crea contenido de demostración y usuarios con contraseña de desarrollo hardcodeada. Normalmente única vez, pero es seguro repetirlo si hiciera falta (no duplica).
 6. **Publicar contenido real** — tarea editorial continua, no un paso de despliegue.
 7. **Reindex de Search**: Admin UI → `/admin/collections/search` → acción "Reindex", y confirmar que `/buscar` devuelve resultados (ver `docs/SEARCH.md` §"Reindexación"). **Recurre solo** cuando una release cambia qué Collections se indexan o la extracción `beforeSync` — no en cada despliegue normal.
-8. **Smoke público**: `node scripts/smoke-production.ts` contra `PRODUCTION_URL` (mismo script que corre automáticamente dentro del job `deploy`) — recurrente, ya automatizado en cada despliegue vía CI; correrlo a mano aquí solo confirma el estado tras los pasos 4-7, que la CI no ve.
+8. **Smoke público**: `node scripts/smoke-production.ts` contra `PRODUCTION_URL` — manual tras cada despliegue en el modelo actual (ya no se ejecuta automáticamente desde CI); aquí además confirma el estado tras los pasos 4-7.
 
 ## Recrear la base en otro servidor
 

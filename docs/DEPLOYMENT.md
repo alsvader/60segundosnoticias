@@ -31,7 +31,9 @@ No se implementa nada de esto en V1 — se documenta como límite conocido, no c
 
 ## Imagen de producción
 
-**El build ocurre solo en GitHub Actions (`release.yml`, job `publish`) — nunca en el VPS.** Dokploy únicamente hace `pull` y `run` de imágenes ya construidas y calificadas; el contrato de `compose.dokploy.yaml` usa exclusivamente `image:`, nunca `build:` (ver "Secuencia de despliegue" abajo). Los comandos `docker build` de esta sección siguen siendo el mecanismo real — solo que quien los ejecuta en producción es el job `publish` de CI, no un operador en el host. Sirven tal cual para reproducir/probar el build localmente.
+**El build ocurre en el VPS, dentro de Dokploy, en cada push a `main`** — `compose.dokploy.yaml` usa `build:` (igual que `compose.prod.yaml`), no `image:`. GitHub Actions (`ci.yml`, job `docker-build`) sigue siendo el gate de PR/merge: valida, antes de mergear, que esta misma imagen (mismos targets `runner`/`migrator`, mismo Dockerfile) construye bien — pero solo como validación (`push: false`), nunca publica nada a un registro. Dokploy despliega vía su propio Auto Deploy nativo sobre `main`, sin pasar por GitHub Actions. Los comandos `docker build` de esta sección siguen siendo el mecanismo real para reproducir/probar el build localmente.
+
+Esto reemplaza el modelo anterior (`release.yml` construía y publicaba imágenes con tag inmutable por SHA a GHCR, y un job `deploy` las entregaba a Dokploy vía API tras aprobación manual) — simplificación deliberada para reducir minutos de CI en un proyecto de un solo mantenedor. Ese mecanismo sigue existiendo en `release.yml` (jobs `publish`/`deploy`/`provenance`), pero inactivo por defecto, detrás del input `publish_and_deploy` de `workflow_dispatch`.
 
 El `Dockerfile` define, además de los stages de desarrollo (`base`, `deps`, `development`), dos stages exclusivos de producción:
 
@@ -59,7 +61,9 @@ docker build --target runner \
   -t 60segundos-app:runner .
 ```
 
-**`GIT_SHA` (nuevo, `openspec/changes/production-deployment-dokploy`)**: se declara al final del stage `runner`, después de todos los `COPY` — así solo invalida la última capa (metadata) en cada commit, en vez de reventar el caché de `pnpm build`; nunca se declara en `builder` por la misma razón. Se expone vía `process.env.GIT_SHA` en runtime (nunca `NEXT_PUBLIC_*` — no se incrusta en el bundle de cliente) y `/api/health` lo reporta en el campo `sha` (ver "Contrato de entorno" abajo). En producción real, `release.yml` lo pasa como `--build-arg GIT_SHA=${{ github.sha }}` al construir `runner` — es lo que permite confirmar, sondeando `/api/health` en vivo, que la release que Dokploy dice haber desplegado es realmente la que quedó sirviendo tráfico (ver `docs/OPERATIONS.md` §"Despliegue", señal 2).
+**`GIT_SHA`**: se declara al final del stage `runner`, después de todos los `COPY` — así solo invalida la última capa (metadata) en cada commit, en vez de reventar el caché de `pnpm build`; nunca se declara en `builder` por la misma razón. Se expone vía `process.env.GIT_SHA` en runtime (nunca `NEXT_PUBLIC_*` — no se incrusta en el bundle de cliente) y `/api/health` lo reporta en el campo `sha` (ver "Contrato de entorno" abajo).
+
+**Limitación conocida en el modelo actual**: ni `compose.dokploy.yaml` ni `compose.prod.yaml` pasan este build-arg (el SHA de git no está disponible dentro del build context — `.dockerignore` excluye `.git`), así que en producción real `/api/health` reporta `sha: null`. Esto era distinto en el modelo anterior, donde `release.yml` sí lo pasaba explícitamente (`--build-arg GIT_SHA=${{ github.sha }}`) porque GitHub Actions conocía el SHA exacto sin necesidad de leer `.git`. El único camino que hoy sigue poblando `GIT_SHA` correctamente es el legado `release.yml` (`publish`, tras habilitar `publish_and_deploy`). Para confirmar qué commit corre realmente en el VPS sin ese campo, revisar el dashboard/logs de Dokploy.
 
 **`DATABASE_URI` debe ser alcanzable durante el build, no solo tener formato válido.** `next build` prerenderiza `/`, `/robots.txt` y `/sitemap.xml` como contenido estático, y esa generación ejecuta consultas reales contra Payload Local API (`SiteSettings`, `Home`, etc.) — verificado directamente: con una `DATABASE_URI` sintácticamente válida pero inalcanzable, el build falla en la exportación de `/`, no en la validación de entorno. En la práctica esto significa: **el pipeline de build necesita red hacia una base ya migrada al schema de esta release** (un servidor "migration-test" desechable, no la base de producción real necesariamente, pero sí una con el schema al día — ver "Secuencia de despliegue").
 
@@ -102,28 +106,29 @@ Ningún secreto se expone vía `NEXT_PUBLIC_*` (auditado). Ningún `ARG` del Doc
 
 ## Secuencia de despliegue
 
-**Ya no son pasos manuales de `docker build`/`docker run` en el host** — GitHub Actions es el único lugar donde se construye una imagen de producción, y el VPS (Dokploy) solo hace `pull`/`run` de lo ya construido y calificado. El runbook operativo de cómo correr esto (aprobar el gate, leer una falla, ejecutar un rollback) vive en `docs/OPERATIONS.md` §"Despliegue" — aquí solo el contrato:
+**Ya no son pasos manuales de `docker build`/`docker run` en el host** — pero tampoco es GitHub Actions quien construye la imagen de producción: Dokploy la construye él mismo, en el VPS, vía su propio Auto Deploy nativo sobre `main`. El runbook operativo (cómo leer una falla, ejecutar un rollback) vive en `docs/OPERATIONS.md` §"Despliegue" — aquí solo el contrato:
 
 ```
-1. push a main -> release.yml: ci-gates -> e2e-full/visual/docker-smoke/
-   lighthouse (calificación FULL; cualquier falla bloquea todo lo que sigue)
-2. publish: build de `runner`/`migrator` (con --build-arg GIT_SHA=<sha>)
-   y push a GHCR con tag inmutable por SHA + alias mutable `-main`
-   (el alias NUNCA es lo que se despliega)
-3. deploy (GitHub Environment "production", required reviewers) ->
-   tras aprobación: se entrega el tag inmutable de este SHA al servicio
-   Compose de Dokploy (compose.dokploy.yaml) -> Dokploy corre `migrate`
-   (job de un solo uso) -> si sale 0, arranca/reemplaza `app` con la
-   nueva imagen `runner` (si `migrate` falla, `app` nunca arranca y la
-   release anterior sigue sirviendo tráfico — sin rollback automático)
-4. se confirma /api/health = 200 con el `sha` de ESTE despliegue
-   (no solo "el sitio responde" — ver "Contrato de entorno" arriba)
-5. smoke automatizado sobre 6 rutas públicas/Admin
+1. push a main (tras pasar el gate de ci.yml en el PR: quality ->
+   integration -> e2e-pr -> docker-build)
+2. Dokploy detecta el push (Auto Deploy nativo, configurado en su
+   dashboard) -> construye `migrate`/`app` desde compose.dokploy.yaml
+   (build: sobre el mismo Dockerfile, sin imágenes pre-construidas)
+3. Dokploy corre `migrate` (job de un solo uso) -> si sale 0, arranca/
+   reemplaza `app` con la nueva imagen `runner` (si `migrate` falla,
+   `app` nunca arranca y la release anterior sigue sirviendo tráfico —
+   sin rollback automático)
+4. se confirma /api/health = 200 (ya no se puede confirmar por `sha`
+   exacto en este modelo — ver "Imagen de producción" arriba)
+5. smoke manual: `node scripts/smoke-production.ts` contra PRODUCTION_URL
+   (ya no se ejecuta automáticamente desde GitHub Actions)
 6. si el plugin/colección de Search cambió (nueva Collection indexada,
    o cambia la extracción `beforeSync`): Reindex manual vía Admin UI —
    ver docs/SEARCH.md y docs/OPERATIONS.md §"Primer arranque". No se
    ejecuta automáticamente en cada despliegue.
 ```
+
+Sin aprobación manual intermedia: en un proyecto de un solo mantenedor, mergear a `main` ya es la decisión de desplegar. `release.yml` conserva el modelo anterior completo (GHCR + Environment `production` con reviewers) inactivo por defecto, detrás de `workflow_dispatch` con `publish_and_deploy: true`, para quien quiera volver puntualmente a él.
 
 **Invariante**: las migraciones se aplican una sola vez, antes de que la nueva release empiece a servir tráfico. El `CMD`/`ENTRYPOINT` normal de `runner` nunca ejecuta `payload migrate` — ni en el primer arranque ni en reinicios posteriores. Con múltiples réplicas (fuera de alcance de V1), el job de migración debe seguir siendo un paso singleton por release, no uno por réplica.
 
@@ -245,7 +250,7 @@ Ver `docs/OPERATIONS.md` §"Primer arranque" para dónde encaja este paso dentro
 - **Build falla en "Export encountered an error on /(frontend)/page"**: `DATABASE_URI` no es alcanzable, o la base no tiene el schema de esta release — correr `migrator` contra ella primero.
 - **`migrator` parece colgado, sin salida ni error**: casi seguro un prompt interactivo de Payload sin TTY para responderlo (drift de push-mode). No debería ocurrir con la imagen `migrator` de este repo (fija `NODE_ENV=production`), pero si se invoca `payload migrate` por otra vía, correrlo contra una base que push mode no haya tocado, o desde una terminal interactiva.
 - **`/api/health` devuelve `503`**: PostgreSQL inalcanzable desde el App Container — revisar red/`DATABASE_URI`, no la aplicación.
-- **`/api/health` responde `200` pero `sha` no es el esperado**: la release nueva no llegó a arrancar, o un proxy/CDN intermedio está cacheando una respuesta vieja (no debería — la ruta responde `Cache-Control: no-store`). Ver `docs/OPERATIONS.md` §"Despliegue" para la clasificación de falla completa (`scripts/dokploy-deploy.ts` distingue "release anterior sigue sirviendo" de "sitio caído" de "la nueva release nunca quedó viva").
+- **`/api/health` responde `200` pero `sha` es `null`**: esperado en el modelo actual — `compose.dokploy.yaml` construye sin pasar `GIT_SHA` como build-arg (ver "Imagen de producción" arriba). No es un síntoma de falla. Si se usa el modelo legado (`release.yml` con `publish_and_deploy: true`), `scripts/dokploy-deploy.ts` sí clasifica fallas por SHA — ver `docs/OPERATIONS.md` §"Despliegue".
 - **Imagen sube a Medias local en vez de a Object Storage**: falta alguna de las seis variables `S3_*` — el adaptador se desactiva por completo si falta cualquiera, no parcialmente.
 
 ## Fuera de alcance de esta fase
@@ -253,7 +258,7 @@ Ver `docs/OPERATIONS.md` §"Primer arranque" para dónde encaja este paso dentro
 Los cuatro puntos que este documento marcaba como pendientes tras Phase 10 (Release Readiness) ya quedaron obsoletos o resueltos por fases posteriores:
 
 - ~~Política y automatización de backups (DB y Media)~~ → **resuelto**: PostgreSQL de producción es un servicio gestionado por Dokploy con backup/restore nativo a S3; Media usa su propio Object Storage S3-compatible desde Phase 10. Runbook completo, con las dos bitácoras vivas, en `docs/OPERATIONS.md`.
-- ~~CI~~ → ya era falso desde Phase 11 (`ci.yml`/`release.yml` existen y califican cada release en FULL antes de publicar) y ahora además cubre la entrega automatizada a Dokploy (`release.yml`, job `deploy`) y el rollback (`rollback.yml`) — ver `docs/TESTING.md` §"Niveles de CI".
+- ~~CI~~ → `ci.yml` califica cada PR/merge (quality/integration/e2e-pr/docker-build) — ver `docs/TESTING.md` §"Niveles de CI". La entrega a producción ya no pasa por GitHub Actions: Dokploy construye y despliega solo desde `main` vía su Auto Deploy nativo. `release.yml` (QA extendida manual) y `rollback.yml` (rollback por git, con el modelo de imágenes GHCR conservado como opción legada) siguen existiendo como herramientas bajo demanda, no como parte del camino automático.
 - ~~Aprovisionamiento real del proveedor de hosting, PostgreSQL administrado y bucket de Object Storage~~ → **parcialmente resuelto**: el operador ya tiene el VPS con Dokploy instalado, y Object Storage de Media ya está en uso desde Phase 10. Crear ahí el servicio Compose y el servicio de base de datos PostgreSQL, generar el token de API de Dokploy y crear el GitHub Environment `production` siguen siendo prerrequisitos manuales del operador (`openspec/changes/production-deployment-dokploy/design.md`, "Prerrequisitos manuales") — no automatizados por este repositorio, y bloquean únicamente la verificación en vivo de un despliegue real, no la implementación.
 - ~~Dominio, certificados TLS reales, `noindex` de staging~~ → **sigue genuinamente fuera de alcance**: el container de producción no termina TLS (ver "TLS / proxy" arriba); el dominio, los certificados y cualquier reverse proxy/Traefik siguen siendo responsabilidad de la plataforma/Dokploy, nunca de este repositorio.
 
