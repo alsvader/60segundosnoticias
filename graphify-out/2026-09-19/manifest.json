@@ -3006,9 +3006,9 @@
     "semantic_hash": ""
   },
   "compose.dokploy.yaml": {
-    "mtime": 1789766837.7663872,
-    "seen": 1789766847.9787872,
-    "ast_hash": "1b9bafb4c48976f0483631f4cf0eb3a2",
+    "mtime": 1789867019.1272755,
+    "seen": 1789869440.5875661,
+    "ast_hash": "17bd09ea48817d86de857918f58950f3",
     "semantic_hash": ""
   },
   "docs/TESTING.md": {
@@ -3138,9 +3138,9 @@
     "semantic_hash": ""
   },
   "openspec/changes/production-deployment-dokploy/design.md": {
-    "mtime": 1789757271.6738336,
-    "seen": 1789758453.5251992,
-    "ast_hash": "dc5cf9ac51a854651517f42f100117f5",
+    "mtime": 1789869078.4171324,
+    "seen": 1789869440.587682,
+    "ast_hash": "0e859572508a70409334d53fd3c252e9",
     "semantic_hash": ""
   },
   "openspec/changes/production-deployment-dokploy/proposal.md": {
@@ -3168,9 +3168,9 @@
     "semantic_hash": ""
   },
   "openspec/changes/production-deployment-dokploy/tasks.md": {
-    "mtime": 1789770439.683225,
-    "seen": 1789770449.2469382,
-    "ast_hash": "afa0766ed286778a2cd95c57aa759474",
+    "mtime": 1789869068.6608522,
+    "seen": 1789869440.5876858,
+    "ast_hash": "aeb19fc0dd1020e0427ba9a75bc0ed74",
     "semantic_hash": ""
   },
   "openspec/specs/cms-integration-testing/spec.md": {
@@ -3198,9 +3198,9 @@
     "semantic_hash": ""
   },
   "src/lib/deploy/dokploy-client.ts": {
-    "mtime": 1789770360.3881338,
-    "seen": 1789770449.2466612,
-    "ast_hash": "6a64775494f04e06e30faf6336c90a2f",
+    "mtime": 1789869096.8322423,
+    "seen": 1789869440.587438,
+    "ast_hash": "36277704a98453ed6e08c89585eac0b9",
     "semantic_hash": ""
   }
 }

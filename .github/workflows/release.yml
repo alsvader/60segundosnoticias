@@ -1,20 +1,26 @@
 name: Release
 
-# openspec/changes/testing-qa-performance, tareas 9.5-9.13 (design.md,
-# Decisión 10/13). Calificación FULL completa - reutiliza los 4 jobs de
-# ci.yml (workflow reusable) y agrega Firefox/WebKit sobre los 8 journeys
-# críticos, regresión visual, smoke real de Docker de producción
-# (compose.prod.yaml) y Lighthouse - antes de publicar ninguna imagen.
-# Ningún gate puede fallar sin bloquear la publicación. GitHub Actions
-# sigue siendo el gate de release autoritativo; el VPS/Dokploy solo hace
-# pull de imágenes ya construidas y validadas aquí - nunca construye
-# nada (Decisión 13). No se invoca ninguna infraestructura Dokploy real
-# en esta fase - ver tareas 9.9-9.11 y `production-deployment-dokploy`.
-
+# Suite de QA extendida, manual y opcional - Firefox/WebKit sobre los 8
+# journeys críticos, regresión visual, smoke real de Docker de producción
+# (compose.prod.yaml) y Lighthouse. Ya no corre automáticamente en cada
+# push a main (ci.yml ya cubre el gate obligatorio de PR/merge) ni publica
+# nada por defecto - Dokploy construye y despliega directamente desde
+# compose.dokploy.yaml vía su propio Auto Deploy nativo sobre `main`.
+#
+# Los jobs `publish`/`deploy`/`provenance` (modelo anterior: GitHub Actions
+# construye y publica imágenes a GHCR con tag por SHA, y despliega a
+# Dokploy vía API tras aprobación manual) se dejan definidos pero inactivos
+# - nunca se borraron, solo quedan detrás del input `publish_and_deploy`
+# para quien quiera volver puntualmente a ese modelo sin reintroducir
+# código eliminado.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      publish_and_deploy:
+        description: 'Publicar imágenes a GHCR y desplegar vía API a Dokploy (modelo legado - normalmente no hace falta, Dokploy ya despliega solo desde main)'
+        required: false
+        type: boolean
+        default: false
 
 # Dos releases de producción SHALL NOT correr en simultáneo (tarea 9.5) -
 # nunca se cancela un release ya en curso, solo se encolan.
@@ -308,9 +314,13 @@ jobs:
           path: .lighthouseci/
           retention-days: 30
 
+  # Modelo legado (inactivo por defecto - ver el comentario de cabecera):
+  # publica imágenes runner/migrator con tag por SHA a GHCR. Solo corre si
+  # se dispara el workflow con `publish_and_deploy: true`.
   publish:
     name: publish
     needs: [e2e-full, visual, docker-smoke, lighthouse]
+    if: inputs.publish_and_deploy
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -376,9 +386,15 @@ jobs:
   # SHALL ser una URL literal o de `vars`, nunca de `secrets` - por eso
   # `PRODUCTION_URL` vive como variable del Environment y no como secret,
   # a diferencia de las credenciales de Dokploy.
+  # Modelo legado (inactivo por defecto - ver el comentario de cabecera):
+  # despliega a Dokploy vía API las imágenes que `publish` acaba de subir a
+  # GHCR. Solo corre si se dispara el workflow con `publish_and_deploy:
+  # true`. En el modelo actual, Dokploy despliega solo desde `main` vía su
+  # Auto Deploy nativo - este job ya no es parte del camino normal.
   deploy:
     name: deploy
     needs: publish
+    if: inputs.publish_and_deploy
     runs-on: ubuntu-latest
     environment:
       name: production
@@ -443,9 +459,11 @@ jobs:
             echo "- **Corrida**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
+  # Modelo legado (inactivo por defecto - ver el comentario de cabecera).
   provenance:
     name: provenance
     needs: publish
+    if: inputs.publish_and_deploy
     runs-on: ubuntu-latest
     steps:
       # Tarea 9.13: SHA de Git, tags GHCR de runner/migrator, la corrida

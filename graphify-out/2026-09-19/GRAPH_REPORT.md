@@ -1,7 +1,7 @@
-# Graph Report - 60segundosnoticias  (2026-09-18)
+# Graph Report - 60segundosnoticias  (2026-09-19)
 
 ## Corpus Check
-- 499 files · ~650,920 words
+- 499 files · ~651,116 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9cbe6ff7`
+- Built from commit: `5bea74b2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -300,8 +300,8 @@
   docs/AI-WORKFLOW.md → openspec/changes/archive/2026-09-09-payload-cms-core/proposal.md
 - `createLegacyRedirect()` --calls--> `getPostUrl()`  [EXTRACTED]
   tests/fixtures/builders.ts → src/lib/url/canonical.ts
-- `Container` --conceptually_related_to--> `Editorial Components (capability)`  [INFERRED]
-  openspec/specs/layout-primitives/spec.md → openspec/specs/editorial-components/spec.md
+- `D5: Incremental shadcn primitive installation` --references--> `Button (shadcn primitive, re-themed)`  [EXTRACTED]
+  openspec/changes/archive/2026-09-09-design-system-shadcn/design.md → docs/DESIGN-SYSTEM.md
 
 ## Import Cycles
 - None detected.
@@ -1208,7 +1208,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `payload` connect `payload` to `assert-test-database.ts`, `references.ts`, `builders.ts`, `getTestPayload`, `vitest`, `canonical.ts`, `dev.ts`, `package.json`, `build-search-doc.ts`, `(payload)/layout.tsx`, `server-only`, `posts.ts`, `Pages.ts`, `category-badge.tsx`, `invalidate.ts`, `payload.config.ts`, `Categories.ts`, `Posts.ts`?**
   _High betweenness centrality (0.034) - this node is a cross-community bridge._
 - **Why does `Category Theme System (capability)` connect `Editorial Components (capability)` to `2026-09-09-design-system-shadcn/tasks.md`, `category-theme-system spec (archived)`, `category-badge.tsx`, `2026-09-09-design-system-shadcn/proposal.md`, `Texture Foundation (capability)`?**
-  _High betweenness centrality (0.024) - this node is a cross-community bridge._
+  _High betweenness centrality (0.026) - this node is a cross-community bridge._
 - **Why does `vitest` connect `vitest` to `Post`, `getTestPayload`, `assert-test-database.ts`, `canonical.ts`, `(frontend)/layout.tsx`, `package.json`, `embed-block.tsx`, `build-search-doc.ts`, `dokploy-client.ts`, `posts.ts`, `env/index.ts`, `utils.ts`, `(frontend)/page.tsx`?**
   _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **What connects `$schema`, `style`, `rsc` to the rest of the system?**
