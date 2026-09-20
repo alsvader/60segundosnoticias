@@ -349,19 +349,25 @@
   objeto completo. Actualizar la constante correspondiente en
   `scripts/dokploy-deploy.ts` si el nombre confirmado difiere del
   supuesto. Verificar citando la respuesta real del Swagger.
-  **Verificado real**: el operador revisó el Swagger de su instancia real
-  de Dokploy (`<DOKPLOY_URL>/swagger`) y confirmó que los tres supuestos
-  documentados en `src/lib/deploy/dokploy-client.ts` coinciden con el
-  comportamiento real de la API — el campo de estado de `compose.one` y
-  sus valores terminales (`DOKPLOY_STATUS_FIELD`/`DOKPLOY_DONE_STATUSES`/
-  `DOKPLOY_ERROR_STATUSES`), que `compose.deploy` sí devuelve un
-  identificador de despliegue bajo uno de los candidatos probados
-  (`DEPLOYMENT_ID_CANDIDATE_FIELDS`), y el comportamiento de
-  `compose.update` frente al objeto completo vs. un patch parcial
-  (`updateComposeEnv`). Ninguna constante ni el flujo de degradación de
-  `updateComposeEnv` necesitó cambios — se actualizaron solo los
-  comentarios que decían "sin verificar" para reflejar el estado real.
-  Ver `design.md` (Open Questions, resuelta; Risks/Trade-offs).
+  **Verificado real (corregido)**: la primera revisión contra el Swagger
+  dio por buenos los tres supuestos sin cambios, pero el primer
+  despliegue real de la Etapa 7.2 demostró que esa revisión no atrapó un
+  error: `waitForDokployStatusTransition` nunca detectaba una transición
+  de estado (`compose.one: estado actual = (ausente)` en cada sondeo),
+  incluso con un despliegue que sí terminó exitoso del lado de Dokploy.
+  Se capturó la respuesta real de `compose.one` durante ese despliegue y
+  se confirmó que el campo top-level es `composeStatus`, no `status` —
+  `status` solo existe dentro de `deployments[]` (un array de historial
+  por intento), que es un objeto distinto del que lee este script. Los
+  *valores* asumidos (`done`/`error`) sí resultaron correctos, confirmados
+  en ese mismo `deployments[].status`. Corregido `DOKPLOY_STATUS_FIELD` a
+  `'composeStatus'` en `src/lib/deploy/dokploy-client.ts`, actualizados
+  los mocks de `dokploy-client.test.ts` que usaban la clave vieja, y
+  agregado un caso de prueba que fija el comportamiento correcto
+  (`status` en la raíz del objeto SHALL ignorarse). `compose.deploy`
+  devolviendo un `deploymentId` y el comportamiento de `compose.update`
+  no se vieron afectados por este error — se mantienen verificados como
+  antes. Ver `design.md` (Open Questions, Risks/Trade-offs).
 - [ ] 7.2 Ejecutar un despliegue real de punta a punta desde `main`,
   aprobando el gate de `production`. Verificar con evidencia real:
   `/api/health` devuelve el SHA esperado, los 6 endpoints de
