@@ -62,6 +62,16 @@ COPY --from=builder --chown=node:node /app/.next/standalone ./
 COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 COPY --from=builder --chown=node:node /app/public ./public
 
+# Se declara al final, después de todos los `COPY`, a propósito: así solo
+# invalida la última capa (metadata) en cada commit, en vez de reventar el
+# caché de las capas de `COPY`/`pnpm build` de arriba. Nunca en el stage
+# `builder` por la misma razón. No es `NEXT_PUBLIC_*`: no se incrusta en
+# el bundle de cliente, solo queda disponible vía `process.env` en runtime
+# para que `/api/health` reporte qué SHA está realmente vivo
+# (openspec/changes/production-deployment-dokploy).
+ARG GIT_SHA
+ENV GIT_SHA=$GIT_SHA
+
 USER node
 
 EXPOSE 3000

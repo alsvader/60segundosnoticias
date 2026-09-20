@@ -63,6 +63,8 @@ La Admin UI expone un botón "Reindex" sobre la Collection `search` (endpoint `P
 - Requiere que el usuario que la invoca tenga `update` + `delete` sobre `search` (Admin).
 - No se dispara automáticamente al iniciar la aplicación — es una acción manual.
 
+En el runbook de primer arranque de producción (`docs/OPERATIONS.md` §"Primer arranque"), este Reindex es el paso 7 — después de crear el primer Admin, correr `seed:initial` y publicar contenido real, y antes del smoke público. Ese mismo runbook aclara que el reindex **no** recurre en cada despliegue: solo cuando una release cambia qué Collections se indexan o la extracción `beforeSync`.
+
 **Runbook de despliegue** (production automation es Fase 10; aquí solo la secuencia):
 
 ```text

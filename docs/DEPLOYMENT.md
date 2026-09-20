@@ -1,6 +1,6 @@
 # Despliegue en producción
 
-Referencia operativa para construir, desplegar y verificar la aplicación en producción (Phase 10 — Docker + Production Hardening). Complementa, sin duplicar, `docs/60-segundos-spec.md` (especificación objetivo) y `README.md` (flujo de desarrollo). No cubre aprovisionamiento de infraestructura real (proveedor de hosting, PostgreSQL administrado, bucket de Object Storage, dominio, backups) — eso es Phase 12 (Release Readiness); aquí se documenta el contrato y el flujo que cualquier proveedor debe satisfacer.
+Referencia operativa — el **contrato** estable sobre este repositorio — para construir y verificar la aplicación en producción (Phase 10 — Docker + Production Hardening; extendido por `openspec/changes/production-deployment-dokploy` con la entrega automatizada a Dokploy). Complementa, sin duplicar, `docs/60-segundos-spec.md` (especificación objetivo) y `README.md` (flujo de desarrollo). El runbook operativo día a día (cómo se ejecuta un despliegue real, backups, restore, rollback, primer arranque) vive en **`docs/OPERATIONS.md`** — específico de esta instancia de Dokploy y con registros vivos; este documento nunca lo duplica. Aprovisionamiento real de VPS/Dokploy, TLS/dominio/Traefik siguen fuera de alcance de este repositorio — ver "Fuera de alcance" abajo.
 
 ## Topología objetivo (V1)
 
@@ -8,13 +8,18 @@ Referencia operativa para construir, desplegar y verificar la aplicación en pro
 Internet
    |
    v
-TLS / CDN / reverse proxy / plataforma   <- fuera de este repo; ver "TLS" abajo
+TLS / CDN / reverse proxy / plataforma (Dokploy/Traefik)  <- fuera de este repo; ver "TLS" abajo
    |
    v
-un único App Container (stage `runner`)
-   |-- PostgreSQL vía DATABASE_URI (administrado o self-hosted)
-   `-- Object Storage S3-compatible vía S3_* (Media)
+Dokploy (VPS)
+   |-- servicio Compose (compose.dokploy.yaml): App Container (stage `runner`)
+   |     `-- Object Storage S3-compatible vía S3_* (Media)
+   `-- servicio de base de datos PostgreSQL 17, gestionado por Dokploy
+         (fuera de compose.dokploy.yaml; DATABASE_URI apunta ahí — ver
+         docs/OPERATIONS.md §"Backups" y §"Recrear la base en otro servidor")
 ```
+
+PostgreSQL deja de vivir en el Compose que despliega la app (`compose.dokploy.yaml`) a propósito: Dokploy solo ofrece backup/restore nativo para *sus* servicios de base de datos, nunca para uno embebido en un stack de Compose. Esto no es una desviación del contrato de este documento: `DATABASE_URI` siempre fue agnóstico del proveedor (ver "Contrato de entorno" abajo), y la app/el job de migración nunca requirieron un servicio `db` declarado en el mismo Compose. `compose.prod.yaml` conserva su propio profile `self-hosted` con un servicio `db` de referencia (ver más abajo) — ese archivo no es lo que corre en producción real.
 
 V1 objetivo es **instancia única**. Antes de escalar a múltiples réplicas hace falta resolver, además de lo que ya está resuelto aquí (Object Storage ya es compartido/replica-safe):
 
@@ -25,6 +30,8 @@ V1 objetivo es **instancia única**. Antes de escalar a múltiples réplicas hac
 No se implementa nada de esto en V1 — se documenta como límite conocido, no como bloqueante.
 
 ## Imagen de producción
+
+**El build ocurre solo en GitHub Actions (`release.yml`, job `publish`) — nunca en el VPS.** Dokploy únicamente hace `pull` y `run` de imágenes ya construidas y calificadas; el contrato de `compose.dokploy.yaml` usa exclusivamente `image:`, nunca `build:` (ver "Secuencia de despliegue" abajo). Los comandos `docker build` de esta sección siguen siendo el mecanismo real — solo que quien los ejecuta en producción es el job `publish` de CI, no un operador en el host. Sirven tal cual para reproducir/probar el build localmente.
 
 El `Dockerfile` define, además de los stages de desarrollo (`base`, `deps`, `development`), dos stages exclusivos de producción:
 
@@ -48,8 +55,11 @@ docker build --target runner \
   --build-arg DATABASE_URI="postgres://..." \
   --build-arg PAYLOAD_SECRET="..." \
   --build-arg NEXT_PUBLIC_SITE_URL="https://tu-dominio.example" \
+  --build-arg GIT_SHA="$(git rev-parse HEAD)" \
   -t 60segundos-app:runner .
 ```
+
+**`GIT_SHA` (nuevo, `openspec/changes/production-deployment-dokploy`)**: se declara al final del stage `runner`, después de todos los `COPY` — así solo invalida la última capa (metadata) en cada commit, en vez de reventar el caché de `pnpm build`; nunca se declara en `builder` por la misma razón. Se expone vía `process.env.GIT_SHA` en runtime (nunca `NEXT_PUBLIC_*` — no se incrusta en el bundle de cliente) y `/api/health` lo reporta en el campo `sha` (ver "Contrato de entorno" abajo). En producción real, `release.yml` lo pasa como `--build-arg GIT_SHA=${{ github.sha }}` al construir `runner` — es lo que permite confirmar, sondeando `/api/health` en vivo, que la release que Dokploy dice haber desplegado es realmente la que quedó sirviendo tráfico (ver `docs/OPERATIONS.md` §"Despliegue", señal 2).
 
 **`DATABASE_URI` debe ser alcanzable durante el build, no solo tener formato válido.** `next build` prerenderiza `/`, `/robots.txt` y `/sitemap.xml` como contenido estático, y esa generación ejecuta consultas reales contra Payload Local API (`SiteSettings`, `Home`, etc.) — verificado directamente: con una `DATABASE_URI` sintácticamente válida pero inalcanzable, el build falla en la exportación de `/`, no en la validación de entorno. En la práctica esto significa: **el pipeline de build necesita red hacia una base ya migrada al schema de esta release** (un servidor "migration-test" desechable, no la base de producción real necesariamente, pero sí una con el schema al día — ver "Secuencia de despliegue").
 
@@ -78,33 +88,48 @@ De las tres variables de build (`DATABASE_URI`, `PAYLOAD_SECRET`, `NEXT_PUBLIC_S
 
 Ningún secreto se expone vía `NEXT_PUBLIC_*` (auditado). Ningún `ARG` del Dockerfile lleva un secreto de runtime real.
 
+`GIT_SHA` (ver "Imagen de producción" arriba) no aparece en esta tabla a propósito: no es una variable de `src/lib/env/` — se lee directo de `process.env.GIT_SHA` (mismo patrón que `src/app/api/preview/route.ts`/`src/lib/security/headers.ts`), sin esquema zod y sin exigirse en dev/test, donde no existe.
+
+### `GET /api/health`
+
+```json
+{ "status": "ok", "database": "ok", "sha": "a1b2c3d4e5f6..." }
+```
+
+- `sha`: el `GIT_SHA` horneado en la imagen que responde (`null` si la imagen se construyó sin ese build-arg, p. ej. en desarrollo). Es el mecanismo que permite confirmar, sondeando este endpoint en vivo, que la release que Dokploy dice haber desplegado es la que realmente quedó sirviendo tráfico — ver `docs/OPERATIONS.md` §"Despliegue".
+- Responde siempre `Cache-Control: no-store` — ningún proxy/CDN intermedio debe servir una lectura cacheada de este endpoint, porque invalidaría precisamente la señal de "qué SHA está vivo ahora".
+- `503` con `database: "unreachable"` si PostgreSQL no responde — el campo `sha` sigue presente incluso en ese caso.
+
 ## Secuencia de despliegue
 
+**Ya no son pasos manuales de `docker build`/`docker run` en el host** — GitHub Actions es el único lugar donde se construye una imagen de producción, y el VPS (Dokploy) solo hace `pull`/`run` de lo ya construido y calificado. El runbook operativo de cómo correr esto (aprobar el gate, leer una falla, ejecutar un rollback) vive en `docs/OPERATIONS.md` §"Despliegue" — aquí solo el contrato:
+
 ```
-1. asegurar acceso de red desde el build a un PostgreSQL con el schema
-   de ESTA release ya aplicado (ver punto 2 — puede ser un paso previo
-   contra una base de verificación desechable, no necesariamente la de
-   producción)
-2. construir la imagen `migrator` y correrla una vez contra el
-   PostgreSQL objetivo -> debe salir con código 0 antes de continuar
-   (si falla: el release se detiene aquí; la versión anterior de `runner`
-   sigue sirviendo tráfico; el operador corrige y reintenta el job, sin
-   rollback destructivo automático — migraciones forward-only)
-3. construir la imagen `runner` (ahora el schema ya está al día)
-4. arrancar/reemplazar el container `runner` con la nueva imagen
-5. esperar /api/health = 200 (readiness)
+1. push a main -> release.yml: ci-gates -> e2e-full/visual/docker-smoke/
+   lighthouse (calificación FULL; cualquier falla bloquea todo lo que sigue)
+2. publish: build de `runner`/`migrator` (con --build-arg GIT_SHA=<sha>)
+   y push a GHCR con tag inmutable por SHA + alias mutable `-main`
+   (el alias NUNCA es lo que se despliega)
+3. deploy (GitHub Environment "production", required reviewers) ->
+   tras aprobación: se entrega el tag inmutable de este SHA al servicio
+   Compose de Dokploy (compose.dokploy.yaml) -> Dokploy corre `migrate`
+   (job de un solo uso) -> si sale 0, arranca/reemplaza `app` con la
+   nueva imagen `runner` (si `migrate` falla, `app` nunca arranca y la
+   release anterior sigue sirviendo tráfico — sin rollback automático)
+4. se confirma /api/health = 200 con el `sha` de ESTE despliegue
+   (no solo "el sitio responde" — ver "Contrato de entorno" arriba)
+5. smoke automatizado sobre 6 rutas públicas/Admin
 6. si el plugin/colección de Search cambió (nueva Collection indexada,
-   primer despliegue tras Phase 9): Reindex manual vía Admin UI o
-   `POST /api/search/reindex` (Admin) — ver docs/SEARCH.md. No se
-   ejecuta automáticamente en cada arranque.
-7. verificar endpoints públicos
+   o cambia la extracción `beforeSync`): Reindex manual vía Admin UI —
+   ver docs/SEARCH.md y docs/OPERATIONS.md §"Primer arranque". No se
+   ejecuta automáticamente en cada despliegue.
 ```
 
 **Invariante**: las migraciones se aplican una sola vez, antes de que la nueva release empiece a servir tráfico. El `CMD`/`ENTRYPOINT` normal de `runner` nunca ejecuta `payload migrate` — ni en el primer arranque ni en reinicios posteriores. Con múltiples réplicas (fuera de alcance de V1), el job de migración debe seguir siendo un paso singleton por release, no uno por réplica.
 
 ## `compose.prod.yaml`
 
-Target de verificación production-like / referencia self-hosted — **no** es un compromiso de auto-hospedar PostgreSQL. `compose.yaml` (desarrollo) no se modifica ni se relaciona con este archivo.
+Target de verificación production-like / referencia self-hosted — **no** es un compromiso de auto-hospedar PostgreSQL, y **no** es lo que Dokploy despliega en producción real (eso es `compose.dokploy.yaml`, ver abajo). Sigue sirviendo para dos cosas que no cambiaron: el smoke de Docker de CI (`scripts/docker-smoke.sh`, `pnpm test:smoke`) y como referencia local para levantar la topología completa (incluido un Postgres self-hosted desechable) sin depender de Dokploy — por ejemplo, para el drill de restauración (`docs/OPERATIONS.md` §"Drill de restauración"). `compose.yaml` (desarrollo) no se modifica ni se relaciona con este archivo.
 
 ```bash
 # Con PostgreSQL administrado externo (recomendado, DATABASE_URI ya apunta ahí):
@@ -121,7 +146,7 @@ docker compose -f compose.prod.yaml --env-file .env.production --profile self-ho
 
 ### Aislamiento de proyecto de Compose (regla obligatoria)
 
-**Desarrollo (`compose.yaml`), pruebas (`compose.test.yml`), producción-como-referencia (`compose.prod.yaml`) y el smoke desechable de Fase 11 (`scripts/docker-smoke.sh`) SHALL correr bajo nombres de proyecto de Compose explícitos y distintos entre sí, siempre.** Nunca depender del nombre de proyecto por defecto derivado del directorio de trabajo.
+**Desarrollo (`compose.yaml`), pruebas (`compose.test.yml`), producción-como-referencia (`compose.prod.yaml`) y el smoke desechable de Fase 11 (`scripts/docker-smoke.sh`) SHALL correr bajo nombres de proyecto de Compose explícitos y distintos entre sí, siempre.** Nunca depender del nombre de proyecto por defecto derivado del directorio de trabajo. `docs/OPERATIONS.md` §"Drill de restauración" reutiliza esta misma regla (`-p 60segundosnoticias-restore`) para un Postgres desechable en la laptop del operador — léase ahí antes de correr cualquier paso destructivo de ese drill.
 
 Esto no es una preferencia de estilo: un incidente real durante Fase 11 (`openspec/changes/testing-qa-performance/design.md`, sección Risks) destruyó la base de datos Postgres de desarrollo porque `compose.prod.yaml` no declaraba `name:`, heredó el mismo namespace de proyecto que `compose.yaml` (ambos derivándolo del directorio), y ambos archivos además reutilizan los mismos nombres de servicio (`app`, `db`). Un `docker compose -f compose.prod.yaml --profile self-hosted up` bajo ese namespace compartido reemplazó los contenedores de desarrollo en ejecución, y la limpieza `down -v` posterior de ese mismo comando eliminó el volumen Postgres de desarrollo real.
 
@@ -133,12 +158,14 @@ Namespaces actuales de este repositorio:
 | `compose.test.yml` | `60segundosnoticias-test` | `name:` explícito en el archivo |
 | `compose.prod.yaml` | `60segundosnoticias-prod` | `name:` explícito en el archivo |
 | `scripts/docker-smoke.sh` | `60segundosnoticias-smoke` | `-p` explícito en el propio script, deliberadamente distinto incluso del `name:` de `compose.prod.yaml` |
+| `docs/OPERATIONS.md` §"Drill de restauración" (`compose.prod.yaml --profile self-hosted` en la laptop del operador) | `60segundosnoticias-restore` | `-p` explícito en el comando del runbook, nunca el `name:` del archivo |
+| `compose.dokploy.yaml` | gestionado internamente por Dokploy, atado a su propio `composeId` | Dokploy invoca este archivo directamente contra el servicio Compose que el operador creó en su instancia — nadie en este repositorio ni el operador corre `docker compose -p ...` a mano contra él; no aplica la misma preocupación de colisión porque Dokploy no comparte ese namespace con `compose.yaml`/`compose.prod.yaml`/`compose.test.yml` del host de desarrollo |
 
 Un nombre de servicio (`app`, `db`) o un nombre de volumen compartido entre archivos **nunca es suficiente aislamiento por sí solo** — el límite de seguridad real es el namespace de proyecto de Compose. `scripts/verify-docker-isolation.sh` (`pnpm test:docker-isolation`) es la prueba de regresión que reproduce esta misma forma de colisión con recursos completamente desechables y prueba que una limpieza `down -v` bajo un proyecto explícito nunca toca otro proyecto.
 
 ## Base de datos
 
-Producción sigue siendo **migrations-only** — nunca push mode (ver README.md, "Los cuatro roles de la base de datos"). PostgreSQL administrado (recomendado: backups, recovery, upgrades, monitoring gestionados por el proveedor) y self-hosted vía Docker siguen siendo compatibles; la aplicación solo necesita `DATABASE_URI`.
+Producción sigue siendo **migrations-only** — nunca push mode (ver README.md, "Los cinco roles de la base de datos"). En producción real, `DATABASE_URI` apunta a un servicio de base de datos PostgreSQL 17 gestionado por Dokploy (ver "Topología objetivo (V1)" arriba y `docs/OPERATIONS.md`), con sus propios backups/recovery/upgrades/monitoring — self-hosted vía Docker (`compose.prod.yaml --profile self-hosted`) sigue siendo compatible solo como referencia local, nunca como el camino real de producción; la aplicación, en cualquier caso, solo necesita `DATABASE_URI`.
 
 SSL de un proveedor administrado: se expresa en la propia cadena de conexión (`?sslmode=require` o equivalente del proveedor) — el adaptador no asume ni fuerza ningún modo, así que desarrollo (sin SSL) sigue funcionando sin cambios.
 
@@ -199,7 +226,14 @@ El container de producción **no termina TLS**. La frontera esperada es `Interne
 
 **No existe un bypass automático de "crear primer usuario" en este proyecto** — verificado directamente: `POST /api/users` contra una base recién migrada y sin usuarios devuelve `403`, porque la Collection `Users` usa control de acceso custom (`create: isAdmin`) sin excepción para el primer documento. El Admin UI, al usar el mismo endpoint por debajo, tampoco lo evita.
 
-Para crear el primer Admin, correr un script de un solo uso vía la Local API con `overrideAccess: true` (misma técnica que ya usa `src/payload/seed/dev.ts` para sus Writers de desarrollo, con `role: 'admin'` en vez de `'writer'`), ejecutado con `pnpm payload run <script>.ts` contra el `DATABASE_URI` de destino, y luego borrado. No hay ni debe crearse un usuario/contraseña de Admin por defecto committeado al repositorio.
+La regla siempre fue **nunca commitear credenciales de Admin** — nunca prohibió commitear un *script*. Por eso `scripts/create-admin.ts` está committeado al repositorio: usa la Local API con `overrideAccess: true` (misma técnica que `src/payload/seed/dev.ts` para sus Writers de desarrollo, con `role: 'admin'`), lee `ADMIN_EMAIL`/`ADMIN_PASSWORD` desde el entorno de ejecución (sin valor por defecto — nunca hardcodeadas) y es idempotente (no-op si ya existe cualquier usuario). Se ejecuta en el VPS con el container `migrate` de un solo uso:
+
+```bash
+ADMIN_EMAIL=admin@ejemplo.com ADMIN_PASSWORD=... \
+  docker compose run --rm migrate pnpm payload run scripts/create-admin.ts
+```
+
+Ver `docs/OPERATIONS.md` §"Primer arranque" para dónde encaja este paso dentro de la secuencia completa (deploy → migrate → health → Admin → seeds → contenido → Reindex → smoke).
 
 ## Seeds
 
@@ -211,11 +245,16 @@ Para crear el primer Admin, correr un script de un solo uso vía la Local API co
 - **Build falla en "Export encountered an error on /(frontend)/page"**: `DATABASE_URI` no es alcanzable, o la base no tiene el schema de esta release — correr `migrator` contra ella primero.
 - **`migrator` parece colgado, sin salida ni error**: casi seguro un prompt interactivo de Payload sin TTY para responderlo (drift de push-mode). No debería ocurrir con la imagen `migrator` de este repo (fija `NODE_ENV=production`), pero si se invoca `payload migrate` por otra vía, correrlo contra una base que push mode no haya tocado, o desde una terminal interactiva.
 - **`/api/health` devuelve `503`**: PostgreSQL inalcanzable desde el App Container — revisar red/`DATABASE_URI`, no la aplicación.
+- **`/api/health` responde `200` pero `sha` no es el esperado**: la release nueva no llegó a arrancar, o un proxy/CDN intermedio está cacheando una respuesta vieja (no debería — la ruta responde `Cache-Control: no-store`). Ver `docs/OPERATIONS.md` §"Despliegue" para la clasificación de falla completa (`scripts/dokploy-deploy.ts` distingue "release anterior sigue sirviendo" de "sitio caído" de "la nueva release nunca quedó viva").
 - **Imagen sube a Medias local en vez de a Object Storage**: falta alguna de las seis variables `S3_*` — el adaptador se desactiva por completo si falta cualquiera, no parcialmente.
 
-## Fuera de alcance de esta fase (Phase 12 — Release Readiness)
+## Fuera de alcance de esta fase
 
-- Aprovisionamiento real del proveedor de hosting, PostgreSQL administrado y bucket de Object Storage.
-- Política y automatización de backups (DB y Media).
-- Dominio, certificados TLS reales, `noindex` de staging.
-- CI (Phase 11) — este documento define los comandos que una futura CI debe encadenar (`typecheck`, `lint`, `next build`, `docker build`, boot del container, `/api/health`, migración contra una base desechable), no la implementa.
+Los cuatro puntos que este documento marcaba como pendientes tras Phase 10 (Release Readiness) ya quedaron obsoletos o resueltos por fases posteriores:
+
+- ~~Política y automatización de backups (DB y Media)~~ → **resuelto**: PostgreSQL de producción es un servicio gestionado por Dokploy con backup/restore nativo a S3; Media usa su propio Object Storage S3-compatible desde Phase 10. Runbook completo, con las dos bitácoras vivas, en `docs/OPERATIONS.md`.
+- ~~CI~~ → ya era falso desde Phase 11 (`ci.yml`/`release.yml` existen y califican cada release en FULL antes de publicar) y ahora además cubre la entrega automatizada a Dokploy (`release.yml`, job `deploy`) y el rollback (`rollback.yml`) — ver `docs/TESTING.md` §"Niveles de CI".
+- ~~Aprovisionamiento real del proveedor de hosting, PostgreSQL administrado y bucket de Object Storage~~ → **parcialmente resuelto**: el operador ya tiene el VPS con Dokploy instalado, y Object Storage de Media ya está en uso desde Phase 10. Crear ahí el servicio Compose y el servicio de base de datos PostgreSQL, generar el token de API de Dokploy y crear el GitHub Environment `production` siguen siendo prerrequisitos manuales del operador (`openspec/changes/production-deployment-dokploy/design.md`, "Prerrequisitos manuales") — no automatizados por este repositorio, y bloquean únicamente la verificación en vivo de un despliegue real, no la implementación.
+- ~~Dominio, certificados TLS reales, `noindex` de staging~~ → **sigue genuinamente fuera de alcance**: el container de producción no termina TLS (ver "TLS / proxy" arriba); el dominio, los certificados y cualquier reverse proxy/Traefik siguen siendo responsabilidad de la plataforma/Dokploy, nunca de este repositorio.
+
+Lo que sigue genuinamente fuera de alcance de este repositorio: TLS/dominio/Traefik (arriba), aprovisionar un VPS nuevo desde cero (el procedimiento de *recrear* la base de datos en uno ya aprovisionado sí está documentado — `docs/OPERATIONS.md` §"Recrear la base en otro servidor"), múltiples réplicas del App Container (ver "Topología objetivo (V1)" arriba), y rollback automático de esquema de base de datos (`payload migrate:down` en producción — deliberadamente nunca implementado; ver `docs/OPERATIONS.md` §"Rollback").

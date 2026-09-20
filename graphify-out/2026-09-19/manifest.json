@@ -132,9 +132,9 @@
     "semantic_hash": "398529c816ac632cc95c0a178f6651ec"
   },
   "next-env.d.ts": {
-    "mtime": 1789757604.055521,
-    "seen": 1789758453.524859,
-    "ast_hash": "aa94238a90e7d04b7a47ecc3145ba6a0",
+    "mtime": 1789770262.744118,
+    "seen": 1789770449.246558,
+    "ast_hash": "8195d2c60ce847a459ae9d308d6a5724",
     "semantic_hash": ""
   },
   "next.config.ts": {
@@ -3054,9 +3054,9 @@
     "semantic_hash": ""
   },
   "scripts/dokploy-deploy.ts": {
-    "mtime": 1789756103.75179,
-    "seen": 1789758453.524867,
-    "ast_hash": "37960d9cebb44cf8d382406ac2ecd0f9",
+    "mtime": 1789770377.8247108,
+    "seen": 1789770449.246567,
+    "ast_hash": "4052c1b4a4d5504ac6419cbd73ff9881",
     "semantic_hash": ""
   },
   "scripts/smoke-production.ts": {
@@ -3168,9 +3168,9 @@
     "semantic_hash": ""
   },
   "openspec/changes/production-deployment-dokploy/tasks.md": {
-    "mtime": 1789758627.2971814,
-    "seen": 1789766847.9789052,
-    "ast_hash": "948349e4e389d9ba22da3c60ffc9fb89",
+    "mtime": 1789770439.683225,
+    "seen": 1789770449.2469382,
+    "ast_hash": "afa0766ed286778a2cd95c57aa759474",
     "semantic_hash": ""
   },
   "openspec/specs/cms-integration-testing/spec.md": {
@@ -3189,6 +3189,18 @@
     "mtime": 1789752001.4064212,
     "seen": 1789758453.525245,
     "ast_hash": "bb2736cdece46c7e832de6fe11732bc0",
+    "semantic_hash": ""
+  },
+  "src/lib/deploy/dokploy-client.test.ts": {
+    "mtime": 1789770393.8784707,
+    "seen": 1789770449.24666,
+    "ast_hash": "7141943384fef4dd03dba7bc777485d0",
+    "semantic_hash": ""
+  },
+  "src/lib/deploy/dokploy-client.ts": {
+    "mtime": 1789770360.3881338,
+    "seen": 1789770449.2466612,
+    "ast_hash": "6a64775494f04e06e30faf6336c90a2f",
     "semantic_hash": ""
   }
 }
