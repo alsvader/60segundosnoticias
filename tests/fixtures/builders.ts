@@ -173,10 +173,18 @@ export async function createPublishedPost(
   if (existing) {
     return existing
   }
-  return payload.create({
+  // Creado como draft primero: `assignPublishedAt` (src/payload/hooks/posts/
+  // publish-validation.ts) siempre pisa `publishedAt` con `new Date()` en el
+  // primer publish si el doc todavía no tiene uno propio - pasarlo ya
+  // `_status: 'published'` en un solo create() nunca deja fijo el valor de
+  // abajo, sin importar qué se mande. El create en draft SÍ persiste el
+  // valor (el hook no toca nada mientras el resultado siga en draft), y el
+  // update a published lo preserva (`originalDoc.publishedAt` ya existe) -
+  // es la misma ruta que un editor real usaría, no un bypass del hook.
+  const draft = await payload.create({
     collection: 'posts',
     data: {
-      _status: 'published',
+      _status: 'draft',
       author: options.author,
       content: richText(['Contenido fijo del fixture de Post publicado, usado por pruebas de integración y E2E.']),
       excerpt: 'Excerpt fijo del fixture de Post publicado.',
@@ -186,6 +194,12 @@ export async function createPublishedPost(
       slug: 'fixture-post-publicado',
       title: 'Post publicado de fixture',
     },
+    overrideAccess: true,
+  })
+  return payload.update({
+    collection: 'posts',
+    id: draft.id,
+    data: { _status: 'published' },
     overrideAccess: true,
   })
 }
@@ -198,10 +212,12 @@ export async function createEmbedPost(
   if (existing) {
     return existing
   }
-  return payload.create({
+  // Draft primero, luego publish - ver el comentario en createPublishedPost:
+  // es la única forma de que `publishedAt` sobreviva a `assignPublishedAt`.
+  const draft = await payload.create({
     collection: 'posts',
     data: {
-      _status: 'published',
+      _status: 'draft',
       author: options.author,
       content: richTextWithEmbed(
         ['Contenido fijo del fixture de Post con embed, usado por Lighthouse (diagnóstico, no gate) y pruebas E2E.'],
@@ -214,6 +230,12 @@ export async function createEmbedPost(
       slug: 'fixture-post-embed',
       title: 'Post con embed de fixture',
     },
+    overrideAccess: true,
+  })
+  return payload.update({
+    collection: 'posts',
+    id: draft.id,
+    data: { _status: 'published' },
     overrideAccess: true,
   })
 }
