@@ -156,7 +156,7 @@ docker compose exec app pnpm seed:dev
 
 ## Build y arranque en producción
 
-**En producción real, nadie corre `docker build`/`docker run` a mano.** GitHub Actions (`release.yml`) construye y califica en FULL cada push a `main`, publica las imágenes `runner-<sha>`/`migrator-<sha>` en GHCR, y — tras aprobación humana en el GitHub Environment `production` — el job `deploy` las entrega a Dokploy, que en el VPS solo hace `pull`/`run`. Ver **`docs/DEPLOYMENT.md`** para el contrato (entorno por variable, imagen, topología) y **`docs/OPERATIONS.md`** para el runbook operativo (cómo se ejecuta un despliegue real, backups, rollback, primer arranque).
+**En producción real, nadie corre `docker build`/`docker run` a mano.** `ci.yml` califica cada Pull Request (quality/integración/E2E/build de Docker); al mergear a `main`, Dokploy construye la imagen él mismo desde el `Dockerfile` (vía su propio Auto Deploy nativo) y la despliega, sin aprobación humana intermedia ni publicación de imágenes a un registro. El mecanismo anterior (GitHub Actions publica a GHCR y despliega vía API tras aprobación humana) se conserva como ruta legada opcional en `release.yml`/`rollback.yml`. Ver **`docs/DEPLOYMENT.md`** para el contrato (entorno por variable, imagen, topología) y **`docs/OPERATIONS.md`** para el runbook operativo (cómo se ejecuta un despliegue real, backups, rollback, primer arranque).
 
 Los comandos `docker build`/`docker run` siguen siendo válidos para reproducir o probar el build localmente:
 
@@ -184,7 +184,7 @@ docker run -d -p 3000:3000 -e DATABASE_URI=... -e PAYLOAD_SECRET=... -e NEXT_PUB
 GET /api/health
 ```
 
-Responde `200` con `{"status":"ok","database":"ok","sha":"a1b2c3d4..."}` cuando la aplicación y la conexión a PostgreSQL están operativas, o `503` con `{"status":"degraded","database":"unreachable","sha":"..."}` si la base de datos no responde. `sha` es el `GIT_SHA` horneado en la imagen en build time (`null` si la imagen se construyó sin ese build-arg); en producción es lo que permite confirmar en vivo qué release quedó realmente sirviendo tráfico tras un despliegue — ver `docs/DEPLOYMENT.md` y `docs/OPERATIONS.md`. La respuesta nunca se cachea (`Cache-Control: no-store`) y nunca incluye cadenas de conexión, contraseñas ni el `PAYLOAD_SECRET`.
+Responde `200` con `{"status":"ok","database":"ok","sha":"a1b2c3d4..."}` cuando la aplicación y la conexión a PostgreSQL están operativas, o `503` con `{"status":"degraded","database":"unreachable","sha":"..."}` si la base de datos no responde. `sha` es el `GIT_SHA` horneado en la imagen en build time (`null` si la imagen se construyó sin ese build-arg — que es el caso en producción real hoy, ya que Dokploy construye directamente del `Dockerfile` sin pasar ese build-arg; solo la ruta legada de `release.yml`/GHCR sigue poblándolo) — ver `docs/DEPLOYMENT.md` y `docs/OPERATIONS.md`. La respuesta nunca se cachea (`Cache-Control: no-store`) y nunca incluye cadenas de conexión, contraseñas ni el `PAYLOAD_SECRET`.
 
 Verificación rápida:
 
@@ -229,7 +229,7 @@ Para comprobar/preparar ese entorno opcional:
 ## Referencias de documentación
 
 - `docs/60-segundos-spec.md` — Master Specification (estado objetivo de V1).
-- `docs/DEPLOYMENT.md` — contrato de despliegue en producción: imagen Docker, contrato de entorno, migraciones, Object Storage, headers de seguridad, topología con Dokploy (Phase 10, extendido por `production-deployment-dokploy`).
+- `docs/DEPLOYMENT.md` — contrato de despliegue en producción: imagen Docker, contrato de entorno, migraciones, Object Storage, headers de seguridad, topología con Dokploy (Phase 10; el modelo de despliegue actual está en `openspec/changes/archive/2026-09-20-simplify-cicd-dokploy-native-deploy`, que superó a `production-deployment-dokploy`, también archivado).
 - `docs/OPERATIONS.md` — runbook operativo de producción: despliegue real, backups y drill de restauración, rollback, primer arranque, recrear la base en otro servidor.
 - `docs/DESIGN-SYSTEM.md` — referencia de implementación del Design System (Phase 4).
 - `docs/FRONTEND-ARCHITECTURE.md` — referencia de arquitectura del frontend (DAL, View Models, resolvers, Home Block Pipeline — Phases 5-6).
