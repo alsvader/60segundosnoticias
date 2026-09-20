@@ -1,6 +1,6 @@
 # Operación en producción
 
-Runbooks operativos para el despliegue en Dokploy (`openspec/changes/production-deployment-dokploy`). Complementa, sin duplicar, `docs/DEPLOYMENT.md` — ese documento es el **contrato** estable sobre el repositorio (imagen, contrato de entorno, topología); este documento es **procedimental**, específico de esta instancia de Dokploy, y contiene registros vivos (las dos bitácoras de abajo). Ante cualquier discrepancia entre ambos, `docs/DEPLOYMENT.md` define qué existe en el repo; este documento define cómo operarlo.
+Runbooks operativos para el despliegue en Dokploy. El modelo vigente hoy viene de `openspec/changes/archive/2026-09-20-simplify-cicd-dokploy-native-deploy`, que superó al de `openspec/changes/archive/2026-09-20-production-deployment-dokploy` (citado varias veces abajo por sus decisiones de diseño aún vigentes — backups, restore, primer arranque — que no cambiaron con esa simplificación). Complementa, sin duplicar, `docs/DEPLOYMENT.md` — ese documento es el **contrato** estable sobre el repositorio (imagen, contrato de entorno, topología); este documento es **procedimental**, específico de esta instancia de Dokploy, y contiene registros vivos (las dos bitácoras de abajo). Ante cualquier discrepancia entre ambos, `docs/DEPLOYMENT.md` define qué existe en el repo; este documento define cómo operarlo.
 
 Convención de esta instancia: donde algo depende de la configuración concreta del operador en su propio Dokploy (rutas exactas del dashboard, nombres de campos no confirmados contra el Swagger real) se dice explícitamente "revisar en la instancia" en vez de inventarse.
 
@@ -71,7 +71,7 @@ PostgreSQL de producción **no vive en `compose.dokploy.yaml`**: es un servicio 
 - **Destino**: un bucket S3 con credenciales propias, generadas y limitadas a ese bucket, **distintas** de las credenciales `S3_*` que usa Media (`docs/DEPLOYMENT.md` §"Media / Object Storage"). Una fuga de una nunca compromete a la otra.
 - **Calendario y retención**: configurados en la sección de backups del servicio de base de datos, dentro del propio dashboard de Dokploy de esta instancia — revisar ahí (no se documentan aquí valores concretos no confirmados).
 - **Qué protege el cifrado**: es cifrado **en reposo del destino** (el bucket S3), no cifrado del dump del lado del cliente antes de subirlo. Esto protege contra la pérdida del VPS y contra una fuga de la credencial de Media (bucket distinto). **No** protege contra una fuga de la propia credencial del destino de backups — por eso esa credencial SHALL estar limitada únicamente a ese bucket, nunca reutilizada para Media ni con permisos más amplios.
-- **Por qué no hay una imagen de `backup` en este repo**: la primera versión de este cambio intentó mantener `db` dentro de `compose.dokploy.yaml` con un servicio `backup` corriendo una imagen pública de terceros. Se descartó tras auditar esa imagen: su cifrado es opcional y falla en silencio (una variable mal nombrada sube los dumps en texto plano sin error), no implementa retención, y su `Dockerfile` descarga un binario de 2015 con verificación TLS deshabilitada. Un container con la contraseña de Postgres y las credenciales de escritura del bucket de backups no es el lugar para asumir ese riesgo. Ver `openspec/changes/production-deployment-dokploy/design.md`, Decisión 5.
+- **Por qué no hay una imagen de `backup` en este repo**: la primera versión de este cambio intentó mantener `db` dentro de `compose.dokploy.yaml` con un servicio `backup` corriendo una imagen pública de terceros. Se descartó tras auditar esa imagen: su cifrado es opcional y falla en silencio (una variable mal nombrada sube los dumps en texto plano sin error), no implementa retención, y su `Dockerfile` descarga un binario de 2015 con verificación TLS deshabilitada. Un container con la contraseña de Postgres y las credenciales de escritura del bucket de backups no es el lugar para asumir ese riesgo. Ver `openspec/changes/archive/2026-09-20-production-deployment-dokploy/design.md`, Decisión 5.
 
 ## Drill de restauración
 
@@ -118,7 +118,7 @@ Esta regla depende de mantener la bitácora de despliegues (abajo) — sin ella,
 
 ### Cómo ejecutar un rollback
 
-`.github/workflows/rollback.yml` (`workflow_dispatch`), input `strategy` (`git`, default, o `image`, legado), más `sha` y `reason`. Sin aprobación manual — usa el mismo grupo de concurrencia (`release`) que `release.yml`, así que nunca corre en simultáneo con un release legado.
+`.github/workflows/rollback.yml` (`workflow_dispatch`), input `strategy` (`git`, default, o `image`, legado), más `sha` y `reason`. Usa el mismo grupo de concurrencia (`release`) que `release.yml`, así que nunca corre en simultáneo con un release legado. Aprobación manual: solo `strategy: image` la tiene (ver abajo) — `strategy: git` no.
 
 **`strategy: git` (default)** — `sha` es el commit bueno de `main` al que volver:
 
@@ -168,7 +168,7 @@ Orden estricto para la primera vez que una base de datos de producción queda en
 
 Como la definición de la base de datos (versión, volumen, calendario de backup) vive en Dokploy y no en este repositorio, migrar a otro VPS es un procedimiento manual — no un `docker compose up`:
 
-1. **Crear el servicio de base de datos PostgreSQL** en la instancia de Dokploy del servidor nuevo (mismo prerrequisito que la Etapa 7 original — ver `openspec/changes/production-deployment-dokploy/design.md`, "Prerrequisitos manuales").
+1. **Crear el servicio de base de datos PostgreSQL** en la instancia de Dokploy del servidor nuevo (mismo prerrequisito que la Etapa 7 original — ver `openspec/changes/archive/2026-09-20-production-deployment-dokploy/design.md`, "Prerrequisitos manuales").
 2. **Restaurar el backup S3 más reciente** en ese servicio nuevo — el mismo procedimiento que el drill de restauración de arriba, pero contra el servicio real en vez de un Postgres desechable de laptop.
 3. **Repuntar `DATABASE_URI`** en el env del servicio Compose de Dokploy (mismo mecanismo que usa `scripts/dokploy-deploy.ts` para `RUNNER_IMAGE`/`MIGRATOR_IMAGE`: `compose.update` sobre el blob de entorno) hacia el nuevo servicio de base de datos, y disparar `compose.deploy` para que los containers recojan el nuevo valor.
 4. Verificar con las mismas tres señales que un despliegue normal (§"Despliegue" arriba).
