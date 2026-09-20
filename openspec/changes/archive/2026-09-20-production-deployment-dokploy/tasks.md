@@ -384,6 +384,20 @@
 - [ ] 7.5 No marcar ninguna tarea de esta sección como completa sin la
   evidencia real correspondiente adjunta o citada.
 
+**Nota de archivado (2026-09-20)**: 6.3 y 7.2-7.4 quedan sin marcar a
+propósito, honrando 7.5 — nunca se ejecutó un deploy/rollback/restore real
+de punta a punta contra el mecanismo de imágenes GHCR de este change. Se
+archiva de todas formas porque ese mecanismo dejó de ser la ruta principal
+(ver `openspec/changes/archive/2026-09-20-simplify-cicd-dokploy-native-deploy`):
+`compose.dokploy.yaml` ahora construye desde el Dockerfile y Dokploy
+despliega vía su Auto Deploy nativo, sin aprobación humana. El mecanismo
+de imágenes/GHCR (`release.yml` con `publish_and_deploy: true`,
+`rollback.yml` con `strategy: image`) sigue existiendo como ruta legada
+opcional — si alguna vez se usa de verdad, sus tareas de verificación en
+vivo equivalentes viven ahora en ese change nuevo, no aquí. Decisión
+explícita del usuario: archivar sin exigir esa validación en vivo del
+mecanismo legado.
+
 ## 8. Documentación
 
 - [x] 8.1 Crear `docs/OPERATIONS.md` (en español) con los runbooks de

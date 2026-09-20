@@ -3131,6 +3131,48 @@
     "ast_hash": "e89176fbfeab9465826085346eead66a",
     "semantic_hash": ""
   },
+  "openspec/changes/production-deployment-dokploy/.openspec.yaml": {
+    "mtime": 1789754246.8983414,
+    "seen": 1789758453.5251992,
+    "ast_hash": "b70cd8df0676b036bbf0f90970abeb32",
+    "semantic_hash": ""
+  },
+  "openspec/changes/production-deployment-dokploy/design.md": {
+    "mtime": 1789877624.3566694,
+    "seen": 1789882727.6484108,
+    "ast_hash": "100bd60c8bfc52abeb87f267c6387a1a",
+    "semantic_hash": ""
+  },
+  "openspec/changes/production-deployment-dokploy/proposal.md": {
+    "mtime": 1789755570.0968006,
+    "seen": 1789758453.5252,
+    "ast_hash": "4421e90ab0c7b6574c56384042f5859e",
+    "semantic_hash": ""
+  },
+  "openspec/changes/production-deployment-dokploy/specs/deployment-automation/spec.md": {
+    "mtime": 1789754433.257755,
+    "seen": 1789758453.5252,
+    "ast_hash": "a946b9b43a4360d9f7b91e137b8fb950",
+    "semantic_hash": ""
+  },
+  "openspec/changes/production-deployment-dokploy/specs/production-deployment/spec.md": {
+    "mtime": 1789754443.0425541,
+    "seen": 1789758453.5252008,
+    "ast_hash": "dfffd1f7030a3937436eb6aa6dab2280",
+    "semantic_hash": ""
+  },
+  "openspec/changes/production-deployment-dokploy/specs/production-operations/spec.md": {
+    "mtime": 1789755461.5583086,
+    "seen": 1789758453.525202,
+    "ast_hash": "d73ec8211c9e1162357587eff2b9a362",
+    "semantic_hash": ""
+  },
+  "openspec/changes/production-deployment-dokploy/tasks.md": {
+    "mtime": 1789877600.4050782,
+    "seen": 1789882727.648415,
+    "ast_hash": "43e8125b9156fc6af3eee4912d22136e",
+    "semantic_hash": ""
+  },
   "openspec/specs/cms-integration-testing/spec.md": {
     "mtime": 1789752032.2353103,
     "seen": 1789758453.5252118,
@@ -3161,88 +3203,34 @@
     "ast_hash": "4df95efa7ed3dac92f78ff5cecc76570",
     "semantic_hash": ""
   },
-  "openspec/changes/archive/2026-09-19-simplify-cicd-dokploy-native-deploy/.openspec.yaml": {
+  "openspec/changes/simplify-cicd-dokploy-native-deploy/.openspec.yaml": {
     "mtime": 1789881622.7588925,
-    "seen": 1789930620.7082381,
+    "seen": 1789882727.648416,
     "ast_hash": "75cf8d7a782a9dc39c1083c6a943e514",
     "semantic_hash": ""
   },
-  "openspec/changes/archive/2026-09-19-simplify-cicd-dokploy-native-deploy/design.md": {
+  "openspec/changes/simplify-cicd-dokploy-native-deploy/design.md": {
     "mtime": 1789882243.6164339,
-    "seen": 1789930620.708239,
+    "seen": 1789882727.648416,
     "ast_hash": "d64a661ea0c1ea1be3a798eda0e25f62",
     "semantic_hash": ""
   },
-  "openspec/changes/archive/2026-09-19-simplify-cicd-dokploy-native-deploy/proposal.md": {
+  "openspec/changes/simplify-cicd-dokploy-native-deploy/proposal.md": {
     "mtime": 1789881687.9001963,
-    "seen": 1789930620.7082398,
+    "seen": 1789882727.648417,
     "ast_hash": "d46eb0ebe52d23a8a62a1de7c55d9016",
     "semantic_hash": ""
   },
-  "openspec/changes/archive/2026-09-19-simplify-cicd-dokploy-native-deploy/specs/deployment-automation/spec.md": {
+  "openspec/changes/simplify-cicd-dokploy-native-deploy/specs/deployment-automation/spec.md": {
     "mtime": 1789881717.0629876,
-    "seen": 1789930620.708241,
+    "seen": 1789882727.648418,
     "ast_hash": "bb6e64cddba879919458205995020665",
     "semantic_hash": ""
   },
-  "openspec/changes/archive/2026-09-19-simplify-cicd-dokploy-native-deploy/tasks.md": {
-    "mtime": 1789882810.1769595,
-    "seen": 1789930620.708241,
-    "ast_hash": "ebfcadae9f281ceb6c0ca7f6db80af42",
-    "semantic_hash": ""
-  },
-  "openspec/changes/archive/2026-09-20-production-deployment-dokploy/.openspec.yaml": {
-    "mtime": 1789754246.8983414,
-    "seen": 1789930620.708242,
-    "ast_hash": "b70cd8df0676b036bbf0f90970abeb32",
-    "semantic_hash": ""
-  },
-  "openspec/changes/archive/2026-09-20-production-deployment-dokploy/design.md": {
-    "mtime": 1789877624.3566694,
-    "seen": 1789930620.708243,
-    "ast_hash": "100bd60c8bfc52abeb87f267c6387a1a",
-    "semantic_hash": ""
-  },
-  "openspec/changes/archive/2026-09-20-production-deployment-dokploy/proposal.md": {
-    "mtime": 1789755570.0968006,
-    "seen": 1789930620.708244,
-    "ast_hash": "4421e90ab0c7b6574c56384042f5859e",
-    "semantic_hash": ""
-  },
-  "openspec/changes/archive/2026-09-20-production-deployment-dokploy/specs/deployment-automation/spec.md": {
-    "mtime": 1789754433.257755,
-    "seen": 1789930620.708244,
-    "ast_hash": "a946b9b43a4360d9f7b91e137b8fb950",
-    "semantic_hash": ""
-  },
-  "openspec/changes/archive/2026-09-20-production-deployment-dokploy/specs/production-deployment/spec.md": {
-    "mtime": 1789754443.0425541,
-    "seen": 1789930620.708245,
-    "ast_hash": "dfffd1f7030a3937436eb6aa6dab2280",
-    "semantic_hash": ""
-  },
-  "openspec/changes/archive/2026-09-20-production-deployment-dokploy/specs/production-operations/spec.md": {
-    "mtime": 1789755461.5583086,
-    "seen": 1789930620.708245,
-    "ast_hash": "d73ec8211c9e1162357587eff2b9a362",
-    "semantic_hash": ""
-  },
-  "openspec/changes/archive/2026-09-20-production-deployment-dokploy/tasks.md": {
-    "mtime": 1789930560.757963,
-    "seen": 1789930620.708246,
-    "ast_hash": "91d9d8f73b6bf32b07d9aca77ee1b6fe",
-    "semantic_hash": ""
-  },
-  "openspec/specs/deployment-automation/spec.md": {
-    "mtime": 1789882851.6071165,
-    "seen": 1789930620.70826,
-    "ast_hash": "b1c125123f071d5357a7c532c4bce0cb",
-    "semantic_hash": ""
-  },
-  "openspec/specs/production-operations/spec.md": {
-    "mtime": 1789930587.4685743,
-    "seen": 1789930620.708277,
-    "ast_hash": "08396698b6ba9637ac7b93756d273cf1",
+  "openspec/changes/simplify-cicd-dokploy-native-deploy/tasks.md": {
+    "mtime": 1789882232.4935448,
+    "seen": 1789882727.6484191,
+    "ast_hash": "7f9f39c67f02c3fca47b421137f60506",
     "semantic_hash": ""
   }
 }
