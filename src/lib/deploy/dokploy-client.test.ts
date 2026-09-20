@@ -53,9 +53,13 @@ describe('extractComposeStatus / extractEnvBlob / extractDeploymentId', () => {
   })
 
   it('extractComposeStatus devuelve undefined si el campo no es string', () => {
-    expect(extractComposeStatus({ status: 'done' })).toBe('done')
-    expect(extractComposeStatus({ status: 7 })).toBeUndefined()
+    expect(extractComposeStatus({ composeStatus: 'done' })).toBe('done')
+    expect(extractComposeStatus({ composeStatus: 7 })).toBeUndefined()
     expect(extractComposeStatus({})).toBeUndefined()
+  })
+
+  it('extractComposeStatus ignora `status` - ese nombre solo existe dentro de `deployments[]`, nunca top-level', () => {
+    expect(extractComposeStatus({ status: 'done' })).toBeUndefined()
   })
 
   it('extractDeploymentId prueba los candidatos en orden y devuelve undefined si ninguno aparece', () => {
@@ -140,9 +144,9 @@ describe('waitForDokployStatusTransition', () => {
     // solo hasta que aparece un valor NUEVO se cuenta como señal.
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce(jsonResponse({ status: 'done' })) // sin transición - stale
-      .mockResolvedValueOnce(jsonResponse({ status: 'running' })) // transición a intermedio - sigue esperando
-      .mockResolvedValueOnce(jsonResponse({ status: 'done' })) // transición real a terminal
+      .mockResolvedValueOnce(jsonResponse({ composeStatus: 'done' })) // sin transición - stale
+      .mockResolvedValueOnce(jsonResponse({ composeStatus: 'running' })) // transición a intermedio - sigue esperando
+      .mockResolvedValueOnce(jsonResponse({ composeStatus: 'done' })) // transición real a terminal
     vi.stubGlobal('fetch', fetchMock)
 
     const promise = waitForDokployStatusTransition({ ...params, previousStatus: 'done' })
@@ -156,7 +160,7 @@ describe('waitForDokployStatusTransition', () => {
   })
 
   it('reporta "error" en la primera transición a un estado de error', async () => {
-    const fetchMock = vi.fn().mockResolvedValueOnce(jsonResponse({ status: 'error' }))
+    const fetchMock = vi.fn().mockResolvedValueOnce(jsonResponse({ composeStatus: 'error' }))
     vi.stubGlobal('fetch', fetchMock)
 
     const promise = waitForDokployStatusTransition({ ...params, previousStatus: 'running' })

@@ -14,24 +14,30 @@ import { createHash } from 'node:crypto'
 export type JsonRecord = Record<string, unknown>
 
 // ---------------------------------------------------------------------------
-// VERIFICADO contra el Swagger real de la instancia del operador
-// (`<DOKPLOY_URL>/swagger`, tarea 7.1): el nombre del campo de estado y
-// sus valores terminales coinciden con lo asumido aquí - no se necesitó
-// ningún cambio. Todo lo que sigue en este archivo razona en términos de
-// "¿hubo una transición de estado terminal reconocida?", nunca del valor
-// concreto que devuelve la API - salvo en este bloque, que es
-// deliberadamente el único lugar donde el nombre y los valores del campo
-// de estado están hardcodeados. Si una instancia distinta de Dokploy
-// alguna vez contradice esto, corregir solo aquí.
+// CORREGIDO contra una respuesta real de `compose.one` capturada durante
+// la Etapa 7.2 (primer despliegue real): el campo de estado top-level se
+// llama `composeStatus`, NO `status` - la verificación de la tarea 7.1
+// contra el Swagger no atrapó esto (el esquema probablemente documenta
+// ambos nombres en algún nivel, pero el objeto real solo trae
+// `composeStatus`). Los *valores* asumidos (`done`/`error`) sí resultaron
+// correctos - se confirmaron en `deployments[].status` de esa misma
+// respuesta (un array de historial, cada entrada con su propio `status`;
+// no confundir con el campo top-level que este archivo lee). Todo lo que
+// sigue en este archivo razona en términos de "¿hubo una transición de
+// estado terminal reconocida?", nunca del valor concreto que devuelve la
+// API - salvo en este bloque, que es deliberadamente el único lugar
+// donde el nombre y los valores del campo de estado están hardcodeados.
+// Si una instancia distinta de Dokploy alguna vez contradice esto,
+// corregir solo aquí.
 //
 // Si el nombre de campo fuera incorrecto, `extractComposeStatus` siempre
 // devolvería `undefined`, y por diseño ("estado ausente/desconocido =>
 // sigue desplegando, nunca éxito") el script degradaría de forma segura:
 // nunca reportaría éxito falso, pero sí agotaría el tope de 15 minutos y
-// fallaría con `DOKPLOY_STATUS_TIMEOUT`. Esa falla seguiría siendo la
-// señal de que hay que revisar esta constante.
+// fallaría con `DOKPLOY_STATUS_TIMEOUT` aunque el despliegue real hubiera
+// sido exitoso - exactamente lo que pasó antes de esta corrección.
 // ---------------------------------------------------------------------------
-export const DOKPLOY_STATUS_FIELD = 'status'
+export const DOKPLOY_STATUS_FIELD = 'composeStatus'
 export const DOKPLOY_DONE_STATUSES = new Set(['done'])
 export const DOKPLOY_ERROR_STATUSES = new Set(['error'])
 
