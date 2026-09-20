@@ -14,28 +14,29 @@ import { createHash } from 'node:crypto'
 export type JsonRecord = Record<string, unknown>
 
 // ---------------------------------------------------------------------------
-// ADVERTENCIA - SIN VERIFICAR contra el Swagger real de la instancia del
-// operador (`<DOKPLOY_URL>/swagger`, prerrequisito manual de la Etapa 7 del
-// plan). Todo lo que sigue en este archivo razona en términos de "¿hubo
-// una transición de estado terminal reconocida?", nunca del valor
+// VERIFICADO contra el Swagger real de la instancia del operador
+// (`<DOKPLOY_URL>/swagger`, tarea 7.1): el nombre del campo de estado y
+// sus valores terminales coinciden con lo asumido aquí - no se necesitó
+// ningún cambio. Todo lo que sigue en este archivo razona en términos de
+// "¿hubo una transición de estado terminal reconocida?", nunca del valor
 // concreto que devuelve la API - salvo en este bloque, que es
 // deliberadamente el único lugar donde el nombre y los valores del campo
-// de estado están hardcodeados. Si el Swagger real contradice esto,
-// corregir solo aquí.
+// de estado están hardcodeados. Si una instancia distinta de Dokploy
+// alguna vez contradice esto, corregir solo aquí.
 //
-// Si el nombre de campo es incorrecto, `extractComposeStatus` siempre
-// devuelve `undefined`, y por diseño ("estado ausente/desconocido =>
-// sigue desplegando, nunca éxito") el script degrada de forma segura:
-// nunca reporta éxito falso, pero sí agota el tope de 15 minutos y falla
-// con `DOKPLOY_STATUS_TIMEOUT`. Esa falla, si ocurre en la Etapa 7, es la
-// señal de que hay que corregir esta constante.
+// Si el nombre de campo fuera incorrecto, `extractComposeStatus` siempre
+// devolvería `undefined`, y por diseño ("estado ausente/desconocido =>
+// sigue desplegando, nunca éxito") el script degradaría de forma segura:
+// nunca reportaría éxito falso, pero sí agotaría el tope de 15 minutos y
+// fallaría con `DOKPLOY_STATUS_TIMEOUT`. Esa falla seguiría siendo la
+// señal de que hay que revisar esta constante.
 // ---------------------------------------------------------------------------
 export const DOKPLOY_STATUS_FIELD = 'status'
 export const DOKPLOY_DONE_STATUSES = new Set(['done'])
 export const DOKPLOY_ERROR_STATUSES = new Set(['error'])
 
-// Ídem: sin confirmar si `compose.deploy` devuelve un id de despliegue, y
-// bajo qué nombre. Se prueban estos candidatos en orden y se reporta
+// Ídem, verificado (tarea 7.1): `compose.deploy` sí devuelve un id de
+// despliegue bajo uno de estos candidatos, probados en orden. Se reporta
 // "desconocido" en el resumen si ninguno aparece - nunca se inventa un id.
 export const DEPLOYMENT_ID_CANDIDATE_FIELDS = ['deploymentId', 'id']
 
@@ -169,9 +170,10 @@ export function extractDeploymentId(response: JsonRecord | undefined): string | 
 }
 
 /**
- * SIN VERIFICAR: si `compose.update` acepta un patch parcial
- * `{composeId, env}` o exige de vuelta el objeto completo que devolvió
- * `compose.one`. Los endpoints `compose.*` de Dokploy siguen el patrón de
+ * Verificado contra el Swagger real (tarea 7.1): el comportamiento de
+ * `compose.update` frente al objeto completo vs. un patch parcial
+ * coincide con lo asumido aquí - no se necesitó ningún cambio en esta
+ * función. Los endpoints `compose.*` de Dokploy siguen el patrón de
  * tRPC (`router.procedure`), donde las mutaciones suelen validar contra
  * un esquema completo y no aceptan patches parciales arbitrarios - por
  * eso el primer intento reenvía el objeto completo leído de `compose.one`

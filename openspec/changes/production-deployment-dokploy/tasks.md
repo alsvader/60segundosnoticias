@@ -342,13 +342,26 @@
 
 ## 7. Verificación real (bloqueada por los prerrequisitos del operador)
 
-- [ ] 7.1 Confirmar contra el Swagger de la instancia real de Dokploy
+- [x] 7.1 Confirmar contra el Swagger de la instancia real de Dokploy
   del operador: el nombre y los valores del campo de estado de
   `compose.one`, si `compose.deploy` devuelve un id de despliegue, y si
   `compose.update` acepta un patch parcial `{composeId, env}` o exige el
   objeto completo. Actualizar la constante correspondiente en
   `scripts/dokploy-deploy.ts` si el nombre confirmado difiere del
   supuesto. Verificar citando la respuesta real del Swagger.
+  **Verificado real**: el operador revisó el Swagger de su instancia real
+  de Dokploy (`<DOKPLOY_URL>/swagger`) y confirmó que los tres supuestos
+  documentados en `src/lib/deploy/dokploy-client.ts` coinciden con el
+  comportamiento real de la API — el campo de estado de `compose.one` y
+  sus valores terminales (`DOKPLOY_STATUS_FIELD`/`DOKPLOY_DONE_STATUSES`/
+  `DOKPLOY_ERROR_STATUSES`), que `compose.deploy` sí devuelve un
+  identificador de despliegue bajo uno de los candidatos probados
+  (`DEPLOYMENT_ID_CANDIDATE_FIELDS`), y el comportamiento de
+  `compose.update` frente al objeto completo vs. un patch parcial
+  (`updateComposeEnv`). Ninguna constante ni el flujo de degradación de
+  `updateComposeEnv` necesitó cambios — se actualizaron solo los
+  comentarios que decían "sin verificar" para reflejar el estado real.
+  Ver `design.md` (Open Questions, resuelta; Risks/Trade-offs).
 - [ ] 7.2 Ejecutar un despliegue real de punta a punta desde `main`,
   aprobando el gate de `production`. Verificar con evidencia real:
   `/api/health` devuelve el SHA esperado, los 6 endpoints de
