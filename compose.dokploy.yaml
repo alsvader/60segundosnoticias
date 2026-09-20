@@ -40,33 +40,37 @@
 
 services:
   migrate:
-    image: ${MIGRATOR_IMAGE}
+    image: ${MIGRATOR_IMAGE:?MIGRATOR_IMAGE requerida}
     environment:
-      DATABASE_URI: ${DATABASE_URI}
-      PAYLOAD_SECRET: ${PAYLOAD_SECRET}
+      DATABASE_URI: ${DATABASE_URI:?DATABASE_URI requerida}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:?PAYLOAD_SECRET requerido}
+    networks:
+      - dokploy-network
     # Sin `depends_on: db` - PostgreSQL ya no vive en este stack (ver el
     # encabezado). `DATABASE_URI` apunta a un servicio de base de datos
     # gestionado por Dokploy, con su propio ciclo de vida, anterior e
     # independiente al de este Compose.
     #
     # Job de un solo uso - nunca un servicio de larga duración (AC-DB-004).
-    restart: 'no'
+    restart: "no"
 
   app:
-    image: ${RUNNER_IMAGE}
+    image: ${RUNNER_IMAGE:?RUNNER_IMAGE requerida}
     environment:
-      DATABASE_URI: ${DATABASE_URI}
-      PAYLOAD_SECRET: ${PAYLOAD_SECRET}
-      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
-      PREVIEW_SECRET: ${PREVIEW_SECRET}
-      S3_ENDPOINT: ${S3_ENDPOINT}
-      S3_REGION: ${S3_REGION}
-      S3_BUCKET: ${S3_BUCKET}
-      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
-      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
-      S3_PUBLIC_URL: ${S3_PUBLIC_URL}
+      DATABASE_URI: ${DATABASE_URI:?DATABASE_URI requerida}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:?PAYLOAD_SECRET requerido}
+
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL requerida}
+      PREVIEW_SECRET: ${PREVIEW_SECRET:?PREVIEW_SECRET requerido}
+
+      S3_ENDPOINT: ${S3_ENDPOINT:?S3_ENDPOINT requerido}
+      S3_REGION: ${S3_REGION:?S3_REGION requerida}
+      S3_BUCKET: ${S3_BUCKET:?S3_BUCKET requerido}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:?S3_ACCESS_KEY_ID requerido}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?S3_SECRET_ACCESS_KEY requerido}
+      S3_PUBLIC_URL: ${S3_PUBLIC_URL:?S3_PUBLIC_URL requerido}
     ports:
-      - '3000:3000'
+      - "3000:3000"
     # La app SHALL arrancar solo después de una migración exitosa (tarea
     # 9.10) - si `migrate` falla, `app` nunca arranca. El HEALTHCHECK del
     # propio container (Dockerfile, stage `runner`) se hereda
@@ -75,3 +79,9 @@ services:
       migrate:
         condition: service_completed_successfully
     restart: unless-stopped
+    networks:
+      - dokploy-network
+
+networks:
+  dokploy-network:
+    external: true
