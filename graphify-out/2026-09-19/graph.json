@@ -2900,7 +2900,7 @@
       "file_type": "code",
       "norm_label": "deployfailureclassification",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L340"
+      "source_location": "L342"
     },
     {
       "id": "src_lib_deploy_dokploy_client_failureclass",
@@ -2913,7 +2913,7 @@
       "file_type": "code",
       "norm_label": "failureclass",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L338"
+      "source_location": "L340"
     },
     {
       "id": "src_lib_deploy_dokploy_client_healthprobe",
@@ -2926,7 +2926,7 @@
       "file_type": "code",
       "norm_label": "healthprobe",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L286"
+      "source_location": "L288"
     },
     {
       "id": "src_lib_deploy_dokploy_client_jsonrecord",
@@ -2952,7 +2952,7 @@
       "file_type": "code",
       "norm_label": "shaoutcome",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L299"
+      "source_location": "L301"
     },
     {
       "id": "src_lib_deploy_dokploy_client_statusoutcome",
@@ -2965,7 +2965,7 @@
       "file_type": "code",
       "norm_label": "statusoutcome",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L238"
+      "source_location": "L240"
     },
     {
       "id": "src_lib_deploy_dokploy_env_dokployimagekey",
@@ -6997,7 +6997,7 @@
       "file_type": "code",
       "norm_label": "assertdeployrequestneversendsfreshvolumes()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L225"
+      "source_location": "L227"
     },
     {
       "id": "src_lib_deploy_dokploy_client_buildfailuremessage",
@@ -7009,7 +7009,7 @@
       "file_type": "code",
       "norm_label": "buildfailuremessage()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L374"
+      "source_location": "L376"
     },
     {
       "id": "src_lib_deploy_dokploy_client_classifyshaphasefailure",
@@ -7021,7 +7021,7 @@
       "file_type": "code",
       "norm_label": "classifyshaphasefailure()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L364"
+      "source_location": "L366"
     },
     {
       "id": "src_lib_deploy_dokploy_client_classifystatusphasefailure",
@@ -7033,7 +7033,7 @@
       "file_type": "code",
       "norm_label": "classifystatusphasefailure()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L350"
+      "source_location": "L352"
     },
     {
       "id": "src_lib_deploy_dokploy_client_dokployapicall",
@@ -7045,7 +7045,7 @@
       "file_type": "code",
       "norm_label": "dokployapicall()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L98"
+      "source_location": "L99"
     },
     {
       "id": "src_lib_deploy_dokploy_client_extractcomposestatus",
@@ -7057,7 +7057,7 @@
       "file_type": "code",
       "norm_label": "extractcomposestatus()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L157"
+      "source_location": "L158"
     },
     {
       "id": "src_lib_deploy_dokploy_client_extractdeploymentid",
@@ -7069,7 +7069,7 @@
       "file_type": "code",
       "norm_label": "extractdeploymentid()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L162"
+      "source_location": "L163"
     },
     {
       "id": "src_lib_deploy_dokploy_client_extractenvblob",
@@ -7081,7 +7081,7 @@
       "file_type": "code",
       "norm_label": "extractenvblob()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L148"
+      "source_location": "L149"
     },
     {
       "id": "src_lib_deploy_dokploy_client_fetchcomposeone",
@@ -7093,7 +7093,7 @@
       "file_type": "code",
       "norm_label": "fetchcomposeone()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L133"
+      "source_location": "L134"
     },
     {
       "id": "src_lib_deploy_dokploy_client_fetchwithtimeout",
@@ -7105,7 +7105,7 @@
       "file_type": "code",
       "norm_label": "fetchwithtimeout()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L87"
+      "source_location": "L88"
     },
     {
       "id": "src_lib_deploy_dokploy_client_findsecretstomaskinenvblob",
@@ -7117,7 +7117,7 @@
       "file_type": "code",
       "norm_label": "findsecretstomaskinenvblob()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L72"
+      "source_location": "L73"
     },
     {
       "id": "src_lib_deploy_dokploy_client_probehealth",
@@ -7129,7 +7129,7 @@
       "file_type": "code",
       "norm_label": "probehealth()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L288"
+      "source_location": "L290"
     },
     {
       "id": "src_lib_deploy_dokploy_client_sha256",
@@ -7141,7 +7141,7 @@
       "file_type": "code",
       "norm_label": "sha256()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L54"
+      "source_location": "L55"
     },
     {
       "id": "src_lib_deploy_dokploy_client_sleep",
@@ -7153,7 +7153,7 @@
       "file_type": "code",
       "norm_label": "sleep()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L234"
+      "source_location": "L236"
     },
     {
       "id": "src_lib_deploy_dokploy_client_test_jsonresponse",
@@ -7177,7 +7177,7 @@
       "file_type": "code",
       "norm_label": "updatecomposeenv()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L183"
+      "source_location": "L185"
     },
     {
       "id": "src_lib_deploy_dokploy_client_waitfordokploystatustransition",
@@ -7189,7 +7189,7 @@
       "file_type": "code",
       "norm_label": "waitfordokploystatustransition()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L248"
+      "source_location": "L250"
     },
     {
       "id": "src_lib_deploy_dokploy_client_waitforliveshamatch",
@@ -7201,7 +7201,7 @@
       "file_type": "code",
       "norm_label": "waitforliveshamatch()",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L308"
+      "source_location": "L310"
     },
     {
       "id": "src_lib_deploy_dokploy_env_assertvalidimagereference",
@@ -31074,7 +31074,7 @@
       "node_kind": "heading",
       "norm_label": "8. documentacion",
       "source_file": "openspec/changes/production-deployment-dokploy/tasks.md",
-      "source_location": "L368"
+      "source_location": "L381"
     },
     {
       "id": "openspec_changes_archive_2026_09_18_testing_qa_performance_proposal",
@@ -33483,7 +33483,7 @@
       "file_type": "code",
       "norm_label": "deployment_id_candidate_fields",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L40"
+      "source_location": "L41"
     },
     {
       "id": "src_lib_deploy_dokploy_client_dokploy_done_statuses",
@@ -33494,7 +33494,7 @@
       "file_type": "code",
       "norm_label": "dokploy_done_statuses",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L34"
+      "source_location": "L35"
     },
     {
       "id": "src_lib_deploy_dokploy_client_dokploy_error_statuses",
@@ -33505,7 +33505,7 @@
       "file_type": "code",
       "norm_label": "dokploy_error_statuses",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L35"
+      "source_location": "L36"
     },
     {
       "id": "src_lib_deploy_dokploy_client_dokploy_status_field",
@@ -33516,7 +33516,7 @@
       "file_type": "code",
       "norm_label": "dokploy_status_field",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L33"
+      "source_location": "L34"
     },
     {
       "id": "src_lib_deploy_dokploy_client_http_timeout_ms",
@@ -33527,7 +33527,7 @@
       "file_type": "code",
       "norm_label": "http_timeout_ms",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L52"
+      "source_location": "L53"
     },
     {
       "id": "src_lib_deploy_dokploy_client_sha_cap_ms",
@@ -33538,7 +33538,7 @@
       "file_type": "code",
       "norm_label": "sha_cap_ms",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L50"
+      "source_location": "L51"
     },
     {
       "id": "src_lib_deploy_dokploy_client_sha_poll_interval_ms",
@@ -33549,7 +33549,7 @@
       "file_type": "code",
       "norm_label": "sha_poll_interval_ms",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L48"
+      "source_location": "L49"
     },
     {
       "id": "src_lib_deploy_dokploy_client_sha_required_consecutive_matches",
@@ -33560,7 +33560,7 @@
       "file_type": "code",
       "norm_label": "sha_required_consecutive_matches",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L49"
+      "source_location": "L50"
     },
     {
       "id": "src_lib_deploy_dokploy_client_status_cap_ms",
@@ -33571,7 +33571,7 @@
       "file_type": "code",
       "norm_label": "status_cap_ms",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L46"
+      "source_location": "L47"
     },
     {
       "id": "src_lib_deploy_dokploy_client_status_first_interval_ms",
@@ -33582,7 +33582,7 @@
       "file_type": "code",
       "norm_label": "status_first_interval_ms",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L44"
+      "source_location": "L45"
     },
     {
       "id": "src_lib_deploy_dokploy_client_status_first_phase_ms",
@@ -33593,7 +33593,7 @@
       "file_type": "code",
       "norm_label": "status_first_phase_ms",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L43"
+      "source_location": "L44"
     },
     {
       "id": "src_lib_deploy_dokploy_client_status_second_interval_ms",
@@ -33604,7 +33604,7 @@
       "file_type": "code",
       "norm_label": "status_second_interval_ms",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L45"
+      "source_location": "L46"
     },
     {
       "id": "src_lib_deploy_dokploy_client_test",
@@ -46421,7 +46421,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L112",
+      "source_location": "L113",
       "weight": 1.0
     },
     {
@@ -46433,7 +46433,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L134",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -46445,7 +46445,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -46457,24 +46457,12 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L193",
+      "source_location": "L195",
       "weight": 1.0
     },
     {
       "source": "src_lib_deploy_dokploy_client_waitfordokploystatustransition",
       "target": "src_lib_deploy_dokploy_client_sleep",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L269",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_deploy_dokploy_client_waitfordokploystatustransition",
-      "target": "src_lib_deploy_dokploy_client_fetchcomposeone",
       "relation": "calls",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -46486,6 +46474,18 @@
     },
     {
       "source": "src_lib_deploy_dokploy_client_waitfordokploystatustransition",
+      "target": "src_lib_deploy_dokploy_client_fetchcomposeone",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/deploy/dokploy-client.ts",
+      "source_location": "L273",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_deploy_dokploy_client_waitfordokploystatustransition",
       "target": "src_lib_deploy_dokploy_client_extractcomposestatus",
       "relation": "calls",
       "_origin": "ast",
@@ -46493,7 +46493,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L272",
+      "source_location": "L274",
       "weight": 1.0
     },
     {
@@ -46505,7 +46505,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L315",
+      "source_location": "L317",
       "weight": 1.0
     },
     {
@@ -46517,7 +46517,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L333",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -79680,7 +79680,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "openspec/changes/production-deployment-dokploy/tasks.md",
-      "source_location": "L368",
+      "source_location": "L381",
       "weight": 1.0
     },
     {
@@ -91571,7 +91571,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L133",
+      "source_location": "L134",
       "weight": 1.0
     },
     {
@@ -91593,7 +91593,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L148",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
@@ -91604,7 +91604,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L157",
+      "source_location": "L158",
       "weight": 1.0
     },
     {
@@ -91615,7 +91615,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L162",
+      "source_location": "L163",
       "weight": 1.0
     },
     {
@@ -91626,7 +91626,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L183",
+      "source_location": "L185",
       "weight": 1.0
     },
     {
@@ -91637,7 +91637,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L225",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -91648,7 +91648,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L234",
+      "source_location": "L236",
       "weight": 1.0
     },
     {
@@ -91659,7 +91659,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L238",
+      "source_location": "L240",
       "weight": 1.0
     },
     {
@@ -91670,7 +91670,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L248",
+      "source_location": "L250",
       "weight": 1.0
     },
     {
@@ -91681,7 +91681,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L286",
+      "source_location": "L288",
       "weight": 1.0
     },
     {
@@ -91692,7 +91692,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L288",
+      "source_location": "L290",
       "weight": 1.0
     },
     {
@@ -91703,7 +91703,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L299",
+      "source_location": "L301",
       "weight": 1.0
     },
     {
@@ -91714,7 +91714,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L308",
+      "source_location": "L310",
       "weight": 1.0
     },
     {
@@ -91725,7 +91725,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L33",
+      "source_location": "L34",
       "weight": 1.0
     },
     {
@@ -91736,18 +91736,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L338",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_deploy_dokploy_client",
-      "target": "src_lib_deploy_dokploy_client_dokploy_done_statuses",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L34",
+      "source_location": "L340",
       "weight": 1.0
     },
     {
@@ -91758,12 +91747,12 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L340",
+      "source_location": "L342",
       "weight": 1.0
     },
     {
       "source": "src_lib_deploy_dokploy_client",
-      "target": "src_lib_deploy_dokploy_client_dokploy_error_statuses",
+      "target": "src_lib_deploy_dokploy_client_dokploy_done_statuses",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -91780,7 +91769,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L350",
+      "source_location": "L352",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_deploy_dokploy_client",
+      "target": "src_lib_deploy_dokploy_client_dokploy_error_statuses",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/deploy/dokploy-client.ts",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -91791,7 +91791,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L364",
+      "source_location": "L366",
       "weight": 1.0
     },
     {
@@ -91802,7 +91802,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L374",
+      "source_location": "L376",
       "weight": 1.0
     },
     {
@@ -91813,7 +91813,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L40",
+      "source_location": "L41",
       "weight": 1.0
     },
     {
@@ -91824,7 +91824,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L43",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -91835,7 +91835,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L44",
+      "source_location": "L45",
       "weight": 1.0
     },
     {
@@ -91846,7 +91846,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L45",
+      "source_location": "L46",
       "weight": 1.0
     },
     {
@@ -91857,7 +91857,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L46",
+      "source_location": "L47",
       "weight": 1.0
     },
     {
@@ -91868,7 +91868,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L48",
+      "source_location": "L49",
       "weight": 1.0
     },
     {
@@ -91879,7 +91879,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L49",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -91890,7 +91890,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L50",
+      "source_location": "L51",
       "weight": 1.0
     },
     {
@@ -91901,7 +91901,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L52",
+      "source_location": "L53",
       "weight": 1.0
     },
     {
@@ -91912,7 +91912,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L54",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -91923,7 +91923,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L72",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -91934,7 +91934,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L87",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -91945,7 +91945,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/deploy/dokploy-client.ts",
-      "source_location": "L98",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
@@ -101993,5 +101993,5 @@
       "source_file": "docs/DESIGN-SYSTEM.md"
     }
   ],
-  "built_at_commit": "9cbe6ff72fdbe42e28f731e2c6122d5313815f06"
+  "built_at_commit": "5bea74b2df939c72e46b9c94f3f4e51c5f47cc1a"
 }

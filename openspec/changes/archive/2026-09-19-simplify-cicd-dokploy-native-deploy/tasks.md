@@ -35,7 +35,7 @@ Nota: este change documenta una implementación ya realizada (guiada por un plan
 
 ## 7. Pendiente del operador (fuera de este repositorio, no verificable desde el código)
 
-- [ ] 7.1 Activar el Auto Deploy nativo de Dokploy sobre `main` para el servicio Compose correspondiente, en su dashboard.
-- [ ] 7.2 Evaluar activar branch protection en `main` exigiendo los checks de `ci.yml` antes de mergear, dado que ya no hay aprobación manual antes de producción.
-- [ ] 7.3 Mover `PRODUCTION_URL` de Environment variable (`production`) a Repository variable en GitHub (Settings → Secrets and variables → Actions → Variables) — requisito para que `rollback-git` funcione, confirmado con el usuario que hoy vive solo a nivel de Environment.
-- [ ] 7.4 Decidir si conservar o eliminar el Environment `production` de GitHub: SHALL conservarse mientras se quiera seguir usando `release.yml` (`publish_and_deploy: true`) o `rollback.yml` (`strategy: image`), porque ambos siguen leyendo `DOKPLOY_URL`/`DOKPLOY_TOKEN`/`DOKPLOY_COMPOSE_ID` scoped a ese Environment.
+- [x] 7.1 Activar el Auto Deploy nativo de Dokploy sobre `main` para el servicio Compose correspondiente, en su dashboard — confirmado por el usuario.
+- [x] 7.2 Evaluar activar branch protection en `main` exigiendo los checks de `ci.yml` antes de mergear, dado que ya no hay aprobación manual antes de producción — confirmado por el usuario.
+- [x] 7.3 Mover `PRODUCTION_URL` de Environment variable (`production`) a Repository variable en GitHub (Settings → Secrets and variables → Actions → Variables) — confirmado por el usuario; requisito para que `rollback-git` funcione.
+- [x] 7.4 Decidir si conservar o eliminar el Environment `production` de GitHub — el usuario decidió **conservarlo**, ya que sigue usando las rutas legadas (`release.yml` con `publish_and_deploy: true` y/o `rollback.yml` con `strategy: image`), que leen `DOKPLOY_URL`/`DOKPLOY_TOKEN`/`DOKPLOY_COMPOSE_ID` scoped a ese Environment.

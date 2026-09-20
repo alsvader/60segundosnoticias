@@ -132,8 +132,8 @@
     "semantic_hash": "398529c816ac632cc95c0a178f6651ec"
   },
   "next-env.d.ts": {
-    "mtime": 1789770262.744118,
-    "seen": 1789770449.246558,
+    "mtime": 1789875573.4115393,
+    "seen": 1789882727.648067,
     "ast_hash": "8195d2c60ce847a459ae9d308d6a5724",
     "semantic_hash": ""
   },
@@ -2412,9 +2412,9 @@
     "semantic_hash": ""
   },
   "docs/DEPLOYMENT.md": {
-    "mtime": 1789756760.6399016,
-    "seen": 1789758453.525089,
-    "ast_hash": "8527b898c91426c7f19a2202132f7c3c",
+    "mtime": 1789881506.3745298,
+    "seen": 1789882727.648297,
+    "ast_hash": "d156617fe7de04f7f3ac7b27944e256f",
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-09-13-site-search/.openspec.yaml": {
@@ -2514,9 +2514,9 @@
     "semantic_hash": ""
   },
   "tests/fixtures/builders.ts": {
-    "mtime": 1789747045.125327,
-    "seen": 1789751816.2586849,
-    "ast_hash": "85494bd0e590630762b951db136bc52d",
+    "mtime": 1789871608.0253057,
+    "seen": 1789882727.648266,
+    "ast_hash": "80575f013678ea2b64241342ca73e034",
     "semantic_hash": ""
   },
   "tests/fixtures/get-test-payload.ts": {
@@ -2994,21 +2994,21 @@
     "semantic_hash": ""
   },
   ".github/workflows/ci.yml": {
-    "mtime": 1789747045.0954387,
-    "seen": 1789751816.258705,
-    "ast_hash": "889e67c1c093f582a320f7990de5de30",
+    "mtime": 1789881203.4479167,
+    "seen": 1789882727.648287,
+    "ast_hash": "e56f55c56dabffa2a7ebd62ad2d6dbe7",
     "semantic_hash": ""
   },
   ".github/workflows/release.yml": {
-    "mtime": 1789756191.1793091,
-    "seen": 1789758453.525079,
-    "ast_hash": "77d7bcb228795ee5677770bc95acc35b",
+    "mtime": 1789881232.6375558,
+    "seen": 1789882727.648287,
+    "ast_hash": "5dab66de53352f3db16b743e9eb6df16",
     "semantic_hash": ""
   },
   "compose.dokploy.yaml": {
-    "mtime": 1789867019.1272755,
-    "seen": 1789869440.5875661,
-    "ast_hash": "17bd09ea48817d86de857918f58950f3",
+    "mtime": 1789881452.5432231,
+    "seen": 1789882727.648291,
+    "ast_hash": "7edeb824d464e53101d8d82d8ba8f41d",
     "semantic_hash": ""
   },
   "docs/TESTING.md": {
@@ -3018,9 +3018,9 @@
     "semantic_hash": ""
   },
   "tests/e2e/visual.spec.ts-snapshots/article-desktop-chromium-linux.png": {
-    "mtime": 1789750133.815853,
-    "seen": 1789751816.2588632,
-    "ast_hash": "4fcc4839359008f22d578d28e1257908",
+    "mtime": 1789872976.9671795,
+    "seen": 1789882727.648475,
+    "ast_hash": "01c6c2f1a43f8a1e7e9cbf5beb2794cd",
     "semantic_hash": ""
   },
   "tests/e2e/visual.spec.ts-snapshots/header-search-expanded-desktop-chromium-linux.png": {
@@ -3036,9 +3036,9 @@
     "semantic_hash": ""
   },
   "tests/e2e/visual.spec.ts-snapshots/home-desktop-chromium-linux.png": {
-    "mtime": 1789750133.8135912,
-    "seen": 1789751816.258867,
-    "ast_hash": "24c6561637a29752a1a57a5723723ebd",
+    "mtime": 1789872976.9691503,
+    "seen": 1789882727.648479,
+    "ast_hash": "14f0e6a9f7e2ccc19ee8ac0cc76dc702",
     "semantic_hash": ""
   },
   "tests/e2e/visual.spec.ts-snapshots/mobile-nav-open-chromium-linux.png": {
@@ -3078,15 +3078,15 @@
     "semantic_hash": ""
   },
   ".github/workflows/rollback.yml": {
-    "mtime": 1789756214.87012,
-    "seen": 1789758453.52508,
-    "ast_hash": "ac3bbfa50d16a1a3494f7f22a4898d2c",
+    "mtime": 1789882186.7007477,
+    "seen": 1789882727.648288,
+    "ast_hash": "78d0ef446028987769244e9f6516f2db",
     "semantic_hash": ""
   },
   "docs/OPERATIONS.md": {
-    "mtime": 1789756562.6675634,
-    "seen": 1789758453.5250912,
-    "ast_hash": "76083e4cd3a2e8e7f3341cea05e15db9",
+    "mtime": 1789882206.8603117,
+    "seen": 1789882727.648299,
+    "ast_hash": "1887275fd82639d25434db4ace3319e7",
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-09-18-testing-qa-performance/.openspec.yaml": {
@@ -3138,9 +3138,9 @@
     "semantic_hash": ""
   },
   "openspec/changes/production-deployment-dokploy/design.md": {
-    "mtime": 1789869078.4171324,
-    "seen": 1789869440.587682,
-    "ast_hash": "0e859572508a70409334d53fd3c252e9",
+    "mtime": 1789877624.3566694,
+    "seen": 1789882727.6484108,
+    "ast_hash": "100bd60c8bfc52abeb87f267c6387a1a",
     "semantic_hash": ""
   },
   "openspec/changes/production-deployment-dokploy/proposal.md": {
@@ -3168,9 +3168,9 @@
     "semantic_hash": ""
   },
   "openspec/changes/production-deployment-dokploy/tasks.md": {
-    "mtime": 1789869068.6608522,
-    "seen": 1789869440.5876858,
-    "ast_hash": "aeb19fc0dd1020e0427ba9a75bc0ed74",
+    "mtime": 1789877600.4050782,
+    "seen": 1789882727.648415,
+    "ast_hash": "43e8125b9156fc6af3eee4912d22136e",
     "semantic_hash": ""
   },
   "openspec/specs/cms-integration-testing/spec.md": {
@@ -3192,15 +3192,45 @@
     "semantic_hash": ""
   },
   "src/lib/deploy/dokploy-client.test.ts": {
-    "mtime": 1789770393.8784707,
-    "seen": 1789770449.24666,
-    "ast_hash": "7141943384fef4dd03dba7bc777485d0",
+    "mtime": 1789877549.9617233,
+    "seen": 1789882727.648159,
+    "ast_hash": "943f746ff7e571ad054013d5dbc9bd53",
     "semantic_hash": ""
   },
   "src/lib/deploy/dokploy-client.ts": {
-    "mtime": 1789869096.8322423,
-    "seen": 1789869440.587438,
-    "ast_hash": "36277704a98453ed6e08c89585eac0b9",
+    "mtime": 1789877517.3250601,
+    "seen": 1789882727.648159,
+    "ast_hash": "4df95efa7ed3dac92f78ff5cecc76570",
+    "semantic_hash": ""
+  },
+  "openspec/changes/simplify-cicd-dokploy-native-deploy/.openspec.yaml": {
+    "mtime": 1789881622.7588925,
+    "seen": 1789882727.648416,
+    "ast_hash": "75cf8d7a782a9dc39c1083c6a943e514",
+    "semantic_hash": ""
+  },
+  "openspec/changes/simplify-cicd-dokploy-native-deploy/design.md": {
+    "mtime": 1789882243.6164339,
+    "seen": 1789882727.648416,
+    "ast_hash": "d64a661ea0c1ea1be3a798eda0e25f62",
+    "semantic_hash": ""
+  },
+  "openspec/changes/simplify-cicd-dokploy-native-deploy/proposal.md": {
+    "mtime": 1789881687.9001963,
+    "seen": 1789882727.648417,
+    "ast_hash": "d46eb0ebe52d23a8a62a1de7c55d9016",
+    "semantic_hash": ""
+  },
+  "openspec/changes/simplify-cicd-dokploy-native-deploy/specs/deployment-automation/spec.md": {
+    "mtime": 1789881717.0629876,
+    "seen": 1789882727.648418,
+    "ast_hash": "bb6e64cddba879919458205995020665",
+    "semantic_hash": ""
+  },
+  "openspec/changes/simplify-cicd-dokploy-native-deploy/tasks.md": {
+    "mtime": 1789882232.4935448,
+    "seen": 1789882727.6484191,
+    "ast_hash": "7f9f39c67f02c3fca47b421137f60506",
     "semantic_hash": ""
   }
 }
