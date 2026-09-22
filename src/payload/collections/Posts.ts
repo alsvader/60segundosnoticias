@@ -52,69 +52,82 @@ export const Posts: CollectionConfig = {
   fields: [
     {
       name: 'title',
+      label: 'Título',
       type: 'text',
       required: true,
     },
     slugField({ collection: 'posts' }),
     {
       name: 'excerpt',
+      label: 'Extracto',
       type: 'textarea',
     },
     {
       name: 'featuredImage',
+      label: 'Imagen destacada',
       type: 'upload',
       relationTo: 'media',
     },
     {
       name: 'primaryCategory',
+      label: 'Categoría principal',
       type: 'relationship',
       relationTo: 'categories',
       index: true,
     },
     {
       name: 'additionalCategories',
+      label: 'Categorías adicionales',
       type: 'relationship',
       relationTo: 'categories',
       hasMany: true,
     },
     {
       name: 'tags',
+      label: 'Etiquetas',
       type: 'relationship',
       relationTo: 'tags',
       hasMany: true,
     },
     {
       name: 'author',
+      label: 'Autor',
       type: 'relationship',
       relationTo: 'users',
       index: true,
     },
     {
       name: 'content',
+      label: 'Contenido',
       type: 'richText',
       editor: createArticleEditor(),
     },
     {
       name: 'source',
+      label: 'Fuente',
       type: 'text',
     },
     {
       name: 'photoCredits',
+      label: 'Créditos de foto',
       type: 'text',
     },
     {
       name: 'publishedAt',
+      label: 'Fecha de publicación',
       type: 'date',
       index: true,
     },
     {
       name: 'featured',
+      label: 'Destacada',
       type: 'checkbox',
       defaultValue: false,
       index: true,
     },
     {
       name: 'readingTimeMinutes',
+      label: 'Tiempo de lectura (minutos)',
       type: 'number',
       admin: {
         readOnly: true,

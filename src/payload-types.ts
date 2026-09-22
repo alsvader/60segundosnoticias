@@ -529,7 +529,7 @@ export interface Redirect {
   createdAt: string;
 }
 /**
- * This is a collection of automatically created search results. These results are used by the global site search and will be updated automatically as documents in the CMS are created or updated.
+ * Resultados de búsqueda generados automáticamente a partir de las Noticias y Páginas publicadas. Los usa el buscador del sitio y se actualizan solos al crear o editar contenido.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "search".
@@ -1238,7 +1238,7 @@ export interface EditorialIntroBlock {
    */
   backgroundImage: number | Media;
   /**
-   * Imagen/gráfico prominente junto al texto, renderizado sobre backgroundImage.
+   * Imagen/gráfico prominente junto al texto, mostrado sobre la imagen de fondo.
    */
   foregroundImage: number | Media;
   cta: {

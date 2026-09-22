@@ -9,35 +9,41 @@ import type { ArrayField } from 'payload'
 export const linkFields: ArrayField['fields'] = [
   {
     name: 'label',
+    label: 'Texto',
     type: 'text',
     required: true,
   },
   {
     name: 'type',
+    label: 'Tipo de enlace',
     type: 'select',
     required: true,
     options: [
-      { label: 'Category', value: 'category' },
-      { label: 'Page', value: 'page' },
-      { label: 'External', value: 'external' },
+      { label: 'Categoría', value: 'category' },
+      { label: 'Página', value: 'page' },
+      { label: 'Externo', value: 'external' },
     ],
   },
   {
     name: 'category',
+    label: 'Categoría',
     type: 'relationship',
     relationTo: 'categories',
   },
   {
     name: 'page',
+    label: 'Página',
     type: 'relationship',
     relationTo: 'pages',
   },
   {
     name: 'url',
+    label: 'URL',
     type: 'text',
   },
   {
     name: 'openInNewTab',
+    label: 'Abrir en nueva pestaña',
     type: 'checkbox',
     defaultValue: false,
   },

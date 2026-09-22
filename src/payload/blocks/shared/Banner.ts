@@ -4,13 +4,18 @@ import { optionalLinkFields } from '../../fields/link-fields.ts'
 
 export const Banner: Block = {
   slug: 'banner',
+  labels: {
+    singular: 'Banner',
+    plural: 'Banners',
+  },
   interfaceName: 'BannerBlock',
   fields: [
-    { name: 'title', type: 'text' },
-    { name: 'description', type: 'textarea' },
-    { name: 'image', type: 'upload', relationTo: 'media' },
+    { name: 'title', label: 'Título', type: 'text' },
+    { name: 'description', label: 'Descripción', type: 'textarea' },
+    { name: 'image', label: 'Imagen', type: 'upload', relationTo: 'media' },
     {
       name: 'link',
+      label: 'Enlace',
       type: 'group',
       fields: optionalLinkFields,
       admin: {
@@ -19,12 +24,13 @@ export const Banner: Block = {
     },
     {
       name: 'variant',
+      label: 'Variante',
       type: 'select',
       defaultValue: 'editorial',
       options: [
         { label: 'Editorial', value: 'editorial' },
-        { label: 'Promotional', value: 'promotional' },
-        { label: 'Dark', value: 'dark' },
+        { label: 'Promocional', value: 'promotional' },
+        { label: 'Oscuro', value: 'dark' },
       ],
     },
   ],

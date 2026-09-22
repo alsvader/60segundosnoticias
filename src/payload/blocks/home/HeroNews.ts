@@ -4,13 +4,18 @@ import { optionalLinkFields } from '../../fields/link-fields.ts'
 
 export const HeroNews: Block = {
   slug: 'heroNews',
+  labels: {
+    singular: 'Noticia principal',
+    plural: 'Noticias principales',
+  },
   interfaceName: 'HeroNewsBlock',
   fields: [
-    { name: 'eyebrow', type: 'text' },
-    { name: 'headline', type: 'text', required: true },
-    { name: 'description', type: 'textarea' },
+    { name: 'eyebrow', label: 'Antetítulo', type: 'text' },
+    { name: 'headline', label: 'Titular', type: 'text', required: true },
+    { name: 'description', label: 'Descripción', type: 'textarea' },
     {
       name: 'cta',
+      label: 'Botón de llamada a la acción',
       type: 'group',
       fields: optionalLinkFields,
       admin: {
@@ -19,16 +24,18 @@ export const HeroNews: Block = {
     },
     {
       name: 'contentMode',
+      label: 'Modo de contenido',
       type: 'select',
       required: true,
       defaultValue: 'automatic',
       options: [
         { label: 'Manual', value: 'manual' },
-        { label: 'Automatic', value: 'automatic' },
+        { label: 'Automático', value: 'automatic' },
       ],
     },
     {
       name: 'mainPost',
+      label: 'Noticia principal',
       type: 'relationship',
       relationTo: 'posts',
       admin: {
@@ -38,6 +45,7 @@ export const HeroNews: Block = {
     },
     {
       name: 'secondaryPosts',
+      label: 'Noticias secundarias',
       type: 'relationship',
       relationTo: 'posts',
       hasMany: true,
@@ -48,6 +56,7 @@ export const HeroNews: Block = {
     },
     {
       name: 'sourceCategory',
+      label: 'Categoría de origen',
       type: 'relationship',
       relationTo: 'categories',
       admin: {
@@ -57,6 +66,7 @@ export const HeroNews: Block = {
     },
     {
       name: 'limit',
+      label: 'Límite',
       type: 'number',
       defaultValue: 4,
       admin: {

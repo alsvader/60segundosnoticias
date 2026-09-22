@@ -12,10 +12,15 @@ import { linkFields } from '../../fields/link-fields.ts'
  */
 export const EditorialIntro: Block = {
   slug: 'editorialIntro',
+  labels: {
+    singular: 'Introducción editorial',
+    plural: 'Introducciones editoriales',
+  },
   interfaceName: 'EditorialIntroBlock',
   fields: [
     {
       name: 'headlinePrimary',
+      label: 'Titular (parte principal)',
       type: 'text',
       required: true,
       admin: {
@@ -24,15 +29,17 @@ export const EditorialIntro: Block = {
     },
     {
       name: 'headlineAccent',
+      label: 'Titular (parte destacada)',
       type: 'text',
       required: true,
       admin: {
         description: 'Segunda parte del titular (color rojo de marca). Ej.: "Momento".',
       },
     },
-    { name: 'description', type: 'textarea', required: true },
+    { name: 'description', label: 'Descripción', type: 'textarea', required: true },
     {
       name: 'backgroundImage',
+      label: 'Imagen de fondo',
       type: 'upload',
       relationTo: 'media',
       required: true,
@@ -43,15 +50,17 @@ export const EditorialIntro: Block = {
     },
     {
       name: 'foregroundImage',
+      label: 'Imagen principal',
       type: 'upload',
       relationTo: 'media',
       required: true,
       admin: {
-        description: 'Imagen/gráfico prominente junto al texto, renderizado sobre backgroundImage.',
+        description: 'Imagen/gráfico prominente junto al texto, mostrado sobre la imagen de fondo.',
       },
     },
     {
       name: 'cta',
+      label: 'Botón de llamada a la acción',
       type: 'group',
       fields: linkFields,
     },

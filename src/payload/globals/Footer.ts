@@ -7,6 +7,7 @@ import { invalidateFooterCache } from '../hooks/shell/cache-invalidation.ts'
 
 export const Footer: GlobalConfig = {
   slug: 'footer',
+  label: 'Pie de página',
   access: {
     read: () => true,
     update: isAdmin,
@@ -17,24 +18,31 @@ export const Footer: GlobalConfig = {
   fields: [
     {
       name: 'logo',
+      label: 'Logotipo',
       type: 'upload',
       relationTo: 'media',
     },
     {
       name: 'description',
+      label: 'Descripción',
       type: 'textarea',
     },
     {
       name: 'columns',
+      label: 'Columnas',
+      labels: { singular: 'Columna', plural: 'Columnas' },
       type: 'array',
       fields: [
         {
           name: 'title',
+          label: 'Título',
           type: 'text',
           required: true,
         },
         {
           name: 'links',
+          label: 'Enlaces',
+          labels: { singular: 'Enlace', plural: 'Enlaces' },
           type: 'array',
           fields: linkFields,
         },
@@ -43,11 +51,14 @@ export const Footer: GlobalConfig = {
     socialLinksField,
     {
       name: 'legalLinks',
+      label: 'Enlaces legales',
+      labels: { singular: 'Enlace legal', plural: 'Enlaces legales' },
       type: 'array',
       fields: linkFields,
     },
     {
       name: 'copyright',
+      label: 'Derechos de autor',
       type: 'text',
     },
   ],

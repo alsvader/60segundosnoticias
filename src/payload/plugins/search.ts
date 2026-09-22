@@ -16,6 +16,12 @@ import { buildPageSearchDoc, buildPostSearchDoc } from './build-search-doc.ts'
  * fija el propio plugin a partir de `defaultPriorities` - `beforeSync`
  * no necesita (ni debe) tocarlo.
  */
+const DEFAULT_FIELD_LABELS: Record<string, string> = {
+  title: 'Título',
+  priority: 'Prioridad',
+  doc: 'Documento',
+}
+
 export const search = searchPlugin({
   collections: ['posts', 'pages'],
   syncDrafts: false,
@@ -34,14 +40,28 @@ export const search = searchPlugin({
     return searchDoc
   },
   searchOverrides: {
+    labels: {
+      singular: 'Resultado de búsqueda',
+      plural: 'Índice de búsqueda',
+    },
+    admin: {
+      description:
+        'Resultados de búsqueda generados automáticamente a partir de las Noticias y Páginas publicadas. Los usa el buscador del sitio y se actualizan solos al crear o editar contenido.',
+    },
     fields: ({ defaultFields }) => [
-      ...defaultFields,
-      { name: 'excerpt', type: 'text', admin: { readOnly: true } },
-      { name: 'searchText', type: 'textarea', admin: { readOnly: true } },
-      { name: 'slug', type: 'text', admin: { readOnly: true } },
-      { name: 'categorySlug', type: 'text', admin: { readOnly: true } },
-      { name: 'categoryName', type: 'text', admin: { readOnly: true } },
-      { name: 'publishedAt', type: 'date', admin: { readOnly: true } },
+      // Solo cambia el label de los campos que define el plugin; `name`
+      // y el resto de la configuración quedan intactos.
+      ...defaultFields.map((field) =>
+        'name' in field && field.name in DEFAULT_FIELD_LABELS
+          ? { ...field, label: DEFAULT_FIELD_LABELS[field.name] }
+          : field,
+      ),
+      { name: 'excerpt', label: 'Extracto', type: 'text', admin: { readOnly: true } },
+      { name: 'searchText', label: 'Texto indexado', type: 'textarea', admin: { readOnly: true } },
+      { name: 'slug', label: 'Slug (URL)', type: 'text', admin: { readOnly: true } },
+      { name: 'categorySlug', label: 'Slug de la categoría', type: 'text', admin: { readOnly: true } },
+      { name: 'categoryName', label: 'Nombre de la categoría', type: 'text', admin: { readOnly: true } },
+      { name: 'publishedAt', label: 'Fecha de publicación', type: 'date', admin: { readOnly: true } },
     ],
     // El índice de Search es estado derivado/generado por el sistema, no
     // contenido editorial: solo Admin puede mutarlo directamente (lo

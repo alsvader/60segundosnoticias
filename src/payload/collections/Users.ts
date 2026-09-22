@@ -8,6 +8,10 @@ import { preventDeleteWithPosts } from '../hooks/users/prevent-delete-with-posts
 
 export const Users: CollectionConfig = {
   slug: 'users',
+  labels: {
+    singular: 'Usuario',
+    plural: 'Usuarios',
+  },
   auth: true,
   admin: {
     useAsTitle: 'displayName',
@@ -34,21 +38,25 @@ export const Users: CollectionConfig = {
   fields: [
     {
       name: 'name',
+      label: 'Nombre',
       type: 'text',
     },
     {
       name: 'displayName',
+      label: 'Nombre público',
       type: 'text',
       required: true,
     },
     slugField({ collection: 'users', useAsSlug: 'displayName', required: false }),
     {
       name: 'avatar',
+      label: 'Avatar',
       type: 'upload',
       relationTo: 'media',
     },
     {
       name: 'bio',
+      label: 'Biografía',
       type: 'textarea',
     },
     socialLinksField,
@@ -56,6 +64,7 @@ export const Users: CollectionConfig = {
     // this custom `access` overrides its (unset) default.
     {
       name: 'email',
+      label: 'Correo electrónico',
       type: 'email',
       access: {
         read: isLoggedInFieldAccess,
@@ -63,12 +72,13 @@ export const Users: CollectionConfig = {
     },
     {
       name: 'role',
+      label: 'Rol',
       type: 'select',
       required: true,
       defaultValue: 'writer',
       options: [
-        { label: 'Admin', value: 'admin' },
-        { label: 'Writer', value: 'writer' },
+        { label: 'Administrador', value: 'admin' },
+        { label: 'Redactor', value: 'writer' },
       ],
       access: {
         read: isLoggedInFieldAccess,
@@ -77,6 +87,7 @@ export const Users: CollectionConfig = {
     },
     {
       name: 'active',
+      label: 'Activo',
       type: 'checkbox',
       defaultValue: true,
       access: {

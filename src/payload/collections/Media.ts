@@ -6,6 +6,10 @@ import { preventDeleteReferenced } from '../hooks/media/prevent-delete-reference
 
 export const Media: CollectionConfig = {
   slug: 'media',
+  labels: {
+    singular: 'Archivo multimedia',
+    plural: 'Multimedia',
+  },
   access: {
     read: () => true,
     create: isLoggedIn,
@@ -29,22 +33,27 @@ export const Media: CollectionConfig = {
   fields: [
     {
       name: 'alt',
+      label: 'Texto alternativo',
       type: 'text',
     },
     {
       name: 'caption',
+      label: 'Pie de foto',
       type: 'text',
     },
     {
       name: 'credits',
+      label: 'Créditos',
       type: 'text',
     },
     {
       name: 'description',
+      label: 'Descripción',
       type: 'textarea',
     },
     {
       name: 'uploadedBy',
+      label: 'Subido por',
       type: 'relationship',
       relationTo: 'users',
       admin: {
