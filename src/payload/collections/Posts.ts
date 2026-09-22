@@ -9,7 +9,6 @@ import { enforceAuthor } from '../hooks/posts/enforce-author.ts'
 import { assignPublishedAt, publishValidation } from '../hooks/posts/publish-validation.ts'
 import { computeReadingTime } from '../hooks/posts/reading-time.ts'
 import { createPostRedirect } from '../hooks/posts/redirect-lifecycle.ts'
-import { generateSlugFromTitle } from '../hooks/posts/slug-lifecycle.ts'
 import { generatePostPreviewURL } from '@/lib/preview/generate-preview-url'
 
 export const Posts: CollectionConfig = {
@@ -46,7 +45,6 @@ export const Posts: CollectionConfig = {
     delete: isAdmin,
   },
   hooks: {
-    beforeValidate: [generateSlugFromTitle],
     beforeChange: [enforceAuthor, publishValidation, assignPublishedAt, computeReadingTime],
     afterChange: [invalidatePostCache, createPostRedirect],
     afterDelete: [invalidatePostCacheOnDelete],
@@ -57,7 +55,7 @@ export const Posts: CollectionConfig = {
       type: 'text',
       required: true,
     },
-    slugField(),
+    slugField({ collection: 'posts' }),
     {
       name: 'excerpt',
       type: 'textarea',

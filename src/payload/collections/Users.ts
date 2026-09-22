@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { Forbidden } from 'payload'
 
 import { isAdmin, isAdminFieldAccess, isLoggedInFieldAccess } from '../access/roles.ts'
+import { slugField } from '../fields/slug-field.ts'
 import { socialLinksField } from '../fields/social-links-field.ts'
 import { preventDeleteWithPosts } from '../hooks/users/prevent-delete-with-posts.ts'
 
@@ -40,11 +41,7 @@ export const Users: CollectionConfig = {
       type: 'text',
       required: true,
     },
-    {
-      name: 'slug',
-      type: 'text',
-      unique: true,
-    },
+    slugField({ collection: 'users', useAsSlug: 'displayName', required: false }),
     {
       name: 'avatar',
       type: 'upload',

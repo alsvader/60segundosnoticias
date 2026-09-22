@@ -21,6 +21,6 @@ export const Tags: CollectionConfig = {
       required: true,
       unique: true,
     },
-    slugField(),
+    slugField({ collection: 'tags', useAsSlug: 'name' }),
   ],
 }
