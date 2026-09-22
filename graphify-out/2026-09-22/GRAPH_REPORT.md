@@ -1,7 +1,7 @@
 # Graph Report - 60segundosnoticias  (2026-09-22)
 
 ## Corpus Check
-- 514 files · ~684,976 words
+- 514 files · ~685,661 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `65e46928`
+- Built from commit: `6f4d2865`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -290,9 +290,9 @@
 - page-block-renderer.tsx
 - resolve-root-slug.ts
 - article-header.tsx
-- auto-slug-generation/proposal.md
+- 2026-09-22-auto-slug-generation/proposal.md
 - Requirement: La generación automática respeta el namespace raíz
-- auto-slug-generation/tasks.md
+- 2026-09-22-auto-slug-generation/tasks.md
 - search.test.ts
 
 ## God Nodes (most connected - your core abstractions)
@@ -1259,7 +1259,7 @@ Nodes (10): ResolvedRootSlug, resolveRootSlug(), ResolveRootSlugOptions, getCate
 Cohesion: 0.32
 Nodes (6): ArticleHeader(), ArticleHeaderProps, BreadcrumbItem, Breadcrumbs(), BreadcrumbsProps, ArticleDetailData
 
-### Community 278 - "auto-slug-generation/proposal.md"
+### Community 278 - "2026-09-22-auto-slug-generation/proposal.md"
 Cohesion: 0.29
 Nodes (6): Capabilities, Impact, Modified Capabilities, New Capabilities, What Changes, Why
 
@@ -1267,7 +1267,7 @@ Nodes (6): Capabilities, Impact, Modified Capabilities, New Capabilities, What C
 Cohesion: 0.33
 Nodes (5): ADDED Requirements, Requirement: La generación automática respeta el namespace raíz, Scenario: Page cuyo título coincide con una Category existente, Scenario: Page cuyo título es un reserved slug, Scenario: slug explícito reservado sigue rechazado
 
-### Community 280 - "auto-slug-generation/tasks.md"
+### Community 280 - "2026-09-22-auto-slug-generation/tasks.md"
 Cohesion: 0.33
 Nodes (5): 1. Slugify compartido, 2. Campo de slug compartido, 3. Artefactos generados y migración, 4. Tests de integración, 5. Verificación general
 

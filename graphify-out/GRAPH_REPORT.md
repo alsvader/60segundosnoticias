@@ -1,7 +1,7 @@
 # Graph Report - 60segundosnoticias  (2026-09-22)
 
 ## Corpus Check
-- 514 files · ~685,661 words
+- 514 files · ~685,676 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `6f4d2865`
+- Built from commit: `e56c361f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -258,12 +258,12 @@
 - Requirement: El build de la aplicación no requiere una base de datos alcanzable
 - 2026-09-15-s3-next-image-compatibility/proposal.md
 - Requirement: Media de Payload se renderiza sin depender de una lista de hosts fijada en build
-- payload-s3-importmap/proposal.md
+- 2026-09-22-payload-s3-importmap/proposal.md
 - ADDED Requirements
 - Requirements
 - Decisions
-- payload-s3-importmap/design.md
-- payload-s3-importmap/tasks.md
+- 2026-09-22-payload-s3-importmap/design.md
+- 2026-09-22-payload-s3-importmap/tasks.md
 - Requirements
 - verify-docker-isolation.sh
 - verify-importmap.sh
@@ -1135,7 +1135,7 @@ Nodes (6): Capabilities, Impact, Modified Capabilities, New Capabilities, What C
 Cohesion: 0.29
 Nodes (6): ADDED Requirements, Requirement: Media de Payload se renderiza sin depender de una lista de hosts fijada en build, Scenario: Ancho, alto y aspect-ratio permanecen estables, Scenario: El mismo build se reconfigura contra un origen S3-compatible distinto, Scenario: Media servida desde almacenamiento local en desarrollo, Scenario: Media servida desde un origen S3-compatible en producción
 
-### Community 245 - "payload-s3-importmap/proposal.md"
+### Community 245 - "2026-09-22-payload-s3-importmap/proposal.md"
 Cohesion: 0.29
 Nodes (6): Capabilities, Impact, Modified Capabilities, New Capabilities, What Changes, Why
 
@@ -1151,11 +1151,11 @@ Nodes (16): Purpose, Requirement: Dokploy construye la imagen de producción, no
 Cohesion: 0.14
 Nodes (13): 1. Entrega por reescritura de env (`compose.update`+`compose.deploy`), nunca el alias mutable, 2. El SHA vivo se hornea en la imagen y se expone por `/api/health`, 3. Verificación de finalización en tres señales, todas obligatorias, 4. Nunca rollback automático, 5. PostgreSQL sale del Compose: servicio gestionado por Dokploy, con sus respaldos nativos, 6. Regla de decisión de rollback: forward-only por defecto, nunca `migrate:down` en producción, 7. Primer arranque: script committeado, no credenciales committeadas, Context (+5 more)
 
-### Community 249 - "payload-s3-importmap/design.md"
+### Community 249 - "2026-09-22-payload-s3-importmap/design.md"
 Cohesion: 0.33
 Nodes (5): Context, Decisions, Goals / Non-Goals, Migration Plan, Risks / Trade-offs
 
-### Community 250 - "payload-s3-importmap/tasks.md"
+### Community 250 - "2026-09-22-payload-s3-importmap/tasks.md"
 Cohesion: 0.33
 Nodes (5): 1. Registro estructural del plugin S3, 2. Import map committeado, 3. Guard de regresión, 4. Restaurar el smoke de Admin, 5. Verificación general
 
