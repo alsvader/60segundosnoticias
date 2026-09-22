@@ -22,11 +22,13 @@ export function EditorialIntroSection({
 }: EditorialIntroSectionProps) {
   return (
     <section className="relative isolate overflow-hidden py-12 md:py-20">
+      {/* `unoptimized`: src may be a runtime-only S3 host - see responsive-media.tsx. */}
       <Image
         src={editorialIntro.backgroundImage.src}
         alt={editorialIntro.backgroundImage.alt}
         fill
         sizes="100vw"
+        unoptimized
         className="absolute inset-0 -z-10 object-cover"
       />
       <Container className="grid items-center gap-10 lg:grid-cols-[3fr_2fr]">
@@ -54,6 +56,7 @@ export function EditorialIntroSection({
             alt={editorialIntro.foregroundImage.alt}
             fill
             sizes="(min-width: 1024px) 40vw, 80vw"
+            unoptimized
             className="object-contain drop-shadow-xl"
           />
         </div>
