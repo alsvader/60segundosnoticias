@@ -14,7 +14,6 @@ import { generatePagePreviewURL } from '@/lib/preview/generate-preview-url'
 import { createPageRedirect } from '../hooks/pages/redirect-lifecycle.ts'
 import { seoFields } from '../fields/seo-fields.ts'
 import { slugField } from '../fields/slug-field.ts'
-import { createNamespaceSlugValidate } from '../fields/validate-namespace-slug.ts'
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
@@ -51,7 +50,7 @@ export const Pages: CollectionConfig = {
       type: 'text',
       required: true,
     },
-    slugField({ validate: createNamespaceSlugValidate('categories') }),
+    slugField({ collection: 'pages', namespaceCollection: 'categories' }),
     {
       name: 'layout',
       type: 'blocks',

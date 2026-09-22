@@ -5,7 +5,6 @@ import { CATEGORY_THEME_KEYS } from '../../lib/constants/category-theme-keys.ts'
 import { isAdmin } from '../access/roles.ts'
 import { seoFields } from '../fields/seo-fields.ts'
 import { slugField } from '../fields/slug-field.ts'
-import { createNamespaceSlugValidate } from '../fields/validate-namespace-slug.ts'
 import { invalidateCategoryCache, invalidateCategoryCacheOnDelete } from '../hooks/categories/cache-invalidation.ts'
 import { preventDeleteWithPosts } from '../hooks/categories/prevent-delete-with-posts.ts'
 import { createCategoryRedirect } from '../hooks/categories/redirect-lifecycle.ts'
@@ -33,7 +32,7 @@ export const Categories: CollectionConfig = {
       required: true,
       unique: true,
     },
-    slugField({ validate: createNamespaceSlugValidate('pages') }),
+    slugField({ collection: 'categories', useAsSlug: 'name', namespaceCollection: 'pages' }),
     {
       name: 'description',
       type: 'textarea',

@@ -277,8 +277,8 @@
   "275": "page-block-renderer.tsx",
   "276": "resolve-root-slug.ts",
   "277": "article-header.tsx",
-  "278": "2026-09-22-auto-slug-generation/proposal.md",
+  "278": "auto-slug-generation/proposal.md",
   "279": "Requirement: La generación automática respeta el namespace raíz",
-  "280": "2026-09-22-auto-slug-generation/tasks.md",
+  "280": "auto-slug-generation/tasks.md",
   "281": "search.test.ts"
 }

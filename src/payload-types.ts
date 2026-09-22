@@ -149,6 +149,10 @@ export interface User {
   id: number;
   name?: string | null;
   displayName: string;
+  /**
+   * Cuando está activo, el slug se genera automáticamente al guardar.
+   */
+  generateSlug?: boolean | null;
   slug?: string | null;
   avatar?: (number | null) | Media;
   bio?: string | null;
@@ -252,6 +256,10 @@ export interface Media {
 export interface Category {
   id: number;
   name: string;
+  /**
+   * Cuando está activo, el slug se genera automáticamente al guardar.
+   */
+  generateSlug?: boolean | null;
   slug: string;
   description?: string | null;
   colorTheme?: ('red' | 'blue' | 'orange' | 'green' | 'pink' | 'purple' | 'cyan' | 'yellow' | 'teal' | 'indigo') | null;
@@ -277,6 +285,10 @@ export interface Category {
 export interface Tag {
   id: number;
   name: string;
+  /**
+   * Cuando está activo, el slug se genera automáticamente al guardar.
+   */
+  generateSlug?: boolean | null;
   slug: string;
   updatedAt: string;
   createdAt: string;
@@ -288,6 +300,10 @@ export interface Tag {
 export interface Post {
   id: number;
   title: string;
+  /**
+   * Cuando está activo, el slug se genera automáticamente al guardar.
+   */
+  generateSlug?: boolean | null;
   slug: string;
   excerpt?: string | null;
   featuredImage?: (number | null) | Media;
@@ -333,6 +349,10 @@ export interface Post {
 export interface Page {
   id: number;
   title: string;
+  /**
+   * Cuando está activo, el slug se genera automáticamente al guardar.
+   */
+  generateSlug?: boolean | null;
   slug: string;
   layout?:
     | (HeroBlock | RichTextBlock | ImageTextBlock | GalleryBlock | VideoBlock | CTABlock | FAQBlock | BannerBlock)[]
@@ -641,6 +661,7 @@ export interface PayloadMigration {
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
   displayName?: T;
+  generateSlug?: T;
   slug?: T;
   avatar?: T;
   bio?: T;
@@ -752,6 +773,7 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface CategoriesSelect<T extends boolean = true> {
   name?: T;
+  generateSlug?: T;
   slug?: T;
   description?: T;
   colorTheme?: T;
@@ -778,6 +800,7 @@ export interface CategoriesSelect<T extends boolean = true> {
  */
 export interface TagsSelect<T extends boolean = true> {
   name?: T;
+  generateSlug?: T;
   slug?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -788,6 +811,7 @@ export interface TagsSelect<T extends boolean = true> {
  */
 export interface PostsSelect<T extends boolean = true> {
   title?: T;
+  generateSlug?: T;
   slug?: T;
   excerpt?: T;
   featuredImage?: T;
@@ -820,6 +844,7 @@ export interface PostsSelect<T extends boolean = true> {
  */
 export interface PagesSelect<T extends boolean = true> {
   title?: T;
+  generateSlug?: T;
   slug?: T;
   layout?:
     | T

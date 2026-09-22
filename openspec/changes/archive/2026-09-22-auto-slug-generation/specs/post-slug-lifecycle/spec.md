@@ -1,8 +1,4 @@
-## Purpose
-
-Garantiza que el slug de toda Collection con slug (`Posts`, `Pages`, `Categories`, `Tags`, `Users`) se genere automáticamente desde su campo fuente al crearse, normalizado y sin duplicados, y que permanezca estable frente a ediciones posteriores del campo fuente, evitando URLs editoriales que cambian solas.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Generación inicial de slug desde el título
 Al crear un documento sin `slug` en una Collection con slug (`Posts`, `Pages`, `Categories`, `Tags`, `Users`), el sistema SHALL generar un `slug` normalizado a partir de su campo fuente: `title` en `Posts` y `Pages`, `name` en `Categories` y `Tags`, y `displayName` en `Users`. La normalización quita acentos y diacríticos, pasa a minúsculas, cambia espacios y caracteres inválidos por un solo guion y quita los guiones de los extremos. El admin SHALL permitir guardar el documento sin escribir el `slug` a mano.
@@ -50,6 +46,8 @@ Un usuario autorizado a editar el documento SHALL poder modificar manualmente el
 - **THEN** se guarda el `slug` explícito y no el derivado del título
 
 Referencia: AC-SLUG-004
+
+## ADDED Requirements
 
 ### Requirement: El slug generado no se repite
 Cuando el sistema genera un `slug` desde el campo fuente y el valor ya existe en la misma Collection, el sistema SHALL agregar el primer sufijo numérico libre (`-2`, `-3`, …) en lugar de rechazar la operación. Un `slug` indicado explícitamente SHALL NOT recibir sufijo automático; si choca, la operación se rechaza por unicidad.
