@@ -132,9 +132,9 @@
     "semantic_hash": "398529c816ac632cc95c0a178f6651ec"
   },
   "next-env.d.ts": {
-    "mtime": 1790102400.4158487,
-    "seen": 1790102904.5367181,
-    "ast_hash": "aa94238a90e7d04b7a47ecc3145ba6a0",
+    "mtime": 1790103582.057894,
+    "seen": 1790103665.521415,
+    "ast_hash": "8195d2c60ce847a459ae9d308d6a5724",
     "semantic_hash": ""
   },
   "next.config.ts": {
@@ -444,9 +444,9 @@
     "semantic_hash": "984ed2288814bac08909a1e6eb5fc63d"
   },
   "src/payload/fields/slug-field.ts": {
-    "mtime": 1790102793.5695906,
-    "seen": 1790102904.536858,
-    "ast_hash": "4fc3469745441eda098d059f8cbf0774",
+    "mtime": 1790103631.666547,
+    "seen": 1790103665.5215738,
+    "ast_hash": "0734747c01bcd1ab1e1a034000b260eb",
     "semantic_hash": ""
   },
   "src/payload/fields/social-links-field.ts": {
@@ -3240,9 +3240,9 @@
     "semantic_hash": ""
   },
   "src/lib/url/slugify.test.ts": {
-    "mtime": 1790102147.4675765,
-    "seen": 1790102904.536829,
-    "ast_hash": "b3cba7b4edf26451f156245a179c31f4",
+    "mtime": 1790103016.4463747,
+    "seen": 1790103665.5215418,
+    "ast_hash": "b7b8cc0b50e42f2dbd55cf066d2d9f3a",
     "semantic_hash": ""
   },
   "src/lib/url/slugify.ts": {
@@ -3264,9 +3264,9 @@
     "semantic_hash": ""
   },
   "tests/integration/slug-generation.test.ts": {
-    "mtime": 1790102866.7391148,
-    "seen": 1790102904.536919,
-    "ast_hash": "573dc097220ea1ac41d274be21371eb7",
+    "mtime": 1790103612.7832034,
+    "seen": 1790103665.521646,
+    "ast_hash": "4b3e250f66e18e4e8608eaee804c55be",
     "semantic_hash": ""
   },
   "openspec/changes/auto-slug-generation/.openspec.yaml": {
@@ -3276,9 +3276,9 @@
     "semantic_hash": ""
   },
   "openspec/changes/auto-slug-generation/design.md": {
-    "mtime": 1790102866.6669044,
-    "seen": 1790102904.537055,
-    "ast_hash": "f09a1c878106cc2e40fad61d9f98c035",
+    "mtime": 1790103639.957363,
+    "seen": 1790103665.521803,
+    "ast_hash": "96de1d80aa7ec70ddc5319e0eba4b428",
     "semantic_hash": ""
   },
   "openspec/changes/auto-slug-generation/proposal.md": {

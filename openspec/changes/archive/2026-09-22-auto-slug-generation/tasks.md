@@ -20,5 +20,5 @@
 ## 5. Verificación general
 
 - [x] 5.1 Verificación manual en `/admin`: crear Noticia, Página, Categoría, Tag y Usuario llenando solo el campo fuente → se guarda y el slug aparece; editar el campo fuente → el slug no cambia; candado y botón "Generar" funcionan. Se verificó que el form-state no requiere tolerar el vacío y se retiró para campos obligatorios (D4).
-- [ ] 5.2 `pnpm test` (typecheck, lint, importmap, unit) pasa y `graphify update .` refresca el grafo.
-- [ ] 5.3 Al archivar, actualizar el `## Purpose` de `openspec/specs/post-slug-lifecycle/spec.md` y `openspec/specs/slug-namespace-integrity/spec.md` para reflejar la generación automática en todas las Collections con slug.
+- [x] 5.2 `pnpm test` (typecheck, lint, importmap, unit) pasa y `graphify update .` refresca el grafo.
+- [x] 5.3 Al archivar, actualizar el `## Purpose` de `openspec/specs/post-slug-lifecycle/spec.md` y `openspec/specs/slug-namespace-integrity/spec.md` para reflejar la generación automática en todas las Collections con slug.

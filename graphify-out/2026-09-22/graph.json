@@ -32630,7 +32630,7 @@
       "node_kind": "heading",
       "norm_label": "d6. users",
       "source_file": "openspec/changes/auto-slug-generation/design.md",
-      "source_location": "L53"
+      "source_location": "L55"
     },
     {
       "id": "openspec_changes_auto_slug_generation_design_decisions",
@@ -32666,7 +32666,7 @@
       "node_kind": "heading",
       "norm_label": "migration plan",
       "source_file": "openspec/changes/auto-slug-generation/design.md",
-      "source_location": "L64"
+      "source_location": "L66"
     },
     {
       "id": "openspec_changes_auto_slug_generation_design_risks_trade_offs",
@@ -32678,7 +32678,7 @@
       "node_kind": "heading",
       "norm_label": "risks / trade-offs",
       "source_file": "openspec/changes/auto-slug-generation/design.md",
-      "source_location": "L56"
+      "source_location": "L58"
     },
     {
       "id": "src_components_sections_pages_cta_section",
@@ -81964,7 +81964,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "openspec/changes/auto-slug-generation/design.md",
-      "source_location": "L56",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -81975,7 +81975,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "openspec/changes/auto-slug-generation/design.md",
-      "source_location": "L64",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -82041,7 +82041,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "openspec/changes/auto-slug-generation/design.md",
-      "source_location": "L53",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
