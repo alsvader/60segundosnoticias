@@ -900,8 +900,8 @@
     "semantic_hash": "a3f556d51663892ed81f806d162d8c00"
   },
   "src/components/editorial/article-card.tsx": {
-    "mtime": 1790128217.375977,
-    "seen": 1790128260.36936,
+    "mtime": 1790129331.0584438,
+    "seen": 1790130023.154646,
     "ast_hash": "9c16a05f84bc127e4d4f4d3db712f4fc",
     "semantic_hash": ""
   },
@@ -1062,8 +1062,8 @@
     "semantic_hash": "5f12f2feefffb9da29471242396292c6"
   },
   "openspec/specs/editorial-components/spec.md": {
-    "mtime": 1790128508.0027382,
-    "seen": 1790128512.579354,
+    "mtime": 1790129331.0580947,
+    "seen": 1790130023.155086,
     "ast_hash": "9a7d404661335c17295e588c7024e715",
     "semantic_hash": ""
   },
@@ -1092,15 +1092,15 @@
     "semantic_hash": "6227242591b4c3de2b72262c6897f463"
   },
   "src/components/site/footer.tsx": {
-    "mtime": 1789018655.39873,
-    "seen": 1789019722.407718,
-    "ast_hash": "4c012f0b726ad6e2807db3388c68f951",
+    "mtime": 1790130271.3408008,
+    "seen": 1790130348.450063,
+    "ast_hash": "6ecb23469cd40d4c4be9598587c4c3e9",
     "semantic_hash": ""
   },
   "src/components/site/header.tsx": {
-    "mtime": 1789329543.5132432,
-    "seen": 1789329860.5302851,
-    "ast_hash": "43f00bb182820ac61b1a9320dcaae4cb",
+    "mtime": 1790130823.0461562,
+    "seen": 1790130855.9918668,
+    "ast_hash": "e8d4a28cd7fe24f428c7173c876a8ef6",
     "semantic_hash": ""
   },
   "src/components/site/mobile-nav.tsx": {
@@ -1320,9 +1320,9 @@
     "semantic_hash": ""
   },
   "openspec/specs/site-shell/spec.md": {
-    "mtime": 1789021373.1744163,
-    "seen": 1789021386.7017212,
-    "ast_hash": "cd3cd892f01f0ae63a0544c76587f510",
+    "mtime": 1790131012.8285728,
+    "seen": 1790131021.8952918,
+    "ast_hash": "75aa1a62318a77390017ad0ed092c313",
     "semantic_hash": ""
   },
   "src/components/sections/banner-section.tsx": {
@@ -1356,8 +1356,8 @@
     "semantic_hash": ""
   },
   "src/components/sections/home/latest-posts-section.tsx": {
-    "mtime": 1790128217.3767066,
-    "seen": 1790128260.369378,
+    "mtime": 1790129331.0586011,
+    "seen": 1790130023.15466,
     "ast_hash": "da68f8195a0c95e4dc0904b58b8dbfe4",
     "semantic_hash": ""
   },
@@ -1578,8 +1578,8 @@
     "semantic_hash": ""
   },
   "openspec/specs/home-sections/spec.md": {
-    "mtime": 1790128508.0040956,
-    "seen": 1790128512.579361,
+    "mtime": 1790129331.0582798,
+    "seen": 1790130023.155093,
     "ast_hash": "15e720247f55116dbfd472370f810ff0",
     "semantic_hash": ""
   },
@@ -1812,9 +1812,9 @@
     "semantic_hash": ""
   },
   "src/components/content/article-aside.tsx": {
-    "mtime": 1789149517.0157971,
-    "seen": 1789153152.969972,
-    "ast_hash": "a25534475a07bd93aa8f20b47fc2536d",
+    "mtime": 1790130815.200823,
+    "seen": 1790130855.9918132,
+    "ast_hash": "52444c8ea79bfced5c73bb5f11ed0fc3",
     "semantic_hash": ""
   },
   "src/components/editorial/social-icons.tsx": {
@@ -3396,27 +3396,45 @@
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-09-22-article-card-list-layout/proposal.md": {
-    "mtime": 1790128233.556021,
-    "seen": 1790128512.579319,
+    "mtime": 1790129331.0573504,
+    "seen": 1790130023.1550488,
     "ast_hash": "bd472fecbc84b8dd807dad476c49dda3",
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-09-22-article-card-list-layout/specs/editorial-components/spec.md": {
-    "mtime": 1790128233.6157923,
-    "seen": 1790128512.57932,
+    "mtime": 1790129331.0575895,
+    "seen": 1790130023.15505,
     "ast_hash": "62f717958614044e53371e83d6c1580f",
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-09-22-article-card-list-layout/specs/home-sections/spec.md": {
-    "mtime": 1790128233.6159203,
-    "seen": 1790128512.5793211,
+    "mtime": 1790129331.0577652,
+    "seen": 1790130023.155051,
     "ast_hash": "56277368ea8ae3e2ce7cfdd733fdd540",
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-09-22-article-card-list-layout/tasks.md": {
-    "mtime": 1790128257.0729187,
-    "seen": 1790128512.579322,
+    "mtime": 1790129331.0578926,
+    "seen": 1790130023.155052,
     "ast_hash": "71cd56af9950b45471a762015c5fc82b",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-09-22-header-logo-sizing/proposal.md": {
+    "mtime": 1790130836.9772327,
+    "seen": 1790131021.895233,
+    "ast_hash": "a8767da0ceda18de85aca0e280c24e51",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-09-22-header-logo-sizing/specs/site-shell/spec.md": {
+    "mtime": 1790130836.9774337,
+    "seen": 1790131021.895234,
+    "ast_hash": "218d8dadfef2fa702b478b945ed6d9b5",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-09-22-header-logo-sizing/tasks.md": {
+    "mtime": 1790130836.9773545,
+    "seen": 1790131021.895235,
+    "ast_hash": "113d7a703ebd3e954db6a4a52f97d494",
     "semantic_hash": ""
   }
 }
