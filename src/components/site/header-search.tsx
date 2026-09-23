@@ -14,6 +14,10 @@ import { cn } from '@/lib/utils'
  * focus to the icon; blurring outside the form also collapses, but
  * without clearing (that's not an explicit close). Isolated Client
  * Component so Header itself stays a Server Component.
+ *
+ * Layout contract with Header: the expanded input is absolutely positioned
+ * against the nearest positioned ancestor (Header's `relative ... gap-4`
+ * nav zone) and covers it, so the nav never reflows.
  */
 export function HeaderSearch() {
   const [expanded, setExpanded] = useState(false)
@@ -66,7 +70,7 @@ export function HeaderSearch() {
       method="get"
       role="search"
       aria-label="Búsqueda en el encabezado"
-      className="flex items-center justify-end"
+      className="ml-auto flex items-center md:ml-0"
       onSubmit={handleSubmit}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
@@ -83,10 +87,13 @@ export function HeaderSearch() {
         aria-hidden={!expanded}
         tabIndex={expanded ? 0 : -1}
         className={cn(
-          'h-9 rounded-md text-sm outline-none transition-[width,padding,opacity] duration-[var(--motion-normal)] ease-[var(--motion-ease)] focus-visible:ring-3 focus-visible:ring-ring/50',
+          // Out of flow, positioned against the Header's nav zone (the form is
+          // unpositioned) so expanding never reflows the nav: it covers it.
+          // right-12 = the icon button (size-8) + the zone's gap-4.
+          'absolute top-1/2 right-12 z-10 h-9 -translate-y-1/2 rounded-md text-sm outline-none transition-[left,padding,opacity] duration-[var(--motion-normal)] ease-[var(--motion-ease)] focus-visible:ring-3 focus-visible:ring-ring/50',
           expanded
-            ? 'mr-2 w-[clamp(120px,22vw,280px)] border border-[var(--border-default)] bg-[var(--paper-50)] px-3 opacity-100'
-            : 'pointer-events-none mr-0 w-0 border border-transparent bg-transparent px-0 opacity-0',
+            ? 'left-0 border border-[var(--border-default)] bg-[var(--paper-50)] px-3 opacity-100'
+            : 'pointer-events-none left-[calc(100%-3rem)] border border-transparent bg-transparent px-0 opacity-0',
         )}
       />
       <Button

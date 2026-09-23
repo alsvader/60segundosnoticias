@@ -1,7 +1,8 @@
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 
 import { expect, test } from './base-test'
 import { FIXTURE } from './fixture-data'
+import { expandHeaderSearch } from './helpers'
 
 /**
  * Cubre specs/quality-and-performance/spec.md - ausencia de scroll
@@ -29,6 +30,10 @@ async function expectNoHorizontalScroll(page: Page) {
     clientWidth: document.documentElement.clientWidth,
   }))
   expect(scrollWidth).toBeLessThanOrEqual(clientWidth)
+}
+
+async function boxes(...locators: Locator[]) {
+  return Promise.all(locators.map((locator) => locator.boundingBox()))
 }
 
 for (const viewport of VIEWPORTS) {
@@ -60,5 +65,45 @@ for (const viewport of VIEWPORTS) {
       await expect(page.getByLabel('Buscar en el sitio').first()).toBeVisible()
       await expectNoHorizontalScroll(page)
     })
+
+    // specs/site-shell/spec.md - expandir/colapsar HeaderSearch no desplaza
+    // el logo ni la navegación principal (solo existe desde md en adelante).
+    if (viewport.width >= 768) {
+      test('HeaderSearch no desplaza logo ni navegación', async ({ page }) => {
+        await page.goto('/')
+        const nav = page.getByRole('navigation', { name: 'Principal' })
+        const logo = page.getByRole('link', { name: /— inicio$/ })
+        const before = await boxes(nav, logo)
+
+        // Colapsado, la nav queda centrada entre logo y lupa (mismo reparto
+        // que el justify-between original).
+        const [navBox, logoBox] = before
+        const searchButton = page.getByRole('button', { name: 'Buscar' })
+        const buttonBox = await searchButton.boundingBox()
+        const gapLeft = navBox!.x - (logoBox!.x + logoBox!.width)
+        const gapRight = buttonBox!.x - (navBox!.x + navBox!.width)
+        expect(Math.abs(gapLeft - gapRight)).toBeLessThanOrEqual(1)
+
+        await expandHeaderSearch(page)
+        expect(await boxes(nav, logo)).toEqual(before)
+
+        // Expandido, el input cubre la nav completa y termina antes de la lupa.
+        const inputBox = await page.getByLabel('Buscar en el sitio').first().boundingBox()
+        expect(inputBox!.x).toBeLessThanOrEqual(navBox!.x)
+        expect(inputBox!.x + inputBox!.width).toBeGreaterThanOrEqual(navBox!.x + navBox!.width)
+        expect(inputBox!.x + inputBox!.width).toBeLessThanOrEqual(buttonBox!.x)
+
+        await page.keyboard.press('Escape')
+        await expect(searchButton).toHaveAttribute('aria-expanded', 'false')
+        await expect.poll(() => boxes(nav, logo)).toEqual(before)
+
+        // WCAG 2.4.11: salir del input hacia la nav (Shift+Tab) colapsa el
+        // buscador, así el link enfocado nunca queda tapado por el input.
+        await expandHeaderSearch(page)
+        await page.keyboard.press('Shift+Tab')
+        await expect(searchButton).toHaveAttribute('aria-expanded', 'false')
+        await expect(nav.getByRole('link').last()).toBeFocused()
+      })
+    }
   })
 }
