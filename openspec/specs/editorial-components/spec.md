@@ -12,7 +12,7 @@ Ningún componente de esta capability SHALL consultar Payload directamente (ni L
 - **THEN** no contiene ninguna llamada a Payload ni a la base de datos; toda su información llega por props
 
 ### Requirement: ArticleCard como fundación reutilizable
-El sistema SHALL proveer un componente `ArticleCard` único y reutilizable, sin duplicar una variante de componente por cada variante visual. `ArticleCard` SHALL definirse contra un contrato de datos propio del frontend (por ejemplo `ArticleCardData`), no contra el tipo `Post` generado por Payload. En la variante `compact`, la imagen SHALL ocupar todo el alto de la tarjeta, a sangre, recortada sin deformarse.
+El sistema SHALL proveer un componente `ArticleCard` único y reutilizable, sin duplicar una variante de componente por cada variante visual. `ArticleCard` SHALL definirse contra un contrato de datos propio del frontend (por ejemplo `ArticleCardData`), no contra el tipo `Post` generado por Payload. En la variante `compact`, la imagen SHALL ocupar todo el alto de la tarjeta, a sangre, recortada sin deformarse. El título de `ArticleCard` SHALL truncarse visualmente con elipsis a un máximo de 3 líneas en la variante `default` y 2 líneas en la variante `compact`, conservando el texto completo en el DOM.
 
 #### Scenario: Se necesita otra variante visual de ArticleCard
 - **WHEN** una fase futura necesita una variante visual adicional de `ArticleCard`
@@ -25,6 +25,14 @@ El sistema SHALL proveer un componente `ArticleCard` único y reutilizable, sin 
 #### Scenario: Imagen de la variante compact a alto completo
 - **WHEN** se renderiza `ArticleCard` con `variant="compact"` y una imagen
 - **THEN** la imagen ocupa todo el alto de la tarjeta, sin padding alrededor, con ancho fijo y recorte `object-cover`
+
+#### Scenario: Título largo en ArticleCard
+- **WHEN** se renderiza `ArticleCard` con un título que ocupa más líneas que el máximo de su variante
+- **THEN** el título se corta con elipsis en la línea 3 (`default`) o 2 (`compact`), la tarjeta no crece más allá de ese alto y el título completo sigue disponible para tecnologías asistivas
+
+#### Scenario: Imagen compact con título largo
+- **WHEN** se renderiza `ArticleCard` con `variant="compact"`, una imagen y un título largo
+- **THEN** la imagen sigue ocupando todo el alto de la tarjeta, pero no se estira más allá del alto correspondiente a 2 líneas de título
 
 Referencia: AC-COMP-001, AC-COMP-002, AC-COMP-003, AC-COMP-004
 

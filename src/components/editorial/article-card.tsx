@@ -69,7 +69,7 @@ export function ArticleCard({ article, variant = 'default', className }: Article
       ) : null}
       <div
         className={cn(
-          'flex flex-col gap-2',
+          'flex min-w-0 flex-col gap-2',
           isCompact ? cn('self-center py-3 pr-3', !article.image && 'pl-3') : 'p-4',
         )}
       >
@@ -82,7 +82,15 @@ export function ArticleCard({ article, variant = 'default', className }: Article
             className="self-start"
           />
         ) : null}
-        <h3 className={cn('font-[var(--font-display)] font-semibold text-[var(--ink-950)]', isCompact ? 'text-base' : 'type-h3')}>
+        {/* Title clamp bounds the card's height; the full title stays in the
+            DOM for screen readers and SEO. In `compact` this also keeps the
+            full-height image from stretching with long titles. */}
+        <h3
+          className={cn(
+            'font-[var(--font-display)] font-semibold text-[var(--ink-950)] break-words',
+            isCompact ? 'text-base line-clamp-2' : 'type-h3 line-clamp-3',
+          )}
+        >
           {article.title}
         </h3>
         {!isCompact && article.excerpt ? (

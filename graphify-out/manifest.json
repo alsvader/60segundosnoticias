@@ -900,9 +900,9 @@
     "semantic_hash": "a3f556d51663892ed81f806d162d8c00"
   },
   "src/components/editorial/article-card.tsx": {
-    "mtime": 1790125083.0371664,
-    "seen": 1790125098.632981,
-    "ast_hash": "6086fc3654fffd2bee6aee0319e795ce",
+    "mtime": 1790126736.0367808,
+    "seen": 1790126762.9923682,
+    "ast_hash": "1a08d308ff3a4977654a13facd3185be",
     "semantic_hash": ""
   },
   "src/components/editorial/article-metadata.tsx": {
@@ -1062,8 +1062,8 @@
     "semantic_hash": "5f12f2feefffb9da29471242396292c6"
   },
   "openspec/specs/editorial-components/spec.md": {
-    "mtime": 1790125094.8278654,
-    "seen": 1790125098.63341,
+    "mtime": 1790126203.9214506,
+    "seen": 1790126762.9927812,
     "ast_hash": "4ddd6ea1264a30fc734bec09d6174616",
     "semantic_hash": ""
   },
@@ -3360,21 +3360,39 @@
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-09-22-article-card-compact-image/proposal.md": {
-    "mtime": 1790125012.5687592,
-    "seen": 1790125098.633384,
+    "mtime": 1790126203.9208672,
+    "seen": 1790126762.992747,
     "ast_hash": "e17702b4c5e5887df34502d85fce498d",
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-09-22-article-card-compact-image/specs/editorial-components/spec.md": {
-    "mtime": 1790125012.5722518,
-    "seen": 1790125098.633385,
+    "mtime": 1790126203.9211009,
+    "seen": 1790126762.992747,
     "ast_hash": "82f40bea3aa43da5073ae3c6d0100ea6",
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-09-22-article-card-compact-image/tasks.md": {
-    "mtime": 1790125094.5315688,
-    "seen": 1790125098.633386,
+    "mtime": 1790126203.9212327,
+    "seen": 1790126762.992748,
     "ast_hash": "815093e99375508d9b7d24e1c10ed6f9",
+    "semantic_hash": ""
+  },
+  "openspec/changes/article-card-title-clamp/proposal.md": {
+    "mtime": 1790126736.040456,
+    "seen": 1790126762.992762,
+    "ast_hash": "1b726241b069f76806441dfc41c53dae",
+    "semantic_hash": ""
+  },
+  "openspec/changes/article-card-title-clamp/specs/editorial-components/spec.md": {
+    "mtime": 1790126736.0889974,
+    "seen": 1790126762.9927628,
+    "ast_hash": "1ff059fe4ec20a8f5d263fa3c1429aa0",
+    "semantic_hash": ""
+  },
+  "openspec/changes/article-card-title-clamp/tasks.md": {
+    "mtime": 1790126759.6993105,
+    "seen": 1790126762.992764,
+    "ast_hash": "2bd0b8376fb8b688ed0fe3cc3f8ce383",
     "semantic_hash": ""
   }
 }
