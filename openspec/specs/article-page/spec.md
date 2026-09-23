@@ -32,11 +32,19 @@ El sistema SHALL resolver `/<category>/<post>` comparando la categoría solicita
 Referencia: AC-FE-POST-001, AC-FE-POST-002, AC-FE-POST-003
 
 ### Requirement: Composición editorial del Article
-La página de Article SHALL incluir, en este orden: breadcrumb, categoría, H1, excerpt/lead, metadata del artículo, acciones de compartir, imagen destacada, contenido del artículo, tags, acciones de compartir, author card y related posts.
+La página de Article SHALL incluir, en este orden: breadcrumb, categoría, H1, excerpt/lead, metadata del artículo, acciones de compartir, imagen destacada, contenido del artículo, tags, acciones de compartir y related posts. La metadata del artículo SHALL mostrar únicamente la fecha de publicación y el tiempo estimado de lectura, y SHALL NOT mostrar el nombre ni el avatar del autor. La página SHALL NOT renderizar un Author Card.
 
 #### Scenario: Article publicado con todos los campos
 - **WHEN** se renderiza un Article publicado con excerpt, imagen destacada, tags y autor
 - **THEN** cada elemento aparece en el orden especificado
+
+#### Scenario: Metadata sin autoría
+- **WHEN** se renderiza un Article publicado que tiene autor, `publishedAt` y tiempo de lectura
+- **THEN** la metadata bajo el excerpt muestra solo "Publicado {fecha}" y "{n} min de lectura", sin nombre ni avatar del autor
+
+#### Scenario: Sin Author Card
+- **WHEN** se renderiza un Article publicado que tiene autor
+- **THEN** la página no muestra un Author Card
 
 #### Scenario: Fecha de actualización
 - **WHEN** `updatedAt` de un Post no aporta información distinta de `publishedAt`
@@ -52,23 +60,6 @@ El encabezado de Article SHALL ser el único elemento dueño del `<h1>` de la p�
 - **THEN** existe exactamente un `<h1>`
 
 Referencia: AC-ARTICLE-002, AC-A11Y-005
-
-### Requirement: Author Card con datos públicos, sin ruta de autor
-El Author Card SHALL mostrar únicamente datos públicos del autor (`displayName`, `avatar`, `bio`, `socialLinks` cuando existan) y SHALL nunca exponer `email`, `role`, `active` ni ningún dato de autenticación. El nombre/slug del autor SHALL NOT enlazar a una ruta `/autor/[slug]`, ya que esa ruta no existe en esta fase.
-
-#### Scenario: Autor con bio y redes sociales
-- **WHEN** el autor de un Post tiene `bio` y `socialLinks` configurados
-- **THEN** el Author Card los muestra
-
-#### Scenario: Datos privados nunca expuestos
-- **WHEN** se renderiza el Author Card de cualquier Post
-- **THEN** el HTML resultante nunca contiene `email`, `role`, `active` ni datos de autenticación del autor
-
-#### Scenario: Sin enlace a ruta de autor
-- **WHEN** se renderiza el Author Card
-- **THEN** el nombre/slug del autor no es un enlace navegable a una página de autor
-
-Referencia: AC-AUTHOR-001, AC-AUTHOR-002
 
 ### Requirement: Related Posts
 La sección de Related Posts SHALL mostrar Posts publicados que compartan la misma `primaryCategory` que el Article actual, excluyendo siempre el Post actual, ordenados por `publishedAt` descendente, con un límite de aproximadamente 4, sin ninguna configuración manual por Post.
