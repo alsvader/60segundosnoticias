@@ -498,9 +498,12 @@ export interface FAQBlock {
 export interface BannerBlock {
   title?: string | null;
   description?: string | null;
+  /**
+   * Opcional. Sin imagen, el contenido se muestra centrado.
+   */
   image?: (number | null) | Media;
   /**
-   * Opcional.
+   * Opcional. Destino interno o externo del botón principal.
    */
   link?: {
     label?: string | null;
@@ -510,6 +513,9 @@ export interface BannerBlock {
     url?: string | null;
     openInNewTab?: boolean | null;
   };
+  /**
+   * Editorial: papel claro. Promocional: rojo de marca. Oscuro: fondo negro.
+   */
   variant?: ('editorial' | 'promotional' | 'dark') | null;
   id?: string | null;
   blockName?: string | null;

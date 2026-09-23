@@ -12,14 +12,22 @@ export const Banner: Block = {
   fields: [
     { name: 'title', label: 'Título', type: 'text' },
     { name: 'description', label: 'Descripción', type: 'textarea' },
-    { name: 'image', label: 'Imagen', type: 'upload', relationTo: 'media' },
+    {
+      name: 'image',
+      label: 'Imagen',
+      type: 'upload',
+      relationTo: 'media',
+      admin: {
+        description: 'Opcional. Sin imagen, el contenido se muestra centrado.',
+      },
+    },
     {
       name: 'link',
-      label: 'Enlace',
+      label: 'Botón (CTA)',
       type: 'group',
       fields: optionalLinkFields,
       admin: {
-        description: 'Opcional.',
+        description: 'Opcional. Destino interno o externo del botón principal.',
       },
     },
     {
@@ -27,6 +35,9 @@ export const Banner: Block = {
       label: 'Variante',
       type: 'select',
       defaultValue: 'editorial',
+      admin: {
+        description: 'Editorial: papel claro. Promocional: rojo de marca. Oscuro: fondo negro.',
+      },
       options: [
         { label: 'Editorial', value: 'editorial' },
         { label: 'Promocional', value: 'promotional' },

@@ -59,6 +59,58 @@ for (const viewport of VIEWPORTS) {
       })
     }
 
+    // specs/home-sections/spec.md (redesign-banner-cta) - cada Banner del Home
+    // (dos, en posiciones distintas) tiene fondo a ancho completo y contenido
+    // alineado al mismo Container que sus vecinos.
+    for (const bannerName of ['Banner de fixture', 'Banner editorial de fixture']) {
+      test(`${bannerName} (Home): fondo a ancho completo y contenido alineado`, async ({ page }) => {
+        await page.goto('/')
+        const banner = page.getByRole('region', { name: bannerName })
+        await banner.scrollIntoViewIfNeeded()
+
+        const clientWidth = await page.evaluate(() => document.documentElement.clientWidth)
+        const [bannerBox, neighborHeading] = await boxes(
+          banner,
+          page.getByRole('heading', { level: 2, name: 'Últimas noticias (fixture)' }),
+        )
+        // Alineación contra el contenido del Container: en la composición
+        // centrada (sin imagen) el h2 va centrado, no pegado al gutter.
+        const contentLeft = await banner.evaluate((section) => {
+          const container = section.firstElementChild as HTMLElement
+          return container.getBoundingClientRect().left + parseFloat(getComputedStyle(container).paddingLeft)
+        })
+        expect(bannerBox!.x).toBe(0)
+        expect(bannerBox!.width).toBe(clientWidth)
+        expect(Math.abs(contentLeft - neighborHeading!.x)).toBeLessThanOrEqual(1)
+        await expectNoHorizontalScroll(page)
+      })
+    }
+
+    // specs/page-content-rendering/spec.md (redesign-banner-cta) - en una Page
+    // el Banner es una tarjeta dentro del Container de la Page: mismos bordes
+    // que su contenido, sin gutter duplicado ni scroll horizontal.
+    test('Banner de Page: tarjeta alineada al contenedor de la Page', async ({ page }) => {
+      await page.goto(`/${FIXTURE.pageSlug}`)
+      const banner = page.getByRole('region', { name: 'Banner de Page de fixture' })
+      await banner.scrollIntoViewIfNeeded()
+
+      const { bannerLeft, bannerRight, contentLeft, contentRight } = await banner.evaluate((section) => {
+        const container = section.parentElement as HTMLElement
+        const box = container.getBoundingClientRect()
+        const style = getComputedStyle(container)
+        const sectionBox = section.getBoundingClientRect()
+        return {
+          bannerLeft: sectionBox.left,
+          bannerRight: sectionBox.right,
+          contentLeft: box.left + parseFloat(style.paddingLeft),
+          contentRight: box.right - parseFloat(style.paddingRight),
+        }
+      })
+      expect(Math.abs(bannerLeft - contentLeft)).toBeLessThanOrEqual(1)
+      expect(Math.abs(bannerRight - contentRight)).toBeLessThanOrEqual(1)
+      await expectNoHorizontalScroll(page)
+    })
+
     test('HeaderSearch expandido sin scroll horizontal', async ({ page }) => {
       await page.goto('/')
       await page.getByRole('button', { name: 'Buscar' }).click()
