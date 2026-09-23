@@ -2,21 +2,27 @@ import type { Block } from 'payload'
 
 export const VideoBlock: Block = {
   slug: 'videoBlock',
+  labels: {
+    singular: 'Video',
+    plural: 'Videos',
+  },
   interfaceName: 'VideoBlock',
   fields: [
     {
       name: 'provider',
+      label: 'Proveedor',
       type: 'select',
       required: true,
       defaultValue: 'youtube',
       options: [
         { label: 'YouTube', value: 'youtube' },
         { label: 'Vimeo', value: 'vimeo' },
-        { label: 'Uploaded', value: 'uploaded' },
+        { label: 'Subido', value: 'uploaded' },
       ],
     },
     {
       name: 'url',
+      label: 'URL',
       type: 'text',
       admin: {
         condition: (_, siblingData) => siblingData?.provider === 'youtube' || siblingData?.provider === 'vimeo',
@@ -24,6 +30,7 @@ export const VideoBlock: Block = {
     },
     {
       name: 'video',
+      label: 'Video',
       type: 'upload',
       relationTo: 'media',
       admin: {
@@ -32,6 +39,7 @@ export const VideoBlock: Block = {
     },
     {
       name: 'portrait',
+      label: 'Video vertical',
       type: 'checkbox',
       defaultValue: false,
       admin: {
@@ -41,11 +49,13 @@ export const VideoBlock: Block = {
     },
     {
       name: 'poster',
+      label: 'Imagen de portada',
       type: 'upload',
       relationTo: 'media',
     },
     {
       name: 'caption',
+      label: 'Pie de foto',
       type: 'text',
     },
   ],

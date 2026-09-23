@@ -17,6 +17,10 @@ import { slugField } from '../fields/slug-field.ts'
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
+  labels: {
+    singular: 'Página',
+    plural: 'Páginas',
+  },
   admin: {
     useAsTitle: 'title',
     preview: generatePagePreviewURL,
@@ -47,12 +51,15 @@ export const Pages: CollectionConfig = {
   fields: [
     {
       name: 'title',
+      label: 'Título',
       type: 'text',
       required: true,
     },
     slugField({ collection: 'pages', namespaceCollection: 'categories' }),
     {
       name: 'layout',
+      label: 'Secciones',
+      labels: { singular: 'Sección', plural: 'Secciones' },
       type: 'blocks',
       blocks: [Hero, RichText, ImageText, Gallery, Video, CTA, FAQ, Banner],
     },

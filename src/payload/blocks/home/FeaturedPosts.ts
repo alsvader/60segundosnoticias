@@ -2,11 +2,16 @@ import type { Block } from 'payload'
 
 export const FeaturedPosts: Block = {
   slug: 'featuredPosts',
+  labels: {
+    singular: 'Noticias destacadas',
+    plural: 'Noticias destacadas',
+  },
   interfaceName: 'FeaturedPostsBlock',
   fields: [
-    { name: 'title', type: 'text' },
+    { name: 'title', label: 'Título', type: 'text' },
     {
       name: 'posts',
+      label: 'Noticias',
       type: 'relationship',
       relationTo: 'posts',
       hasMany: true,
@@ -16,12 +21,13 @@ export const FeaturedPosts: Block = {
     },
     {
       name: 'layout',
+      label: 'Diseño',
       type: 'select',
       required: true,
       defaultValue: 'grid',
       options: [
-        { label: 'Grid', value: 'grid' },
-        { label: 'Carousel', value: 'carousel' },
+        { label: 'Cuadrícula', value: 'grid' },
+        { label: 'Carrusel', value: 'carousel' },
         { label: 'Editorial', value: 'editorial' },
       ],
     },

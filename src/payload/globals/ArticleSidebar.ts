@@ -11,6 +11,7 @@ import { invalidateArticleSidebarCache } from '../hooks/shell/cache-invalidation
  */
 export const ArticleSidebar: GlobalConfig = {
   slug: 'articleSidebar',
+  label: 'Barra lateral de noticias',
   access: {
     read: () => true,
     update: isAdmin,
@@ -21,15 +22,18 @@ export const ArticleSidebar: GlobalConfig = {
   fields: [
     {
       name: 'postsPanel',
+      label: 'Panel de noticias',
       type: 'group',
       fields: [
         {
           name: 'enabled',
+          label: 'Activado',
           type: 'checkbox',
           defaultValue: true,
         },
         {
           name: 'mode',
+          label: 'Modo',
           type: 'select',
           defaultValue: 'latest',
           options: [
@@ -40,6 +44,7 @@ export const ArticleSidebar: GlobalConfig = {
         },
         {
           name: 'heading',
+          label: 'Encabezado',
           type: 'text',
           admin: {
             description: 'Opcional — si se deja vacío, se usa un título automático según el modo elegido.',
@@ -47,6 +52,7 @@ export const ArticleSidebar: GlobalConfig = {
         },
         {
           name: 'limit',
+          label: 'Límite',
           type: 'number',
           defaultValue: 5,
           min: 1,

@@ -6,9 +6,9 @@ import { FIXTURE } from './fixture-data'
 test('un Admin puede iniciar sesión y alcanzar la colección de Posts @smoke-cross-browser', async ({ page }) => {
   await page.goto('/admin/login')
 
-  await page.getByLabel('Email').fill(FIXTURE.adminEmail)
-  await page.getByLabel('Password').fill(FIXTURE.password)
-  await page.getByRole('button', { name: 'Login' }).click()
+  await page.getByLabel('Correo electrónico').fill(FIXTURE.adminEmail)
+  await page.getByLabel('Contraseña').fill(FIXTURE.password)
+  await page.getByRole('button', { name: 'Iniciar sesión' }).click()
 
   await expect(page).toHaveURL(/\/admin(\/)?$/)
 

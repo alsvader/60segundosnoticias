@@ -166,6 +166,7 @@ export function slugField({
         ),
       }
       Object.assign(slug, {
+        label: 'Slug (URL)',
         validate,
         custom: { ...slug.custom, slugify: slugifyFromAdmin },
         hooks: { ...slug.hooks, beforeValidate: [...(slug.hooks?.beforeValidate ?? []), fillUniqueSlug] },

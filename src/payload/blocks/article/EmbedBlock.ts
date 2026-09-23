@@ -2,10 +2,15 @@ import type { Block } from 'payload'
 
 export const EmbedBlock: Block = {
   slug: 'embedBlock',
+  labels: {
+    singular: 'Publicación incrustada',
+    plural: 'Publicaciones incrustadas',
+  },
   interfaceName: 'EmbedBlock',
   fields: [
     {
       name: 'provider',
+      label: 'Plataforma',
       type: 'select',
       required: true,
       defaultValue: 'generic',
@@ -15,11 +20,12 @@ export const EmbedBlock: Block = {
         { label: 'TikTok', value: 'tiktok' },
         { label: 'Facebook', value: 'facebook' },
         { label: 'LinkedIn', value: 'linkedin' },
-        { label: 'Generic', value: 'generic' },
+        { label: 'Genérico', value: 'generic' },
       ],
     },
     {
       name: 'url',
+      label: 'URL',
       type: 'text',
       required: true,
       admin: {
@@ -29,6 +35,7 @@ export const EmbedBlock: Block = {
     },
     {
       name: 'alignment',
+      label: 'Alineación',
       type: 'select',
       defaultValue: 'left',
       options: [

@@ -2,19 +2,24 @@ import type { Block } from 'payload'
 
 export const Hero: Block = {
   slug: 'hero',
+  labels: {
+    singular: 'Encabezado principal',
+    plural: 'Encabezados principales',
+  },
   interfaceName: 'HeroBlock',
   fields: [
-    { name: 'eyebrow', type: 'text' },
-    { name: 'title', type: 'text', required: true },
-    { name: 'description', type: 'textarea' },
-    { name: 'image', type: 'upload', relationTo: 'media' },
+    { name: 'eyebrow', label: 'Antetítulo', type: 'text' },
+    { name: 'title', label: 'Título', type: 'text', required: true },
+    { name: 'description', label: 'Descripción', type: 'textarea' },
+    { name: 'image', label: 'Imagen', type: 'upload', relationTo: 'media' },
     {
       name: 'alignment',
+      label: 'Alineación',
       type: 'select',
       defaultValue: 'left',
       options: [
-        { label: 'Left', value: 'left' },
-        { label: 'Center', value: 'center' },
+        { label: 'Izquierda', value: 'left' },
+        { label: 'Centro', value: 'center' },
       ],
     },
   ],

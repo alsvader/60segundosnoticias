@@ -15,6 +15,7 @@ import { generateHomePreviewURL } from '@/lib/preview/generate-preview-url'
 
 export const Home: GlobalConfig = {
   slug: 'home',
+  label: 'Portada',
   access: {
     read: () => true,
     update: isAdmin,
@@ -31,6 +32,8 @@ export const Home: GlobalConfig = {
   fields: [
     {
       name: 'layout',
+      label: 'Secciones',
+      labels: { singular: 'Sección', plural: 'Secciones' },
       type: 'blocks',
       blocks: [
         EditorialIntro,

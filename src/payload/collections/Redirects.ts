@@ -4,6 +4,10 @@ import { isAdmin } from '../access/roles.ts'
 
 export const Redirects: CollectionConfig = {
   slug: 'redirects',
+  labels: {
+    singular: 'Redirección',
+    plural: 'Redirecciones',
+  },
   admin: {
     useAsTitle: 'from',
   },
@@ -16,6 +20,7 @@ export const Redirects: CollectionConfig = {
   fields: [
     {
       name: 'from',
+      label: 'Desde (ruta de origen)',
       type: 'text',
       required: true,
       unique: true,
@@ -23,20 +28,23 @@ export const Redirects: CollectionConfig = {
     },
     {
       name: 'to',
+      label: 'Hacia (destino)',
       type: 'text',
       required: true,
     },
     {
       name: 'statusCode',
+      label: 'Código de estado',
       type: 'select',
       defaultValue: '301',
       options: [
-        { label: '301 (Permanent)', value: '301' },
-        { label: '302 (Temporary)', value: '302' },
+        { label: '301 (Permanente)', value: '301' },
+        { label: '302 (Temporal)', value: '302' },
       ],
     },
     {
       name: 'active',
+      label: 'Activa',
       type: 'checkbox',
       defaultValue: true,
     },

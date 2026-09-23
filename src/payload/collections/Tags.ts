@@ -5,6 +5,10 @@ import { slugField } from '../fields/slug-field.ts'
 
 export const Tags: CollectionConfig = {
   slug: 'tags',
+  labels: {
+    singular: 'Etiqueta',
+    plural: 'Etiquetas',
+  },
   admin: {
     useAsTitle: 'name',
   },
@@ -17,6 +21,7 @@ export const Tags: CollectionConfig = {
   fields: [
     {
       name: 'name',
+      label: 'Nombre',
       type: 'text',
       required: true,
       unique: true,

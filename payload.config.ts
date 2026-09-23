@@ -1,4 +1,5 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { es } from '@payloadcms/translations/languages/es'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
@@ -30,6 +31,13 @@ export default buildConfig({
   collections: [Users, Media, Categories, Tags, Posts, Pages, Redirects],
   globals: [Navigation, Footer, SiteSettings, Home, ArticleSidebar],
   plugins: [search, ...mediaStoragePlugins],
+  // Admin solo en español. Payload no acepta la llave `es-MX` (su lista
+  // cerrada `acceptedLanguages` solo trae `es` y reduce `es-MX` a `es`);
+  // con un único idioma soportado el admin no muestra selector de idioma.
+  i18n: {
+    supportedLanguages: { es },
+    fallbackLanguage: 'es',
+  },
   typescript: {
     outputFile: 'src/payload-types.ts',
   },

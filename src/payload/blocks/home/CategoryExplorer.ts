@@ -2,11 +2,16 @@ import type { Block } from 'payload'
 
 export const CategoryExplorer: Block = {
   slug: 'categoryExplorer',
+  labels: {
+    singular: 'Explorador de categorías',
+    plural: 'Exploradores de categorías',
+  },
   interfaceName: 'CategoryExplorerBlock',
   fields: [
-    { name: 'title', type: 'text' },
+    { name: 'title', label: 'Título', type: 'text' },
     {
       name: 'categories',
+      label: 'Categorías',
       type: 'relationship',
       relationTo: 'categories',
       hasMany: true,
@@ -14,9 +19,10 @@ export const CategoryExplorer: Block = {
         description: 'Categorías a mostrar, en el orden seleccionado.',
       },
     },
-    { name: 'showViewAll', type: 'checkbox', defaultValue: false },
+    { name: 'showViewAll', label: 'Mostrar "Ver todo"', type: 'checkbox', defaultValue: false },
     {
       name: 'viewAllLabel',
+      label: 'Texto de "Ver todo"',
       type: 'text',
       admin: {
         condition: (_, siblingData) => Boolean(siblingData?.showViewAll),
