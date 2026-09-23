@@ -267,6 +267,8 @@ export async function createDraftPost(
  * Lighthouse (openspec/changes/testing-qa-performance, tarea 8.3) mida una
  * Page representativa, no una página vacía con solo un título.
  */
+const PAGE_BANNER_TITLE = 'Banner de Page de fixture'
+
 export async function createPage(payload: Payload, media: Media): Promise<Page> {
   const existing = await payload.find({
     collection: 'pages',
@@ -274,8 +276,29 @@ export async function createPage(payload: Payload, media: Media): Promise<Page> 
     overrideAccess: true,
     where: { slug: { equals: 'fixture-page' } },
   })
-  if (existing.docs[0]) {
-    return existing.docs[0] as Page
+  // openspec/changes/redesign-banner-cta: cubre el modo `contained` y la
+  // variante `promotional` (responsive/a11y). Siempre al final del layout, así
+  // una Page de fixture ya existente converge al mismo orden que una nueva.
+  const banner = {
+    blockType: 'banner' as const,
+    title: PAGE_BANNER_TITLE,
+    description: 'Banner de fixture presentado como tarjeta dentro de la Page.',
+    image: media.id,
+    variant: 'promotional' as const,
+    link: { label: 'Ir al inicio', type: 'external' as const, url: 'http://localhost:3000/' },
+  }
+  const found = existing.docs[0] as Page | undefined
+  if (found) {
+    const layout = found.layout ?? []
+    if (layout.some((block) => block.blockType === 'banner' && block.title === PAGE_BANNER_TITLE)) {
+      return found
+    }
+    return (await payload.update({
+      collection: 'pages',
+      id: found.id,
+      data: { layout: [...layout, banner], _status: 'published' },
+      overrideAccess: true,
+    })) as Page
   }
   return (await payload.create({
     collection: 'pages',
@@ -295,6 +318,7 @@ export async function createPage(payload: Payload, media: Media): Promise<Page> 
           blockType: 'richText',
           content: richText(['Contenido fijo de la Page de fixture, representativo para medir Lighthouse.']),
         },
+        banner,
       ],
     },
     overrideAccess: true,
@@ -371,7 +395,7 @@ export async function configureShellGlobals(payload: Payload, categories: Catego
 
 /**
  * Home con bloques poblados (EditorialIntro, HeroNews, LatestPosts,
- * PostsByCategory) usando únicamente contenido de fixtures - openspec/
+ * PostsByCategory, dos Banners) usando únicamente contenido de fixtures - openspec/
  * changes/testing-qa-performance, tarea 8.3. Mismo patrón idempotente que
  * `src/payload/seed/dev.ts` (marcador fijo por bloque, nunca sobreescribe
  * un Home ya configurado por seed:initial o por un Admin real).
@@ -422,6 +446,34 @@ export async function configureHomeBlocks(
       limit: 6,
       layout: 'grid',
       showViewAll: false,
+    })
+  }
+
+  // openspec/changes/redesign-banner-cta: cubre fondo a ancho completo,
+  // alineación con el Container y contraste (`dark`) en responsive/a11y/visual.
+  const BANNER_TITLE = 'Banner de fixture'
+  if (!existingLayout.some((block) => block.blockType === 'banner' && block.title === BANNER_TITLE)) {
+    newBlocks.push({
+      blockType: 'banner',
+      title: BANNER_TITLE,
+      description: 'Invitación editorial de fixture hacia una sección del sitio.',
+      image: options.media.id,
+      variant: 'dark',
+      link: { label: 'Explorar sección', type: 'category', category: options.categories[0].id },
+    })
+  }
+
+  // Segundo Banner (`editorial`, sin imagen): composición centrada, contraste de
+  // la variante clara y varios Banners en el mismo Home. Después del `dark`
+  // para que el orden no dependa de si la base de pruebas es nueva o persistente.
+  const EDITORIAL_BANNER_TITLE = 'Banner editorial de fixture'
+  if (!existingLayout.some((block) => block.blockType === 'banner' && block.title === EDITORIAL_BANNER_TITLE)) {
+    newBlocks.push({
+      blockType: 'banner',
+      title: EDITORIAL_BANNER_TITLE,
+      description: 'Invitación editorial sin imagen, con el contenido centrado.',
+      variant: 'editorial',
+      link: { label: 'Ver sección', type: 'category', category: options.categories[1].id },
     })
   }
 

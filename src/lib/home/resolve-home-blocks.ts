@@ -314,7 +314,7 @@ function resolveBanner(block: RawHomeBlock & { blockType: 'banner' }, index: num
     banner: {
       title: block.title,
       description: block.description,
-      image: image ? { src: image.url, alt: image.alt } : undefined,
+      image: image ? { src: image.url, alt: image.alt, width: image.width, height: image.height } : undefined,
       link,
       variant: block.variant ?? 'editorial',
     },
