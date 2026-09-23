@@ -6,7 +6,6 @@ import { notFound, permanentRedirect } from 'next/navigation'
 
 import { ArticleAside } from '@/components/content/article-aside'
 import { ArticleHeader } from '@/components/content/article-header'
-import { AuthorCard } from '@/components/content/author-card'
 import { LexicalRenderer } from '@/components/content/lexical-renderer'
 import { RelatedPosts } from '@/components/content/related-posts'
 import { ShareActions } from '@/components/content/share-actions'
@@ -189,8 +188,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <ArticleMetadata
           variant="detailed"
           data={{
-            authorName: article.author?.displayName,
-            authorAvatar: article.author?.avatar,
             publishedAtLabel: article.publishedAtLabel,
             readingTimeMinutes: article.readingTimeMinutes,
           }}
@@ -246,8 +243,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       ) : null}
 
       <ShareActions url={canonicalUrl} title={article.title} />
-
-      {article.author ? <AuthorCard author={article.author} /> : null}
 
       <RelatedPosts posts={relatedPosts} />
     </Container>
