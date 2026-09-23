@@ -132,9 +132,9 @@
     "semantic_hash": "398529c816ac632cc95c0a178f6651ec"
   },
   "next-env.d.ts": {
-    "mtime": 1790106292.1878362,
-    "seen": 1790106763.380498,
-    "ast_hash": "8195d2c60ce847a459ae9d308d6a5724",
+    "mtime": 1790118981.8486097,
+    "seen": 1790120756.5739882,
+    "ast_hash": "aa94238a90e7d04b7a47ecc3145ba6a0",
     "semantic_hash": ""
   },
   "next.config.ts": {
@@ -3305,34 +3305,40 @@
     "ast_hash": "d864e8a034ca638f846d36d1e2af2308",
     "semantic_hash": ""
   },
-  "openspec/changes/admin-spanish-localization/.openspec.yaml": {
+  "openspec/changes/archive/2026-09-22-admin-spanish-localization/.openspec.yaml": {
     "mtime": 1790118175.6666088,
-    "seen": 1790118793.077097,
+    "seen": 1790120756.574374,
     "ast_hash": "f5f995c07cd71005f2198a9a87783ab6",
     "semantic_hash": ""
   },
-  "openspec/changes/admin-spanish-localization/design.md": {
+  "openspec/changes/archive/2026-09-22-admin-spanish-localization/design.md": {
     "mtime": 1790118250.329146,
-    "seen": 1790118793.077098,
+    "seen": 1790120756.574375,
     "ast_hash": "a3be8bd684f3cbb870c29170ca075774",
     "semantic_hash": ""
   },
-  "openspec/changes/admin-spanish-localization/proposal.md": {
+  "openspec/changes/archive/2026-09-22-admin-spanish-localization/proposal.md": {
     "mtime": 1790118218.5451987,
-    "seen": 1790118793.077098,
+    "seen": 1790120756.5743759,
     "ast_hash": "dc2be41b873e0912a8da44d7a641f1b4",
     "semantic_hash": ""
   },
-  "openspec/changes/admin-spanish-localization/specs/cms-admin-localization/spec.md": {
+  "openspec/changes/archive/2026-09-22-admin-spanish-localization/specs/cms-admin-localization/spec.md": {
     "mtime": 1790118250.308045,
-    "seen": 1790118793.077099,
+    "seen": 1790120756.574377,
     "ast_hash": "84320afbdfc870a04a80ece39ae10bd3",
     "semantic_hash": ""
   },
-  "openspec/changes/admin-spanish-localization/tasks.md": {
-    "mtime": 1790118722.526607,
-    "seen": 1790118793.0771,
-    "ast_hash": "d2535f8aef33bf82b1578072e369d6d0",
+  "openspec/changes/archive/2026-09-22-admin-spanish-localization/tasks.md": {
+    "mtime": 1790118797.9325647,
+    "seen": 1790120756.574377,
+    "ast_hash": "34aecb0ab6f4ad36659447adb21a887b",
+    "semantic_hash": ""
+  },
+  "openspec/specs/cms-admin-localization/spec.md": {
+    "mtime": 1790120747.216016,
+    "seen": 1790120756.574396,
+    "ast_hash": "e488061afe70e3624003e9e6c9e52f83",
     "semantic_hash": ""
   }
 }
