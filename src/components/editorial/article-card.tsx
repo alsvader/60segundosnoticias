@@ -50,7 +50,7 @@ export function ArticleCard({ article, variant = 'default', className }: Article
       className={cn(
         'group flex gap-4 rounded-xl border border-[var(--border-default)] bg-[var(--paper-50)] overflow-hidden',
         'outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
-        isCompact ? 'flex-row items-stretch p-0' : 'flex-col p-0',
+        isCompact ? '@container flex-row items-stretch p-0' : 'flex-col p-0',
         className,
       )}
     >
@@ -62,8 +62,10 @@ export function ArticleCard({ article, variant = 'default', className }: Article
           className={cn(
             'transition-transform duration-[var(--motion-normal)] ease-[var(--motion-ease)] group-hover:scale-[1.02]',
             // `self-stretch` fills the card's full height; the inline 16:9
-            // aspect-ratio only acts as the minimum height here.
-            isCompact ? 'w-28 sm:w-32 shrink-0 self-stretch' : 'w-full',
+            // aspect-ratio only acts as the minimum height here. Width scales
+            // with the card itself (container query), not the viewport, so
+            // narrow sidebars keep a thumbnail and wide list rows get more.
+            isCompact ? 'w-28 @sm:w-40 @lg:w-56 shrink-0 self-stretch' : 'w-full',
           )}
         />
       ) : null}
