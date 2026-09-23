@@ -12,7 +12,7 @@ Ningún componente de esta capability SHALL consultar Payload directamente (ni L
 - **THEN** no contiene ninguna llamada a Payload ni a la base de datos; toda su información llega por props
 
 ### Requirement: ArticleCard como fundación reutilizable
-El sistema SHALL proveer un componente `ArticleCard` único y reutilizable, sin duplicar una variante de componente por cada variante visual. `ArticleCard` SHALL definirse contra un contrato de datos propio del frontend (por ejemplo `ArticleCardData`), no contra el tipo `Post` generado por Payload. En la variante `compact`, la imagen SHALL ocupar todo el alto de la tarjeta, a sangre, recortada sin deformarse. El título de `ArticleCard` SHALL truncarse visualmente con elipsis a un máximo de 3 líneas en la variante `default` y 2 líneas en la variante `compact`, conservando el texto completo en el DOM.
+El sistema SHALL proveer un componente `ArticleCard` único y reutilizable, sin duplicar una variante de componente por cada variante visual. `ArticleCard` SHALL definirse contra un contrato de datos propio del frontend (por ejemplo `ArticleCardData`), no contra el tipo `Post` generado por Payload. En la variante `compact`, la imagen SHALL ocupar todo el alto de la tarjeta, a sangre, recortada sin deformarse, y su ancho SHALL adaptarse al ancho de la propia tarjeta (miniatura en tarjetas angostas, imagen más grande en tarjetas anchas). El título de `ArticleCard` SHALL truncarse visualmente con elipsis a un máximo de 3 líneas en la variante `default` y 2 líneas en la variante `compact`, conservando el texto completo en el DOM.
 
 #### Scenario: Se necesita otra variante visual de ArticleCard
 - **WHEN** una fase futura necesita una variante visual adicional de `ArticleCard`
@@ -24,7 +24,11 @@ El sistema SHALL proveer un componente `ArticleCard` único y reutilizable, sin 
 
 #### Scenario: Imagen de la variante compact a alto completo
 - **WHEN** se renderiza `ArticleCard` con `variant="compact"` y una imagen
-- **THEN** la imagen ocupa todo el alto de la tarjeta, sin padding alrededor, con ancho fijo y recorte `object-cover`
+- **THEN** la imagen ocupa todo el alto de la tarjeta, sin padding alrededor, con recorte `object-cover`
+
+#### Scenario: Ancho de la imagen compact según el ancho de la tarjeta
+- **WHEN** se renderiza `ArticleCard` con `variant="compact"` y una imagen en contenedores de distinto ancho
+- **THEN** la imagen mide 112 px en tarjetas angostas, 160 px desde 384 px de ancho de tarjeta y 224 px desde 512 px, sin depender del ancho del viewport
 
 #### Scenario: Título largo en ArticleCard
 - **WHEN** se renderiza `ArticleCard` con un título que ocupa más líneas que el máximo de su variante

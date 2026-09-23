@@ -51,6 +51,10 @@ Referencia: AC-HOME-009, §21 del Master Spec
 - **WHEN** `LatestPostsBlock` tiene `category` configurada
 - **THEN** `LatestPostsSection` solo muestra Posts publicados que pertenecen a esa categoría
 
+#### Scenario: LatestPosts con layout list en desktop
+- **WHEN** `LatestPostsBlock` usa `layout: list` y el viewport es de desktop (`lg` o mayor)
+- **THEN** `LatestPostsSection` distribuye las tarjetas `compact` en 2 columnas, sin estirar cada tarjeta a todo el ancho del contenedor; en viewports menores usa 1 columna
+
 Referencia: AC-HOME-010, §22 del Master Spec
 
 ### Requirement: PostsByCategorySection consulta automáticamente por categoría requerida
