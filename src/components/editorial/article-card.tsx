@@ -50,7 +50,7 @@ export function ArticleCard({ article, variant = 'default', className }: Article
       className={cn(
         'group flex gap-4 rounded-xl border border-[var(--border-default)] bg-[var(--paper-50)] overflow-hidden',
         'outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
-        isCompact ? 'flex-row items-center p-3' : 'flex-col p-0',
+        isCompact ? 'flex-row items-stretch p-0' : 'flex-col p-0',
         className,
       )}
     >
@@ -61,11 +61,18 @@ export function ArticleCard({ article, variant = 'default', className }: Article
           aspectRatio="16/9"
           className={cn(
             'transition-transform duration-[var(--motion-normal)] ease-[var(--motion-ease)] group-hover:scale-[1.02]',
-            isCompact ? 'w-28 shrink-0 rounded-lg' : 'w-full',
+            // `self-stretch` fills the card's full height; the inline 16:9
+            // aspect-ratio only acts as the minimum height here.
+            isCompact ? 'w-28 sm:w-32 shrink-0 self-stretch' : 'w-full',
           )}
         />
       ) : null}
-      <div className={cn('flex flex-col gap-2', isCompact ? '' : 'p-4')}>
+      <div
+        className={cn(
+          'flex flex-col gap-2',
+          isCompact ? cn('self-center py-3 pr-3', !article.image && 'pl-3') : 'p-4',
+        )}
+      >
         {article.category ? (
           <CategoryBadge
             name={article.category.name}
