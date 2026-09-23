@@ -15,7 +15,7 @@ export function ArticleAside({ heading, posts }: ArticleAsideProps) {
   if (posts.length === 0) return null
 
   return (
-    <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
+    <aside className="flex flex-col gap-4 lg:sticky lg:top-28 lg:self-start">
       <h2 className="type-section-heading font-[var(--font-display)] font-semibold text-[var(--ink-950)]">
         {heading}
       </h2>

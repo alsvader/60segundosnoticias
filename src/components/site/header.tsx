@@ -6,6 +6,7 @@ import { HeaderSearch } from '@/components/site/header-search'
 import { MobileNav } from '@/components/site/mobile-nav'
 import { Button } from '@/components/ui/button'
 import type { ResolvedLink, ResolvedNavItem } from '@/lib/url/resolve-link'
+import { cn } from '@/lib/utils'
 
 export type HeaderProps = {
   siteName: string
@@ -22,14 +23,27 @@ export type HeaderProps = {
 export function Header({ siteName, logo, navItems, cta }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--border-default)] bg-[var(--paper)]">
-      <Container className="flex h-16 items-center justify-between gap-4 md:h-20">
+      <Container className="flex h-[72px] items-center justify-between gap-4 md:h-[88px]">
         <Link
           href="/"
-          className="flex items-center gap-2 rounded-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          className={cn(
+            'relative z-10 flex shrink-0 items-center gap-2 rounded-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+            // The badge is taller than the desktop bar: anchor it to the top so it
+            // hangs below the bottom border instead of overflowing both edges.
+            logo && 'md:mt-2 md:self-start',
+          )}
           aria-label={`${siteName} — inicio`}
         >
           {logo ? (
-            <Image src={logo.src} alt={logo.alt} width={140} height={32} priority unoptimized />
+            <Image
+              src={logo.src}
+              alt={logo.alt}
+              width={100}
+              height={100}
+              priority
+              unoptimized
+              className="h-14 w-auto max-w-[260px] object-contain md:h-[100px] md:drop-shadow-md"
+            />
           ) : (
             <span className="type-label-uppercase text-[var(--brand-red-500)]">{siteName}</span>
           )}

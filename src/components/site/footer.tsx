@@ -28,7 +28,16 @@ export function Footer({ logo, description, columns, socialLinks, legalLinks, co
       <Container className="flex flex-col gap-10 py-12">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div className="flex flex-col gap-3">
-            {logo ? <Image src={logo.src} alt={logo.alt} width={120} height={28} unoptimized /> : null}
+            {logo ? (
+              <Image
+                src={logo.src}
+                alt={logo.alt}
+                width={80}
+                height={80}
+                unoptimized
+                className="h-20 w-auto max-w-[240px] self-start object-contain"
+              />
+            ) : null}
             {description ? <p className="type-body text-[var(--ink-700)]">{description}</p> : null}
             {socialLinks && socialLinks.length > 0 ? (
               <ul className="flex gap-3">
