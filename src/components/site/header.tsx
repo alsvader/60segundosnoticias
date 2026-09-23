@@ -49,49 +49,53 @@ export function Header({ siteName, logo, navItems, cta }: HeaderProps) {
           )}
         </Link>
 
-        <nav aria-label="Principal" className="hidden md:block">
-          <ul className="flex items-center gap-6">
-            {navItems.map((item) =>
-              item.children && item.children.length > 0 ? (
-                <li key={item.href}>
-                  <details className="group relative">
-                    <summary className="type-label-uppercase cursor-pointer list-none rounded-sm text-sm text-[var(--ink-950)] outline-none marker:content-none focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
-                      {item.label}
-                    </summary>
-                    <ul className="absolute top-full left-0 z-10 mt-2 min-w-40 rounded-lg border border-[var(--border-default)] bg-[var(--paper-50)] p-2 shadow-md">
-                      {item.children.map((child) => (
-                        <li key={child.href}>
-                          <Link
-                            href={child.href}
-                            target={child.openInNewTab ? '_blank' : undefined}
-                            rel={child.openInNewTab ? 'noopener noreferrer' : undefined}
-                            className="type-metadata block rounded-md px-3 py-2 text-[var(--ink-800)] outline-none hover:bg-[var(--paper-200)] focus-visible:ring-3 focus-visible:ring-ring/50"
-                          >
-                            {child.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                </li>
-              ) : (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    target={item.openInNewTab ? '_blank' : undefined}
-                    rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
-                    className="type-label-uppercase rounded-sm text-sm text-[var(--ink-950)] outline-none hover:text-[var(--brand-red-600)] focus-visible:ring-3 focus-visible:ring-ring/50"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ),
-            )}
-          </ul>
-        </nav>
-
-        <div className="flex items-center gap-2">
-          <HeaderSearch />
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {/* Positioning context for HeaderSearch's input: expanded, it covers
+              this whole zone (the nav) without reflowing it. mx-auto + gap-4
+              keeps the nav where justify-between used to put it. */}
+          <div className="relative flex min-w-0 flex-1 items-center gap-4">
+            <nav aria-label="Principal" className="hidden md:mx-auto md:block">
+              <ul className="flex items-center gap-6">
+                {navItems.map((item) =>
+                  item.children && item.children.length > 0 ? (
+                    <li key={item.href}>
+                      <details className="group relative">
+                        <summary className="type-label-uppercase cursor-pointer list-none rounded-sm text-sm text-[var(--ink-950)] outline-none marker:content-none focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
+                          {item.label}
+                        </summary>
+                        <ul className="absolute top-full left-0 z-10 mt-2 min-w-40 rounded-lg border border-[var(--border-default)] bg-[var(--paper-50)] p-2 shadow-md">
+                          {item.children.map((child) => (
+                            <li key={child.href}>
+                              <Link
+                                href={child.href}
+                                target={child.openInNewTab ? '_blank' : undefined}
+                                rel={child.openInNewTab ? 'noopener noreferrer' : undefined}
+                                className="type-metadata block rounded-md px-3 py-2 text-[var(--ink-800)] outline-none hover:bg-[var(--paper-200)] focus-visible:ring-3 focus-visible:ring-ring/50"
+                              >
+                                {child.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    </li>
+                  ) : (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        target={item.openInNewTab ? '_blank' : undefined}
+                        rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
+                        className="type-label-uppercase rounded-sm text-sm text-[var(--ink-950)] outline-none hover:text-[var(--brand-red-600)] focus-visible:ring-3 focus-visible:ring-ring/50"
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ),
+                )}
+              </ul>
+            </nav>
+            <HeaderSearch />
+          </div>
           {cta ? (
             <Button asChild size="sm" className="hidden md:inline-flex">
               <Link href={cta.href} target={cta.openInNewTab ? '_blank' : undefined}>
